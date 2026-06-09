@@ -14,7 +14,9 @@ const Forums = () => {
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [newPost, setNewPost] = useState({ title: "", content: "", category: "programming", tags: "" });
+  const [newPost, setNewPost] = useState({ title: "", content: "", category: "programming" });
+  const [postTags, setPostTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
 
   const { data: posts = [], isLoading } = useForumPosts(activeCategory === "all" ? undefined : activeCategory);
@@ -67,22 +69,38 @@ const Forums = () => {
     toggleLikeMutation.mutate({ postId, liked: userLiked });
   };
 
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+      e.preventDefault();
+      const tag = tagInput.trim().replace(/^#/, '');
+      if (tag && !postTags.includes(tag) && postTags.length < 5) {
+        setPostTags(prev => [...prev, tag]);
+      }
+      setTagInput("");
+    } else if (e.key === 'Backspace' && !tagInput && postTags.length > 0) {
+      setPostTags(prev => prev.slice(0, -1));
+    }
+  };
+
   const handleCreatePost = async () => {
     if (!user) { navigate('/auth'); return; }
     if (!newPost.title.trim() || !newPost.content.trim()) {
       toast.error("სათაური და შინაარსი სავალდებულოა");
       return;
     }
+    const finalTags = tagInput.trim() ? [...postTags, tagInput.trim().replace(/^#/, '')] : postTags;
     try {
       await createPost.mutateAsync({
         title: newPost.title.trim(),
         content: newPost.content.trim(),
         category: newPost.category,
-        tags: newPost.tags.split(",").map(t => t.trim()).filter(Boolean),
+        tags: finalTags,
       });
       toast.success("პოსტი გამოქვეყნდა!");
       setShowModal(false);
-      setNewPost({ title: "", content: "", category: "programming", tags: "" });
+      setNewPost({ title: "", content: "", category: "programming" });
+      setPostTags([]);
+      setTagInput("");
     } catch {
       toast.error("პოსტის შექმნა ვერ მოხერხდა");
     }
@@ -108,55 +126,123 @@ const Forums = () => {
       {/* Create Post Modal */}
       {showModal && (
         <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '560px', overflow: 'hidden', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '600px', overflow: 'hidden', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
+            {/* Header */}
+            <div style={{ padding: '18px 24px', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <h2 style={{ fontWeight: '700', fontSize: '18px', color: '#000' }}>პოსტის შექმნა</h2>
-              <button onClick={() => setShowModal(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: '#f3f2ef', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <X style={{ width: '16px', height: '16px', color: '#666' }} />
+              <button onClick={() => setShowModal(false)} style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: '#f3f2ef', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }} onMouseEnter={e => (e.currentTarget.style.background = '#e8e6e3')} onMouseLeave={e => (e.currentTarget.style.background = '#f3f2ef')}>
+                <X style={{ width: '18px', height: '18px', color: '#666' }} />
               </button>
             </div>
-            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+              {/* Author */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: getAvatarColor(displayName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', flexShrink: 0 }}>
-                  {avatarLetter}
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={displayName} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: getAvatarColor(displayName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', flexShrink: 0 }}>
+                    {avatarLetter}
+                  </div>
+                )}
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '14px', color: '#000' }}>{displayName}</div>
+                  <div style={{ fontSize: '12px', color: '#666' }}>CodeZero Academy წევრი</div>
                 </div>
-                <div style={{ fontWeight: '600', fontSize: '14px', color: '#000' }}>{displayName}</div>
               </div>
+
+              {/* Title */}
               <input
                 value={newPost.title}
                 onChange={e => setNewPost(p => ({ ...p, title: e.target.value }))}
                 placeholder="სათაური *"
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', color: '#000', background: '#fff' }}
+                style={{ padding: '12px 16px', borderRadius: '10px', border: '1.5px solid #e0e0e0', fontSize: '15px', outline: 'none', width: '100%', boxSizing: 'border-box', color: '#000', background: '#fff', fontWeight: '600', transition: 'border-color 0.15s' }}
+                onFocus={e => (e.currentTarget.style.borderColor = '#0a66c2')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#e0e0e0')}
               />
-              <textarea
-                value={newPost.content}
-                onChange={e => setNewPost(p => ({ ...p, content: e.target.value }))}
-                placeholder="რის გაზიარება გსურთ?"
-                rows={5}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', color: '#000', background: '#fff' }}
-              />
-              <div style={{ display: 'flex', gap: '10px' }}>
-                <select
-                  value={newPost.category}
-                  onChange={e => setNewPost(p => ({ ...p, category: e.target.value }))}
-                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#000' }}
-                >
-                  <option value="programming">პროგრამირება</option>
-                  <option value="design">დიზაინი</option>
-                  <option value="business">ბიზნესი</option>
-                  <option value="help">დახმარება</option>
-                </select>
-                <input
-                  value={newPost.tags}
-                  onChange={e => setNewPost(p => ({ ...p, tags: e.target.value }))}
-                  placeholder="ტეგები (React, Python...)"
-                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', boxSizing: 'border-box', color: '#000', background: '#fff' }}
+
+              {/* Content */}
+              <div style={{ position: 'relative' }}>
+                <textarea
+                  value={newPost.content}
+                  onChange={e => setNewPost(p => ({ ...p, content: e.target.value }))}
+                  placeholder="რის გაზიარება გსურთ?"
+                  rows={6}
+                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1.5px solid #e0e0e0', fontSize: '15px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', color: '#000', background: '#fff', lineHeight: '1.6', transition: 'border-color 0.15s' }}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#0a66c2')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#e0e0e0')}
                 />
+                <div style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '11px', color: '#999' }}>
+                  {newPost.content.length}/2000
+                </div>
               </div>
+
+              {/* Category Pills */}
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#333', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>კატეგორია</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {[
+                    { id: 'programming', name: 'პროგრამირება', color: '#1d4ed8', bg: '#dbeafe' },
+                    { id: 'design', name: 'დიზაინი', color: '#be185d', bg: '#fce7f3' },
+                    { id: 'business', name: 'ბიზნესი', color: '#d97706', bg: '#fef3c7' },
+                    { id: 'help', name: 'დახმარება', color: '#059669', bg: '#d1fae5' },
+                  ].map((cat) => {
+                    const isActive = newPost.category === cat.id;
+                    return (
+                      <button key={cat.id} onClick={() => setNewPost(p => ({ ...p, category: cat.id }))}
+                        style={{
+                          padding: '8px 16px', borderRadius: '24px', border: isActive ? '2px solid ' + cat.color : '1.5px solid ' + cat.bg,
+                          background: isActive ? cat.color : cat.bg, color: isActive ? '#fff' : cat.color,
+                          fontWeight: isActive ? '700' : '600', fontSize: '13px', cursor: 'pointer',
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {cat.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Tag Chips */}
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#333', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ტეგები ({postTags.length}/5)</div>
+                <div style={{ padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #e0e0e0', background: '#f9f9f9', minHeight: '44px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', transition: 'border-color 0.15s' }}
+                  onClick={e => { if (e.currentTarget === e.target) (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus(); }}
+                >
+                  {postTags.map((tag, i) => (
+                    <span key={i} style={{ padding: '4px 10px', borderRadius: '16px', background: '#0a66c2', color: '#fff', fontSize: '13px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      #{tag}
+                      <button onClick={() => setPostTags(prev => prev.filter((_, idx) => idx !== i))}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: '0', display: 'flex', alignItems: 'center', fontSize: '12px' }}
+                      >
+                        <X style={{ width: '12px', height: '12px' }} />
+                      </button>
+                    </span>
+                  ))}
+                  <input
+                    value={tagInput}
+                    onChange={e => setTagInput(e.target.value)}
+                    onKeyDown={handleTagKeyDown}
+                    placeholder={postTags.length === 0 ? "დაწერე ტეგი და დააჭირე Enter-ს..." : ""}
+                    style={{ flex: 1, minWidth: '100px', padding: '6px 4px', border: 'none', outline: 'none', fontSize: '14px', color: '#000', background: 'transparent', fontFamily: 'inherit' }}
+                  />
+                </div>
+                <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>Enter ან comma (,) ტეგის დასამატებლად</div>
+              </div>
+
+              {/* Submit */}
               <button
                 onClick={handleCreatePost}
-                disabled={createPost.isPending}
-                style={{ padding: '12px', borderRadius: '24px', border: 'none', background: '#0a66c2', color: '#fff', fontWeight: '700', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: createPost.isPending ? 0.7 : 1 }}
+                disabled={createPost.isPending || !newPost.title.trim() || !newPost.content.trim()}
+                style={{
+                  padding: '14px', borderRadius: '28px', border: 'none',
+                  background: newPost.title.trim() && newPost.content.trim() ? '#0a66c2' : '#e0e0e0',
+                  color: newPost.title.trim() && newPost.content.trim() ? '#fff' : '#999',
+                  fontWeight: '700', fontSize: '15px', cursor: newPost.title.trim() && newPost.content.trim() ? 'pointer' : 'default',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+                  transition: 'all 0.15s',
+                }}
               >
                 {createPost.isPending ? <Loader2 style={{ width: '18px', height: '18px', animation: 'spin 1s linear infinite' }} /> : <Plus style={{ width: '18px', height: '18px' }} />}
                 გამოქვეყნება
