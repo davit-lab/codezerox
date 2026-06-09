@@ -104,6 +104,23 @@ const DirectChat = () => {
     };
   }, [user]);
 
+  // Demo mode: Listen for incoming calls via localStorage
+  useEffect(() => {
+    const handleIncomingCall = (e: StorageEvent) => {
+      if (e.key === 'demo-call' && e.newValue) {
+        const callData = JSON.parse(e.newValue);
+        if (callData.receiverId === user?.id) {
+          toast.info(`გამოგიგზავნეს ${callData.callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი! (demo)`);
+          setCurrentCallId(callData.callId);
+          setIsInCall(true);
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleIncomingCall);
+    return () => window.removeEventListener('storage', handleIncomingCall);
+  }, [user]);
+
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
   }, [authLoading, user]);
@@ -292,11 +309,19 @@ const DirectChat = () => {
       setIsInCall(true);
       toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო (demo mode)`);
       
-      // Simulate incoming call for receiver (in real app, this would be via realtime)
-      // For demo, we'll just show a notification after 2 seconds
+      // Send demo call via localStorage for cross-tab communication
+      localStorage.setItem('demo-call', JSON.stringify({
+        callId: tempCallId,
+        receiverId: otherUserId,
+        callerId: user?.id,
+        callType,
+        timestamp: Date.now()
+      }));
+      
+      // Clear after 5 seconds
       setTimeout(() => {
-        toast.info(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი მიმდინარეობს... (demo)`);
-      }, 2000);
+        localStorage.removeItem('demo-call');
+      }, 5000);
     }
   };
 
