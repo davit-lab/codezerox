@@ -121,6 +121,14 @@ const DirectChat = () => {
     return () => window.removeEventListener('storage', handleIncomingCall);
   }, [user]);
 
+  // Test function to simulate incoming call (for demo purposes)
+  const simulateIncomingCall = () => {
+    const tempCallId = crypto.randomUUID();
+    toast.info('სიმულირებული ზარი! (test)');
+    setCurrentCallId(tempCallId);
+    setIsInCall(true);
+  };
+
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
   }, [authLoading, user]);
@@ -557,6 +565,14 @@ const DirectChat = () => {
                           <PhoneOff className="w-4 h-4" />
                         </button>
                       )}
+                      {/* Test button for demo */}
+                      <button 
+                        onClick={simulateIncomingCall}
+                        className="p-2.5 rounded-xl text-amber-500/50 hover:text-amber-500 hover:bg-amber-500/10 transition-all"
+                        title="ტესტი: სიმულირებული ზარი"
+                      >
+                        <Phone className="w-4 h-4" />
+                      </button>
                       <button className="p-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all">
                         <MoreVertical className="w-4 h-4" />
                       </button>
