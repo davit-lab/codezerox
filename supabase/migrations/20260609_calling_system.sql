@@ -13,9 +13,9 @@ EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 -- Calls table
 CREATE TABLE IF NOT EXISTS public.calls (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  caller_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  receiver_id uuid NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  conversation_id uuid NOT NULL REFERENCES public.direct_conversations(id) ON DELETE CASCADE,
+  caller_id uuid NOT NULL,
+  receiver_id uuid NOT NULL,
+  conversation_id uuid NOT NULL,
   call_type public.call_type NOT NULL DEFAULT 'audio',
   status public.call_status NOT NULL DEFAULT 'initiated',
   started_at timestamptz NOT NULL DEFAULT now(),

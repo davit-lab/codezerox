@@ -4,182 +4,167 @@ import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
-import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, Code, Palette, Briefcase, HelpCircle, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, Image, Video, FileText } from "lucide-react";
+import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
+import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, Code, Palette, Briefcase, HelpCircle, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, Image, Video, FileText, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Forums = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [newPost, setNewPost] = useState({ title: "", content: "", category: "programming", tags: "" });
+  const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
+
+  const { data: posts = [], isLoading } = useForumPosts(activeCategory === "all" ? undefined : activeCategory);
+  const { data: myPostCount = 0 } = useMyForumPostCount(user?.id);
+  const createPost = useCreateForumPost();
+  const toggleLikeMutation = useToggleForumLike();
 
   const categories = [
-    { id: "all", name: "ყველა", icon: TrendingUp, color: "from-purple-500 to-pink-500" },
-    { id: "programming", name: "პროგრამირება", icon: Code, color: "from-blue-500 to-cyan-500" },
-    { id: "design", name: "დიზაინი", icon: Palette, color: "from-pink-500 to-rose-500" },
-    { id: "business", name: "ბიზნესი", icon: Briefcase, color: "from-amber-500 to-orange-500" },
-    { id: "help", name: "დახმარება", icon: HelpCircle, color: "from-emerald-500 to-teal-500" },
+    { id: "all", name: "ყველა", icon: TrendingUp },
+    { id: "programming", name: "პროგრამირება", icon: Code },
+    { id: "design", name: "დიზაინი", icon: Palette },
+    { id: "business", name: "ბიზნესი", icon: Briefcase },
+    { id: "help", name: "დახმარება", icon: HelpCircle },
   ];
 
-  const mockPosts = [
-    {
-      id: "1",
-      title: "React კომპონენტების ოპტიმიზაცია - საუკეთესო პრაქტიკები",
-      content: "გავნახოთ როგორ შეგვიძლია გავაუმჯობესოთ React აპლიკაციების წარმადოება...",
-      author: "გიორგი ბერიძე",
-      authorAvatar: null,
-      category: "programming",
-      tags: ["React", "Performance", "Optimization"],
-      likes: 45,
-      views: 234,
-      replies: 12,
-      createdAt: "2024-06-09T10:30:00",
-      isHot: true
-    },
-    {
-      id: "2",
-      title: "UI/UX დიზაინის ტრენდები 2024 წელს",
-      content: "რა არის ახალი და პოპულარული დიზაინში ამ წელს? განვიხილოთ უახლესი ტრენდები...",
-      author: "ნინო ჩხეიძე",
-      authorAvatar: null,
-      category: "design",
-      tags: ["UI/UX", "Trends", "2024"],
-      likes: 38,
-      views: 189,
-      replies: 8,
-      createdAt: "2024-06-08T15:45:00",
-      isHot: true
-    },
-    {
-      id: "3",
-      title: "როგორ დავიწყო ფრილანსინგის კარიერა?",
-      content: "გავიგოთ რა სჭირდება წარმატებული ფრილანსერის გახდომას...",
-      author: "დავით მამარდაშვილი",
-      authorAvatar: null,
-      category: "business",
-      tags: ["Freelancing", "Career", "Tips"],
-      likes: 67,
-      views: 456,
-      replies: 23,
-      createdAt: "2024-06-07T09:15:00",
-      isHot: true
-    },
-    {
-      id: "4",
-      title: "Python საწყისი დონე - სადიდან დავიწყო?",
-      content: "დამწყებთათვის განმარტებული გზამკვლევი Python-ის შესწავლისთვის...",
-      author: "ლევან კაკაბაძე",
-      authorAvatar: null,
-      category: "help",
-      tags: ["Python", "Beginner", "Learning"],
-      likes: 23,
-      views: 145,
-      replies: 15,
-      createdAt: "2024-06-06T14:20:00",
-      isHot: false
-    },
-    {
-      id: "5",
-      title: "TypeScript vs JavaScript - რას ავირჩიო?",
-      content: "შევადაროთ TypeScript და JavaScript და გავიგოთ რომელი უკეთესაა თქვენი პროექტისთვის...",
-      author: "მარიამ ალექსიძე",
-      authorAvatar: null,
-      category: "programming",
-      tags: ["TypeScript", "JavaScript", "Comparison"],
-      likes: 56,
-      views: 312,
-      replies: 18,
-      createdAt: "2024-06-05T11:00:00",
-      isHot: true
-    },
-    {
-      id: "6",
-      title: "Figma პლაგინები რომლებიც უნდა იცოდეთ",
-      content: "განვიხილოთ საუკეთესო Figma პლაგინები რომლებიც გაადვილებს თქვენს სამუშაოს...",
-      author: "ანა გიორგაძე",
-      authorAvatar: null,
-      category: "design",
-      tags: ["Figma", "Plugins", "Productivity"],
-      likes: 31,
-      views: 178,
-      replies: 7,
-      createdAt: "2024-06-04T16:30:00",
-      isHot: false
-    }
-  ];
-
-  const filteredPosts = mockPosts.filter(post => {
-    const matchesCategory = activeCategory === "all" || post.category === activeCategory;
-    const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesCategory && matchesSearch;
+  const filteredPosts = posts.filter(post => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    return post.title.toLowerCase().includes(q) ||
+      post.content.toLowerCase().includes(q) ||
+      post.tags.some(tag => tag.toLowerCase().includes(q));
   });
 
   const getAvatarColor = (name: string) => {
-    const colors = ['#5b6abf', '#bf5b7a', '#5bab8f', '#a67bbf', '#bf8c5b', '#6b8fbf', '#8fbf5b', '#bf5b5b'];
+    const colors = ['#0a66c2', '#7c3aed', '#059669', '#dc2626', '#d97706', '#0891b2', '#be185d', '#4f46e5'];
     let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return colors[Math.abs(hash) % colors.length];
   };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
+    const diffMs = Date.now() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
     if (diffMins < 1) return "ახლახანს";
-    if (diffMins < 60) return `${diffMins} წუთის წინ`;
-    if (diffHours < 24) return `${diffHours} საათის წინ`;
+    if (diffMins < 60) return `${diffMins} წთ წინ`;
+    if (diffHours < 24) return `${diffHours} სთ წინ`;
     if (diffDays < 7) return `${diffDays} დღის წინ`;
     return date.toLocaleDateString('ka-GE');
   };
 
-  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
-  const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
-  const [newPostText, setNewPostText] = useState("");
-
-  const toggleLike = (id: string) => {
-    setLikedPosts(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
-
   const toggleSave = (id: string) => {
-    setSavedPosts(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
+    setSavedPosts(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
   };
 
-  const handleCreatePost = () => {
+  const handleToggleLike = (postId: string, userLiked: boolean) => {
     if (!user) { navigate('/auth'); return; }
-    if (!newPostText.trim()) return;
-    toast.success('პოსტი გამოქვეყნდა!');
-    setNewPostText("");
+    toggleLikeMutation.mutate({ postId, liked: userLiked });
+  };
+
+  const handleCreatePost = async () => {
+    if (!user) { navigate('/auth'); return; }
+    if (!newPost.title.trim() || !newPost.content.trim()) {
+      toast.error("სათაური და შინაარსი სავალდებულოა");
+      return;
+    }
+    try {
+      await createPost.mutateAsync({
+        title: newPost.title.trim(),
+        content: newPost.content.trim(),
+        category: newPost.category,
+        tags: newPost.tags.split(",").map(t => t.trim()).filter(Boolean),
+      });
+      toast.success("პოსტი გამოქვეყნდა!");
+      setShowModal(false);
+      setNewPost({ title: "", content: "", category: "programming", tags: "" });
+    } catch {
+      toast.error("პოსტის შექმნა ვერ მოხერხდა");
+    }
   };
 
   const trendingTopics = [
-    { tag: "React", posts: 142 },
-    { tag: "Python", posts: 98 },
-    { tag: "TypeScript", posts: 76 },
-    { tag: "UI/UX", posts: 54 },
-    { tag: "Freelancing", posts: 43 },
+    { tag: "React", posts: filteredPosts.filter(p => p.tags.includes("React")).length || 0 },
+    { tag: "Python", posts: filteredPosts.filter(p => p.tags.includes("Python")).length || 0 },
+    { tag: "TypeScript", posts: filteredPosts.filter(p => p.tags.includes("TypeScript")).length || 0 },
+    { tag: "UI/UX", posts: filteredPosts.filter(p => p.tags.includes("UI/UX")).length || 0 },
+    { tag: "Freelancing", posts: filteredPosts.filter(p => p.tags.includes("Freelancing")).length || 0 },
   ];
+
+  const displayName = profile?.full_name || user?.email?.split('@')[0] || 'სტუმარი';
+  const avatarLetter = displayName.charAt(0).toUpperCase();
 
   return (
     <>
       <SEOHead title="ფორუმები" description="მონაწილეთ საზოგადოებაში და გააზიარეთ ცოდნა" path="/forums" />
       <Atmosphere />
       <Header />
+
+      {/* Create Post Modal */}
+      {showModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '560px', overflow: 'hidden', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
+            <div style={{ padding: '16px 20px', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <h2 style={{ fontWeight: '700', fontSize: '18px', color: '#000' }}>პოსტის შექმნა</h2>
+              <button onClick={() => setShowModal(false)} style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: '#f3f2ef', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X style={{ width: '16px', height: '16px', color: '#666' }} />
+              </button>
+            </div>
+            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: getAvatarColor(displayName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', flexShrink: 0 }}>
+                  {avatarLetter}
+                </div>
+                <div style={{ fontWeight: '600', fontSize: '14px', color: '#000' }}>{displayName}</div>
+              </div>
+              <input
+                value={newPost.title}
+                onChange={e => setNewPost(p => ({ ...p, title: e.target.value }))}
+                placeholder="სათაური *"
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+              />
+              <textarea
+                value={newPost.content}
+                onChange={e => setNewPost(p => ({ ...p, content: e.target.value }))}
+                placeholder="რის გაზიარება გსურთ?"
+                rows={5}
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
+              />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <select
+                  value={newPost.category}
+                  onChange={e => setNewPost(p => ({ ...p, category: e.target.value }))}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', background: '#fff', cursor: 'pointer' }}
+                >
+                  <option value="programming">პროგრამირება</option>
+                  <option value="design">დიზაინი</option>
+                  <option value="business">ბიზნესი</option>
+                  <option value="help">დახმარება</option>
+                </select>
+                <input
+                  value={newPost.tags}
+                  onChange={e => setNewPost(p => ({ ...p, tags: e.target.value }))}
+                  placeholder="ტეგები (React, Python...)"
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <button
+                onClick={handleCreatePost}
+                disabled={createPost.isPending}
+                style={{ padding: '12px', borderRadius: '24px', border: 'none', background: '#0a66c2', color: '#fff', fontWeight: '700', fontSize: '15px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', opacity: createPost.isPending ? 0.7 : 1 }}
+              >
+                {createPost.isPending ? <Loader2 style={{ width: '18px', height: '18px', animation: 'spin 1s linear infinite' }} /> : <Plus style={{ width: '18px', height: '18px' }} />}
+                გამოქვეყნება
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main style={{ minHeight: '100vh', backgroundColor: '#f3f2ef', paddingTop: '88px', paddingBottom: '40px' }}>
         <div style={{ maxWidth: '1128px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}
@@ -192,31 +177,27 @@ const Forums = () => {
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', overflow: 'hidden' }}>
               <div style={{ height: '60px', background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)' }} />
               <div style={{ padding: '0 16px 16px', textAlign: 'center' }}>
-                <div style={{
-                  width: '72px', height: '72px', borderRadius: '50%',
-                  background: getAvatarColor(user?.email || 'U'),
-                  border: '3px solid #fff', margin: '-36px auto 8px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '28px', fontWeight: 'bold', color: '#fff',
-                }}>
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
-                </div>
-                <div style={{ fontWeight: '600', fontSize: '16px', color: '#000', marginBottom: '2px' }}>
-                  {user?.email?.split('@')[0] || 'სტუმარი'}
-                </div>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={displayName} style={{ width: '72px', height: '72px', borderRadius: '50%', border: '3px solid #fff', margin: '-36px auto 8px', objectFit: 'cover', display: 'block' }} />
+                ) : (
+                  <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: getAvatarColor(displayName), border: '3px solid #fff', margin: '-36px auto 8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px', fontWeight: 'bold', color: '#fff' }}>
+                    {avatarLetter}
+                  </div>
+                )}
+                <div style={{ fontWeight: '600', fontSize: '16px', color: '#000', marginBottom: '2px' }}>{displayName}</div>
                 <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>CodeZero Academy წევრი</div>
                 <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '12px', display: 'flex', justifyContent: 'space-between' }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>24</div>
+                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>{myPostCount}</div>
                     <div style={{ fontSize: '12px', color: '#666' }}>პოსტი</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>138</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>კავშირი</div>
+                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>{posts.length}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>ყველა</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>7</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>სერტ.</div>
+                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>{posts.reduce((s, p) => s + (p.likes_count ?? 0), 0)}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>მოწ.</div>
                   </div>
                 </div>
               </div>
@@ -271,16 +252,20 @@ const Forums = () => {
             {/* Create Post Box */}
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-                <div style={{
-                  width: '48px', height: '48px', borderRadius: '50%',
-                  background: getAvatarColor(user?.email || 'U'),
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
-                }}>
-                  {user?.email?.charAt(0).toUpperCase() || 'U'}
-                </div>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={displayName} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{
+                    width: '48px', height: '48px', borderRadius: '50%',
+                    background: getAvatarColor(displayName),
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
+                  }}>
+                    {avatarLetter}
+                  </div>
+                )}
                 <button
-                  onClick={() => !user && navigate('/auth')}
+                  onClick={() => user ? setShowModal(true) : navigate('/auth')}
                   style={{
                     flex: 1, padding: '12px 16px', borderRadius: '24px',
                     border: '1px solid #c9cdd2', background: '#fff',
@@ -299,7 +284,7 @@ const Forums = () => {
                   { icon: Video, label: 'ვიდეო', color: '#7fc15e' },
                   { icon: FileText, label: 'სტატია', color: '#e06847' },
                 ].map(({ icon: Icon, label, color }) => (
-                  <button key={label} onClick={() => !user ? navigate('/auth') : toast.info(`${label} მალე`)}
+                  <button key={label} onClick={() => !user ? navigate('/auth') : setShowModal(true)}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#666', fontSize: '13px', fontWeight: '600', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
                     onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
@@ -319,31 +304,57 @@ const Forums = () => {
             </div>
 
             {/* Posts */}
-            {filteredPosts.length === 0 ? (
+            {isLoading ? (
+              [1,2,3].map(i => (
+                <div key={i} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '20px' }}>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e0e0e0' }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ height: '14px', background: '#e0e0e0', borderRadius: '4px', marginBottom: '8px', width: '40%' }} />
+                      <div style={{ height: '12px', background: '#f0f0f0', borderRadius: '4px', width: '25%' }} />
+                    </div>
+                  </div>
+                  <div style={{ height: '16px', background: '#e0e0e0', borderRadius: '4px', marginBottom: '8px' }} />
+                  <div style={{ height: '14px', background: '#f0f0f0', borderRadius: '4px', width: '80%' }} />
+                </div>
+              ))
+            ) : filteredPosts.length === 0 ? (
               <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '48px', textAlign: 'center', color: '#666' }}>
-                პოსტები ვერ მოიძებნა
+                <div style={{ fontSize: '40px', marginBottom: '12px' }}>💬</div>
+                <div style={{ fontWeight: '600', marginBottom: '6px' }}>პოსტები ვერ მოიძებნა</div>
+                <div style={{ fontSize: '13px' }}>პირველი იყავი — შექმენი ახალი პოსტი!</div>
               </div>
             ) : filteredPosts.map((post) => {
-              const liked = likedPosts.has(post.id);
+              const authorName = post.profile?.full_name || 'CodeZero User';
+              const authorAvatar = post.profile?.avatar_url;
+              const liked = post.user_liked ?? false;
               const saved = savedPosts.has(post.id);
+              const isHot = (post.likes_count ?? 0) >= 5 || (post.views_count ?? 0) >= 50;
               return (
-                <article key={post.id} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', overflow: 'hidden' }}>
+                <article key={post.id} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', overflow: 'hidden', transition: 'box-shadow 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)')}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
+                >
                   {/* Post Header */}
                   <div style={{ padding: '16px 16px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', gap: '12px', cursor: 'pointer' }}>
-                      <div style={{
-                        width: '48px', height: '48px', borderRadius: '50%',
-                        background: getAvatarColor(post.author),
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
-                      }}>
-                        {post.author.charAt(0)}
-                      </div>
+                      {authorAvatar ? (
+                        <img src={authorAvatar} alt={authorName} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{
+                          width: '48px', height: '48px', borderRadius: '50%',
+                          background: getAvatarColor(authorName),
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
+                        }}>
+                          {authorName.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <div>
-                        <div style={{ fontWeight: '600', fontSize: '14px', color: '#000', lineHeight: '1.3' }}>{post.author}</div>
-                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.3' }}>CodeZero Academy • {formatTime(post.createdAt)}</div>
+                        <div style={{ fontWeight: '600', fontSize: '14px', color: '#000', lineHeight: '1.3' }}>{authorName}</div>
+                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.3' }}>CodeZero Academy • {formatTime(post.created_at)}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                          {post.isHot && (
+                          {isHot && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: '#e25950', fontWeight: '600' }}>
                               <Flame style={{ width: '11px', height: '11px' }} /> ტრენდი
                             </span>
@@ -380,13 +391,19 @@ const Forums = () => {
                   {/* Reaction counts */}
                   <div style={{ padding: '0 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#666' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', background: '#0a66c2' }}>
-                        <ThumbsUp style={{ width: '10px', height: '10px', color: '#fff' }} />
-                      </div>
-                      {post.likes + (liked ? 1 : 0)}
+                      {(post.likes_count ?? 0) > 0 && (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', background: '#0a66c2' }}>
+                            <ThumbsUp style={{ width: '10px', height: '10px', color: '#fff' }} />
+                          </div>
+                          {post.likes_count}
+                        </>
+                      )}
                     </div>
                     <div style={{ fontSize: '13px', color: '#666' }}>
-                      {post.replies} კომენტარი • {post.views} ნახვა
+                      {(post.comments_count ?? 0) > 0 && `${post.comments_count} კომენტარი`}
+                      {(post.comments_count ?? 0) > 0 && (post.views_count ?? 0) > 0 && ' • '}
+                      {(post.views_count ?? 0) > 0 && `${post.views_count} ნახვა`}
                     </div>
                   </div>
 
@@ -396,11 +413,11 @@ const Forums = () => {
                   {/* Action buttons */}
                   <div style={{ padding: '4px 8px', display: 'flex', gap: '2px' }}>
                     {[
-                      { icon: ThumbsUp, label: 'მოწონება', active: liked, action: () => toggleLike(post.id), activeColor: '#0a66c2' },
+                      { icon: ThumbsUp, label: 'მოწონება', active: liked, action: () => handleToggleLike(post.id, liked), activeColor: '#0a66c2' },
                       { icon: MessageSquare, label: 'კომენტარი', active: false, action: () => navigate(`/forums/${post.id}`), activeColor: '#0a66c2' },
                       { icon: Share2, label: 'გაზიარება', active: false, action: () => toast.success('ბმული დაკოპირდა'), activeColor: '#0a66c2' },
                       { icon: Send, label: 'გაგზავნა', active: false, action: () => toast.info('გაგზავნა'), activeColor: '#0a66c2' },
-                    ].map(({ icon: Icon, label, active, action, activeColor }) => (
+                    ].map(({ icon: Icon, label, active, action, activeColor }: any) => (
                       <button key={label} onClick={action}
                         style={{
                           flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
@@ -461,7 +478,7 @@ const Forums = () => {
               <div style={{ fontSize: '15px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>გააზიარეთ თქვენი ცოდნა</div>
               <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>დაეხმარეთ სხვა სტუდენტებს</div>
               <button
-                onClick={handleCreatePost}
+                onClick={() => user ? setShowModal(true) : navigate('/auth')}
                 style={{ padding: '8px 20px', borderRadius: '20px', border: '1.5px solid #fff', background: 'transparent', color: '#fff', fontWeight: '600', fontSize: '14px', cursor: 'pointer', transition: 'all 0.15s' }}
                 onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#0a66c2'; }}
                 onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#fff'; }}
