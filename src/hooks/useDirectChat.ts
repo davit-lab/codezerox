@@ -24,6 +24,9 @@ export interface DirectMessage {
   content: string;
   is_read: boolean;
   created_at: string;
+  is_voice_message?: boolean;
+  voice_url?: string;
+  voice_duration?: number;
 }
 
 export const useConversations = () => {
@@ -84,12 +87,32 @@ export const useMessages = (conversationId: string) => {
 export const useSendDirectMessage = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ conversation_id, content }: { conversation_id: string; content: string }) => {
+    mutationFn: async ({ 
+      conversation_id, 
+      content, 
+      is_voice_message = false, 
+      voice_url, 
+      voice_duration 
+    }: { 
+      conversation_id: string; 
+      content: string; 
+      is_voice_message?: boolean; 
+      voice_url?: string; 
+      voice_duration?: number; 
+    }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+      
+      const insertData: any = { conversation_id, sender_id: user.id, content };
+      if (is_voice_message) {
+        insertData.is_voice_message = true;
+        insertData.voice_url = voice_url;
+        insertData.voice_duration = voice_duration;
+      }
+      
       const { data, error } = await supabase
         .from('direct_messages')
-        .insert({ conversation_id, sender_id: user.id, content })
+        .insert(insertData)
         .select()
         .single();
       if (error) throw error;
