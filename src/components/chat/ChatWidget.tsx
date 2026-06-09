@@ -5,6 +5,7 @@ import { useCreateSupportTicket } from "@/hooks/useSupportTickets";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logoImage from "@/assets/logo.png";
+import supportChatIcon from "@/assets/support-chat-icon.png";
 import {
   isWithinBusinessHours,
   businessHoursLabel,
@@ -195,7 +196,7 @@ const ChatWidget = () => {
         onClick={() => setIsOpen(true)}
         aria-label="Support Chat"
       >
-        <span className="material-symbols-rounded text-3xl text-primary-foreground group-hover:scale-110 transition-transform">chat</span>
+        <img src={supportChatIcon} alt="Support Chat" className="w-10 h-10 object-contain group-hover:scale-110 transition-transform" />
         <span className="absolute inset-0 rounded-2xl bg-primary/20 animate-ping" style={{ animationDuration: "2.5s" }} />
         {unread > 0 && (
           <span className="absolute -top-1 -right-1 min-w-6 h-6 px-1.5 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center border-2 border-card shadow-lg animate-bounce">
