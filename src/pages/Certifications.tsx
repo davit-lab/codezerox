@@ -3,23 +3,9 @@ import { useNavigate } from "react-router-dom";
 import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
 import SEOHead from "@/components/SEOHead";
-import { useCertificationExams, useUserCertificates } from "@/hooks/useCertification";
-import { useAuth } from "@/hooks/useAuth";
-import { useHeroBanner } from "@/hooks/useHeroBanners";
-
-const categoryConfig: Record<string, { icon: string; label: string; barClass: string; iconClass: string }> = {
-  frontend: { icon: "language", label: "Frontend", barClass: "frontend", iconClass: "frontend" },
-  backend: { icon: "database", label: "Backend", barClass: "backend", iconClass: "backend" },
-  cyber: { icon: "shield", label: "კიბერუსაფრთხოება", barClass: "cyber", iconClass: "cyber" },
-};
 
 const Certifications = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { data: exams, isLoading } = useCertificationExams();
-  const { data: certificates } = useUserCertificates();
-  const { data: bannerData } = useHeroBanner("certifications");
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [timeLeft, setTimeLeft] = useState({ days: 30, hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
@@ -44,13 +30,6 @@ const Certifications = () => {
 
     return () => clearInterval(timer);
   }, []);
-
-  const categories = [...new Set(exams?.map(e => e.category) || [])];
-  const selectedCategory = activeCategory || categories[0] || "frontend";
-  const filteredExams = exams?.filter(e => e.category === selectedCategory) || [];
-
-  const hasCertificate = (examId: string) =>
-    certificates?.some(c => c.exam_id === examId);
 
   return (
     <>
