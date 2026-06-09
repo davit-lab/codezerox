@@ -63,7 +63,7 @@ const DirectChat = () => {
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Calling state
-  const { data: activeCalls } = useActiveCalls();
+  const { data: activeCalls } = useActiveCalls(user?.id);
   const initiateCall = useInitiateCall();
   const answerCall = useAnswerCall();
   const rejectCall = useRejectCall();
@@ -72,62 +72,6 @@ const DirectChat = () => {
   const [currentCallId, setCurrentCallId] = useState<string | null>(null);
 
   useRealtimeMessages(activeConvoId || '');
-
-  // Real-time subscription for incoming calls
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('calls-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'calls',
-          filter: `receiver_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('Call received:', payload);
-          if (payload.eventType === 'INSERT' && payload.new) {
-            const call = payload.new as any;
-            if (call.status === 'initiated' || call.status === 'ringing') {
-              toast.info('გამოგიგზავნეს ზარი!');
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  // Demo mode: Listen for incoming calls via localStorage
-  useEffect(() => {
-    const handleIncomingCall = (e: StorageEvent) => {
-      if (e.key === 'demo-call' && e.newValue) {
-        const callData = JSON.parse(e.newValue);
-        if (callData.receiverId === user?.id) {
-          toast.info(`გამოგიგზავნეს ${callData.callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი! (demo)`);
-          setCurrentCallId(callData.callId);
-          setIsInCall(true);
-        }
-      }
-    };
-
-    window.addEventListener('storage', handleIncomingCall);
-    return () => window.removeEventListener('storage', handleIncomingCall);
-  }, [user]);
-
-  // Test function to simulate incoming call (for demo purposes)
-  const simulateIncomingCall = () => {
-    const tempCallId = crypto.randomUUID();
-    toast.info('სიმულირებული ზარი! (test)');
-    setCurrentCallId(tempCallId);
-    setIsInCall(true);
-  };
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
@@ -297,7 +241,6 @@ const DirectChat = () => {
       toast.error('საჭიროა აირჩიოთ საუბარი');
       return;
     }
-    
     try {
       const callId = await initiateCall.mutateAsync({
         receiverId: otherUserId,
@@ -309,27 +252,7 @@ const DirectChat = () => {
       toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო`);
     } catch (error: any) {
       console.error('Error initiating call:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      
-      // Fallback: simulate call in demo mode
-      const tempCallId = crypto.randomUUID();
-      setCurrentCallId(tempCallId);
-      setIsInCall(true);
-      toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო (demo mode)`);
-      
-      // Send demo call via localStorage for cross-tab communication
-      localStorage.setItem('demo-call', JSON.stringify({
-        callId: tempCallId,
-        receiverId: otherUserId,
-        callerId: user?.id,
-        callType,
-        timestamp: Date.now()
-      }));
-      
-      // Clear after 5 seconds
-      setTimeout(() => {
-        localStorage.removeItem('demo-call');
-      }, 5000);
+      toast.error(`ზარის დაწყება ვერ მოხერხდა: ${error?.message || 'უცნობი შეცდომა'}`);
     }
   };
 
@@ -341,10 +264,7 @@ const DirectChat = () => {
       toast.success('ზარი მიღებულია');
     } catch (error: any) {
       console.error('Error answering call:', error);
-      // Fallback: simulate answer
-      setCurrentCallId(callId);
-      setIsInCall(true);
-      toast.success('ზარი მიღებულია (demo mode)');
+      toast.error('ზარის მიღება ვერ მოხერხდა');
     }
   };
 
@@ -354,14 +274,12 @@ const DirectChat = () => {
       toast.success('ზარი უარყოფილია');
     } catch (error: any) {
       console.error('Error rejecting call:', error);
-      // Fallback: just clear the incoming call
-      toast.success('ზარი უარყოფილია (demo mode)');
+      toast.error('ზარის უარყოფა ვერ მოხერხდა');
     }
   };
 
   const handleEndCall = async () => {
     if (!currentCallId) return;
-    
     try {
       await endCall.mutateAsync(currentCallId);
       setIsInCall(false);
@@ -369,18 +287,16 @@ const DirectChat = () => {
       toast.success('ზარი დასრულდა');
     } catch (error: any) {
       console.error('Error ending call:', error);
-      // Fallback: just clear the call state
       setIsInCall(false);
       setCurrentCallId(null);
-      toast.success('ზარი დასრულდა (demo mode)');
+      toast.error('ზარის დასრულება ვერ მოხერხდა');
     }
   };
 
   // Check if there's an incoming call for this conversation
   const incomingCall = activeCalls?.find(c => 
     c.receiver_id === user?.id && 
-    c.conversation_id === activeConvoId && 
-    c.status === 'ringing'
+    c.status === 'initiated'
   );
 
   const groupedMessages = messages.reduce<{ date: string; msgs: typeof messages }[]>((groups, m) => {
@@ -565,14 +481,6 @@ const DirectChat = () => {
                           <PhoneOff className="w-4 h-4" />
                         </button>
                       )}
-                      {/* Test button for demo */}
-                      <button 
-                        onClick={simulateIncomingCall}
-                        className="p-2.5 rounded-xl text-amber-500/50 hover:text-amber-500 hover:bg-amber-500/10 transition-all"
-                        title="ტესტი: სიმულირებული ზარი"
-                      >
-                        <Phone className="w-4 h-4" />
-                      </button>
                       <button className="p-2.5 rounded-xl text-white/50 hover:text-white hover:bg-white/10 transition-all">
                         <MoreVertical className="w-4 h-4" />
                       </button>
