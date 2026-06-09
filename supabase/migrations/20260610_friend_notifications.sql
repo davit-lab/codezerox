@@ -82,15 +82,15 @@ FOR EACH ROW
 WHEN (NEW.status = 'accepted' AND OLD.status = 'pending')
 EXECUTE FUNCTION public.notify_friend_request_accepted();
 
--- Trigger: Notification when friend request is rejected
-CREATE OR REPLACE FUNCTION public.notify_friend_request_rejected()
+-- Trigger: Notification when friend request is declined
+CREATE OR REPLACE FUNCTION public.notify_friend_request_declined()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
-  _rejecter_name text;
+  _decliner_name text;
   _receiver_id uuid;
 BEGIN
-  -- Get rejecter's name
-  SELECT full_name INTO _rejecter_name
+  -- Get decliner's name
+  SELECT full_name INTO _decliner_name
   FROM public.profiles
   WHERE id = NEW.user_a;
 
@@ -104,17 +104,17 @@ BEGIN
   PERFORM public.create_friend_notification(
     _receiver_id,
     'მეგობრობის მოთხოვნა უარყოფილია',
-    COALESCE(_rejecter_name, 'მომხმარებელი') || ' უარყოფს თქვენი მეგობრობის მოთხოვნას',
-    'friend_rejected',
+    COALESCE(_decliner_name, 'მომხმარებელი') || ' უარყოფს თქვენი მეგობრობის მოთხოვნას',
+    'friend_declined',
     NEW.id
   );
 
   RETURN NEW;
 END $$;
 
-DROP TRIGGER IF EXISTS trg_friend_request_rejected ON public.friends;
-CREATE TRIGGER trg_friend_request_rejected
+DROP TRIGGER IF EXISTS trg_friend_request_declined ON public.friends;
+CREATE TRIGGER trg_friend_request_declined
 AFTER UPDATE ON public.friends
 FOR EACH ROW
-WHEN (NEW.status = 'rejected' AND OLD.status = 'pending')
-EXECUTE FUNCTION public.notify_friend_request_rejected();
+WHEN (NEW.status = 'declined' AND OLD.status = 'pending')
+EXECUTE FUNCTION public.notify_friend_request_declined();
