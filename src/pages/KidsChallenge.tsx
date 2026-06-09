@@ -72,7 +72,7 @@ const KidsChallenge = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-void)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg-void)' }}>
       {showConfetti && <div className="kids-confetti" />}
       <KidsHeader title={lesson.title} xp={xp + xpEarned} level={getKidsLevel(xp + xpEarned)} />
 
@@ -82,9 +82,9 @@ const KidsChallenge = () => {
           <div className="kids-theory-panel" style={{ marginBottom: 18 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
               <BookOpen size={16} style={{ color: '#7c3aed' }} />
-              <h3 style={{ fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-georgian)', margin: 0, fontSize: '0.92rem' }}>
+              <h2 style={{ fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-georgian)', margin: 0, fontSize: '0.92rem' }}>
                 თეორია
-              </h3>
+              </h2>
             </div>
             <TheoryRenderer text={lesson.theory} />
             <button onClick={() => setShowTheory(false)} style={{
@@ -301,7 +301,7 @@ const KidsChallenge = () => {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

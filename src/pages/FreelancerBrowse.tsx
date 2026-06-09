@@ -273,7 +273,7 @@ const FreelancerBrowse = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0 pt-0.5">
-                        <h3 className="font-bold text-base truncate group-hover:text-primary transition-colors duration-300">{f.full_name}</h3>
+                        <h2 className="font-bold text-base truncate group-hover:text-primary transition-colors duration-300">{f.full_name}</h2>
                         <p className="text-sm text-muted-foreground truncate mt-0.5">{f.title || 'ფრილანსერი'}</p>
                         <span className={`text-xs font-semibold mt-1.5 inline-block ${EXPERIENCE_COLORS[f.experience_level] || 'text-muted-foreground'}`}>
                           {EXPERIENCE_LABELS[f.experience_level] || f.experience_level}

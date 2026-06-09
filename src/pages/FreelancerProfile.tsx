@@ -555,7 +555,7 @@ const FreelancerProfile = () => {
                       <div key={p.id} className="flp-project-item group">
                         {p.image_url && <img src={p.image_url} alt={p.title} className="flp-project-img" />}
                         <div className="flp-project-info">
-                          <h3 className="font-bold text-sm">{p.title}</h3>
+                          <h2 className="font-bold text-sm">{p.title}</h2>
                           {p.description && <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{p.description}</p>}
                           <div className="flex gap-3 mt-2">
                             {p.live_url && (

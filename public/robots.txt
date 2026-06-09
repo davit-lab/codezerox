@@ -17,4 +17,4 @@ Disallow: /admin/*
 Disallow: /payment/*
 Disallow: /checkout
 
-Sitemap: https://codezero.ge/sitemap.xml
+Sitemap: https://read-connect-zone.lovable.app/sitemap.xml

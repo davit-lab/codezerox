@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import SEOHead from "@/components/SEOHead";
 
 import { Eye, EyeOff, Check, ChevronDown } from "lucide-react";
 type AuthMode = "login" | "register" | "forgot" | "verify-code" | "new-password";
@@ -270,7 +271,9 @@ const Auth = () => {
   const strengthTexts = ["", "სუსტი", "საშუალო", "კარგი", "ძლიერი"];
 
   return (
-    <div className="auth-page">
+    <>
+      <SEOHead title="ავტორიზაცია — CodeZero Academy" description="შედით ან დარეგისტრირდით CodeZero Academy-ში" path="/auth" />
+      <div className="auth-page">
       <div ref={cursorRef} className="cursor hidden lg:block" />
       <div ref={cursorDotRef} className="cursor-dot hidden lg:block" />
       <canvas ref={canvasRef} className="fixed inset-0 z-0" />
@@ -815,6 +818,7 @@ const Auth = () => {
         }
       `}</style>
     </div>
+    </>
   );
 };
 

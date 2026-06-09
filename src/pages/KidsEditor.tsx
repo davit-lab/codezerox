@@ -142,7 +142,7 @@ const KidsEditor = () => {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg-void)' }}>
+    <main style={{ minHeight: '100vh', background: 'var(--bg-void)' }}>
       {showConfetti && <div className="kids-confetti" />}
       <KidsHeader title={lesson.title} xp={xp + xpEarned} level={getKidsLevel(xp + xpEarned)} />
 
@@ -350,7 +350,7 @@ const KidsEditor = () => {
           </div>
         )}
       </div>
-    </div>
+    </main>
   );
 };
 

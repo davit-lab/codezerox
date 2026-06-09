@@ -202,13 +202,13 @@ const AdminCourses = () => {
                   </p>
                 </div>
                 <div className="flex gap-2 flex-shrink-0">
-                  <button onClick={() => setManagingChapters(course.id)} className="icon-btn" title="თავები">
+                  <button onClick={() => setManagingChapters(course.id)} className="icon-btn" title="თავები" aria-label="თავები">
                     <span className="material-symbols-rounded">list</span>
                   </button>
-                  <button onClick={() => openEdit(course)} className="icon-btn" title="რედაქტირება">
+                  <button onClick={() => openEdit(course)} className="icon-btn" title="რედაქტირება" aria-label="რედაქტირება">
                     <span className="material-symbols-rounded">edit</span>
                   </button>
-                  <button onClick={() => handleDelete(course.id)} className="icon-btn" title="წაშლა" style={{ color: '#f87171' }}>
+                  <button onClick={() => handleDelete(course.id)} className="icon-btn" title="წაშლა" aria-label="წაშლა" style={{ color: '#f87171' }}>
                     <span className="material-symbols-rounded">delete</span>
                   </button>
                 </div>
@@ -339,10 +339,10 @@ const ChapterManager = ({ courseId, onBack }: { courseId: string; onBack: () => 
                 </p>
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <button onClick={() => openEdit(ch)} className="icon-btn" title="რედაქტირება">
+                <button onClick={() => openEdit(ch)} className="icon-btn" title="რედაქტირება" aria-label="რედაქტირება">
                   <span className="material-symbols-rounded">edit</span>
                 </button>
-                <button onClick={() => handleDeleteCh(ch.id)} className="icon-btn" title="წაშლა" style={{ color: '#f87171' }}>
+                <button onClick={() => handleDeleteCh(ch.id)} className="icon-btn" title="წაშლა" aria-label="წაშლა" style={{ color: '#f87171' }}>
                   <span className="material-symbols-rounded">delete</span>
                 </button>
               </div>

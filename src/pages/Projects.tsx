@@ -79,7 +79,7 @@ const Projects = () => {
           {/* Filters */}
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 28, alignItems: 'center' }}>
             <div style={{ flex: '1 1 220px', position: 'relative', minWidth: 0 }}>
-              <span className="material-symbols-rounded" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', fontSize: 18, pointerEvents: 'none' }}>search</span>
+              <span className="material-symbols-rounded" style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.5)', fontSize: 18, pointerEvents: 'none' }}>search</span>
               <input
                 value={search}
                 onChange={e => setSearch(e.target.value)}
@@ -247,9 +247,9 @@ const ProjectCard = ({ project, currentUserId }: { project: MarketplaceProject; 
 
         {/* Body */}
         <div style={{ padding: '14px 16px 16px', flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ fontWeight: 800, fontSize: '0.97rem', color: '#fff', marginBottom: 7, lineHeight: 1.3 }}>
+          <h2 style={{ fontWeight: 800, fontSize: '0.97rem', color: '#fff', marginBottom: 7, lineHeight: 1.3 }}>
             {project.title}
-          </h3>
+          </h2>
           {project.description && (
             <p style={{
               color: 'rgba(255,255,255,0.42)', fontSize: '0.8rem', marginBottom: 10, lineHeight: 1.5,

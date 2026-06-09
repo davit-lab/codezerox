@@ -179,9 +179,9 @@ const ParentDashboard = () => {
                 <GraduationCap size={24} style={{ color: 'var(--gold)' }} />
               </div>
               <div className="flex-1 min-w-[200px]">
-                <h3 className="font-bold text-base mb-1" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-georgian)' }}>
+                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-georgian)' }}>
                   CodeZero Kids — ერთჯერადი გადახდა
-                </h3>
+                </h2>
                 <p className="text-sm mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
                   შექმენით ბავშვის ანგარიში და გაააქტიურეთ სამუდამო წვდომა 280+ გაკვეთილზე, პაზლებზე და პრაქტიკულ გამოწვევებზე.
                 </p>
@@ -239,14 +239,14 @@ const ParentDashboard = () => {
                 background: 'var(--bg-card)',
                 border: '1px solid var(--border-light)',
               }}>
-                <h3 className="font-bold text-base mb-5" style={{ 
+                <h2 className="font-bold text-base mb-5" style={{ 
                   color: 'var(--text-primary)', 
                   fontFamily: 'var(--font-georgian)',
                   display: 'flex', alignItems: 'center', gap: 8,
                 }}>
                   <Plus size={18} style={{ color: '#7c3aed' }} />
                   ახალი ბავშვის ანგარიში
-                </h3>
+                </h2>
                 <div className="grid gap-4">
                   <div>
                     <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>

@@ -146,7 +146,7 @@ const CodePreview = () => {
   return (
     <>
       <Atmosphere />
-      <div className="code-preview-page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <main className="code-preview-page" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         {/* Header */}
         <header className="code-preview-header">
           <div className="code-preview-header-left">
@@ -249,7 +249,7 @@ const CodePreview = () => {
           <span>•</span>
           <span>{new Date(snippet.created_at).toLocaleDateString('ka-GE')}</span>
         </footer>
-      </div>
+      </main>
     </>
   );
 };

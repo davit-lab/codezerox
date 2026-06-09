@@ -87,7 +87,32 @@ const BlogPost = () => {
 
   return (
     <>
-      <SEOHead title={`${post.title} — ბლოგი`} description={post.excerpt || post.title} />
+      <SEOHead
+        title={`${post.title} — ბლოგი`}
+        description={post.excerpt || post.title}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": post.title,
+          "description": post.excerpt || post.title,
+          "datePublished": post.published_at || post.created_at,
+          "dateModified": post.updated_at || post.created_at,
+          "author": {
+            "@type": "Organization",
+            "name": "CodeZero Academy"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "CodeZero Academy",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://read-connect-zone.lovable.app/favicon.png"
+            }
+          },
+          "image": post.cover_url || "https://read-connect-zone.lovable.app/favicon.png",
+          "url": `https://read-connect-zone.lovable.app/blog/${post.id}`
+        }}
+      />
       <Atmosphere />
       <Header />
       <main className="page-content">

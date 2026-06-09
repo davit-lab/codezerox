@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
 import ChatWidget from "@/components/chat/ChatWidget";
+import SEOHead from "@/components/SEOHead";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserCredits } from "@/hooks/useCredits";
 import { usePurchases } from "@/hooks/usePurchases";
@@ -10,8 +11,8 @@ import { useMyCoursePurchases } from "@/hooks/useCourses";
 import { useMyWarnings } from "@/hooks/useMarketplace";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { 
-  User, Mail, Calendar, Shield, LogOut, Save, Camera, 
+import {
+  User, Mail, Calendar, Shield, LogOut, Save, Camera,
   BookOpen, CreditCard, Receipt, Coins, ChevronRight,
   Settings, MapPin, Github, Globe, Briefcase, Code, Plus, X, Eye, Trash2, AlertTriangle,
   Linkedin, Facebook, FileText
@@ -216,10 +217,11 @@ const Profile = () => {
 
   return (
     <>
+      <SEOHead title="პროფილი — CodeZero Academy" description="მართეთ თქვენი პროფილი, ნახეთ შეძენილი წიგნები და კურსები" path="/profile" />
       <Atmosphere />
       <Header />
       <ChatWidget />
-      
+
       <main className="pt-32 pb-20 min-h-screen">
         <div className="container max-w-5xl mx-auto px-4">
           {/* Profile Header Card */}
@@ -533,7 +535,7 @@ const Profile = () => {
                 <AlertTriangle className="w-6 h-6 text-red-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-text-white">ანგარიშის წაშლა</h3>
+                <h2 className="text-lg font-bold text-text-white">ანგარიშის წაშლა</h2>
                 <p className="text-sm text-text-muted">ეს მოქმედება შეუქცევადია</p>
               </div>
             </div>

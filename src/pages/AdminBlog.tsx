@@ -109,7 +109,7 @@ const AdminBlog = () => {
               <div className="admin-modal blog-admin-modal" onClick={e => e.stopPropagation()}>
                 <div className="admin-modal-header">
                   <h2>{editingPost ? "სტატიის რედაქტირება" : "ახალი სტატია"}</h2>
-                  <button onClick={resetForm} className="icon-btn">
+                  <button onClick={resetForm} className="icon-btn" aria-label="დახურვა">
                     <span className="material-symbols-rounded">close</span>
                   </button>
                 </div>
@@ -203,13 +203,13 @@ const AdminBlog = () => {
                     <td style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>{formatDate(post.created_at)}</td>
                     <td>
                       <div style={{ display: "flex", gap: 6 }}>
-                        <button onClick={() => handleTogglePublish(post)} className="icon-btn" title={post.is_published ? "გაუქმება" : "გამოქვეყნება"}>
+                        <button onClick={() => handleTogglePublish(post)} className="icon-btn" title={post.is_published ? "გაუქმება" : "გამოქვეყნება"} aria-label={post.is_published ? "გაუქმება" : "გამოქვეყნება"}>
                           <span className="material-symbols-rounded">{post.is_published ? "unpublished" : "publish"}</span>
                         </button>
-                        <button onClick={() => openEdit(post)} className="icon-btn" title="რედაქტირება">
+                        <button onClick={() => openEdit(post)} className="icon-btn" title="რედაქტირება" aria-label="რედაქტირება">
                           <span className="material-symbols-rounded">edit</span>
                         </button>
-                        <button onClick={() => handleDelete(post.id)} className="icon-btn" title="წაშლა" style={{ color: "var(--ruby)" }}>
+                        <button onClick={() => handleDelete(post.id)} className="icon-btn" title="წაშლა" aria-label="წაშლა" style={{ color: "var(--ruby)" }}>
                           <span className="material-symbols-rounded">delete</span>
                         </button>
                       </div>

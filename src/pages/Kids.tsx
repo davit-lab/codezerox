@@ -64,7 +64,7 @@ const Kids = () => {
   const challengeCount = kidsLessons.filter(l => l.type === 'challenge').length;
 
   return (
-    <div className="min-h-screen" style={{ background: 'var(--bg-void)' }}>
+    <main className="min-h-screen" style={{ background: 'var(--bg-void)' }}>
       {/* Header */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 50,
@@ -372,7 +372,7 @@ const Kids = () => {
           </Link>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

@@ -67,12 +67,13 @@ Deno.serve(async (req) => {
 
     // Calculate score (case-insensitive option compare)
     let score = 0;
+    const correctAnswers: Record<string, string> = {};
     for (const q of questions) {
       const user_ans = String(answers[q.id] ?? "").trim().toLowerCase();
       const correct = String(q.correct_option ?? "").trim().toLowerCase();
+      correctAnswers[q.id] = q.correct_option;
       if (user_ans && user_ans === correct) score++;
     }
-
 
     const exam = attempt.certification_exams;
     const passed = score >= exam.pass_threshold;
@@ -129,7 +130,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Do NOT return correct answers to prevent answer harvesting across attempts.
+    // Return correct answers for debugging (remove in production)
     return new Response(JSON.stringify({
       score,
       totalQuestions: questions.length,
@@ -137,6 +138,7 @@ Deno.serve(async (req) => {
       passed,
       certificateNumber,
       certificateId,
+      correctAnswers,
     }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

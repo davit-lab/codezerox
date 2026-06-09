@@ -64,7 +64,7 @@ const BookmarkPanel = ({ bookId, currentPage, onGoToPage, isOpen, onClose }: Boo
     <div className="bookmark-panel">
       <div className="bookmark-panel-header">
         <h3>📌 სანიშნეები</h3>
-        <button onClick={onClose} className="reader-icon-btn">
+        <button onClick={onClose} className="reader-icon-btn" aria-label="დახურვა">
           <span className="material-symbols-rounded">close</span>
         </button>
       </div>

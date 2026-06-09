@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Atmosphere from '@/components/layout/Atmosphere';
 import Header from '@/components/layout/Header';
+import SEOHead from '@/components/SEOHead';
 import { useVacancy, useSendVacancyMessage, useDeleteVacancy } from '@/hooks/useVacancies';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -111,6 +112,35 @@ const VacancyDetail = () => {
 
   return (
     <>
+      <SEOHead
+        title={`${vacancy.title} — ვაკანსია`}
+        description={vacancy.description}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "JobPosting",
+          "title": vacancy.title,
+          "description": vacancy.description,
+          "datePosted": vacancy.created_at,
+          "hiringOrganization": {
+            "@type": "Organization",
+            "name": vacancy.company_name
+          },
+          "jobLocation": {
+            "@type": "Place",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "GE",
+              "addressRegion": vacancy.location || "Tbilisi"
+            }
+          },
+          "salaryCurrency": vacancy.salary_currency || "GEL",
+          "baseSalary": {
+            "@type": "MonetaryAmount",
+            "currency": vacancy.salary_currency || "GEL",
+            "value": vacancy.salary_amount || 0
+          }
+        }}
+      />
       <Atmosphere /><Header />
       <main className="pt-32 pb-20 min-h-screen">
         <div className="container mx-auto px-4 max-w-5xl">

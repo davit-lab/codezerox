@@ -321,11 +321,11 @@ const BookReader = () => {
 
         <div className="reader-topbar-center">
           {/* Page nav */}
-          <button onClick={() => handlePageStep('prev')} className="reader-icon-btn" disabled={currentPage <= 1}>
+          <button onClick={() => handlePageStep('prev')} className="reader-icon-btn" disabled={currentPage <= 1} aria-label="წინა გვერდი">
             <span className="material-symbols-rounded">chevron_left</span>
           </button>
           <PageInput current={currentPage} total={totalPages || book?.pages || 0} onGo={handleGoToPage} />
-          <button onClick={() => handlePageStep('next')} className="reader-icon-btn" disabled={currentPage >= (totalPages || book?.pages || 9999)}>
+          <button onClick={() => handlePageStep('next')} className="reader-icon-btn" disabled={currentPage >= (totalPages || book?.pages || 9999)} aria-label="შემდეგი გვერდი">
             <span className="material-symbols-rounded">chevron_right</span>
           </button>
         </div>
@@ -333,13 +333,13 @@ const BookReader = () => {
         <div className="reader-topbar-right">
           {/* Zoom */}
           <div className="reader-zoom-group">
-            <button onClick={() => handleZoom('out')} className="reader-icon-btn reader-icon-btn-sm" disabled={zoom <= ZOOM_LEVELS[0]}>
+            <button onClick={() => handleZoom('out')} className="reader-icon-btn reader-icon-btn-sm" disabled={zoom <= ZOOM_LEVELS[0]} aria-label="შემცირება">
               <span className="material-symbols-rounded">remove</span>
             </button>
-            <button onClick={() => setZoom(1)} className="reader-zoom-label" title="ზუმის აღდგენა">
+            <button onClick={() => setZoom(1)} className="reader-zoom-label" title="ზუმის აღდგენა" aria-label="ზუმის აღდგენა">
               {Math.round(zoom * 100)}%
             </button>
-            <button onClick={() => handleZoom('in')} className="reader-icon-btn reader-icon-btn-sm" disabled={zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]}>
+            <button onClick={() => handleZoom('in')} className="reader-icon-btn reader-icon-btn-sm" disabled={zoom >= ZOOM_LEVELS[ZOOM_LEVELS.length - 1]} aria-label="გაზრდა">
               <span className="material-symbols-rounded">add</span>
             </button>
           </div>
