@@ -117,7 +117,6 @@ const MyBooks = () => {
         <div className="container">
           <div className="section-header">
             <div className="section-label">
-              <span className="material-symbols-rounded">auto_stories</span>
               ბიბლიოთეკა
             </div>
             <h1 className="section-title">

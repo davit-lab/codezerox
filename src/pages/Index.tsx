@@ -230,7 +230,6 @@ const Index = () => {
           <div className="container">
             <div className="section-header">
               <div className="section-label">
-                <Grid3X3 className="w-4 h-4" />
                 კატეგორიები
               </div>
               <h2 className="section-title">
