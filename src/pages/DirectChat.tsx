@@ -73,6 +73,37 @@ const DirectChat = () => {
 
   useRealtimeMessages(activeConvoId || '');
 
+  // Real-time subscription for incoming calls
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('calls-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'calls',
+          filter: `receiver_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Call received:', payload);
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const call = payload.new as any;
+            if (call.status === 'initiated' || call.status === 'ringing') {
+              toast.info('გამოგიგზავნეს ზარი!');
+            }
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
+
   useEffect(() => {
     if (!authLoading && !user) navigate('/auth');
   }, [authLoading, user]);
@@ -255,11 +286,17 @@ const DirectChat = () => {
       console.error('Error initiating call:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       
-      // Fallback: always use demo mode if database function fails
+      // Fallback: simulate call in demo mode
       const tempCallId = crypto.randomUUID();
       setCurrentCallId(tempCallId);
       setIsInCall(true);
       toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო (demo mode)`);
+      
+      // Simulate incoming call for receiver (in real app, this would be via realtime)
+      // For demo, we'll just show a notification after 2 seconds
+      setTimeout(() => {
+        toast.info(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი მიმდინარეობს... (demo)`);
+      }, 2000);
     }
   };
 
