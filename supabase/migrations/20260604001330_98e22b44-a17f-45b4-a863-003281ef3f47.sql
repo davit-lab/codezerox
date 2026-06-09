@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Anon users can read book-pdfs for preview" ON storage.objects;

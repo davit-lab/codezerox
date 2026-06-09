@@ -1,0 +1,6 @@
+[functions.ai-tutor]
+verify_jwt = false
+timeout = 300
+
+[functions.ai-tutor.import_map]
+imports = {}

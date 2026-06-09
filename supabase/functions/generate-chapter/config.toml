@@ -1,0 +1,6 @@
+[functions.generate-chapter]
+verify_jwt = false
+timeout = 300
+
+[functions.generate-chapter.import_map]
+imports = {}
