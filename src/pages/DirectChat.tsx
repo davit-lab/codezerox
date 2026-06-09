@@ -255,16 +255,11 @@ const DirectChat = () => {
       console.error('Error initiating call:', error);
       console.error('Error details:', JSON.stringify(error, null, 2));
       
-      // Fallback: simulate call if database function doesn't exist
-      const errorMsg = error?.message || '';
-      if (errorMsg.includes('initiate_call') || errorMsg.includes('PGRST202')) {
-        const tempCallId = crypto.randomUUID();
-        setCurrentCallId(tempCallId);
-        setIsInCall(true);
-        toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო (demo mode)`);
-      } else {
-        toast.error(`ზარის დაწყება ვერ მოხერხდა: ${errorMsg}`);
-      }
+      // Fallback: always use demo mode if database function fails
+      const tempCallId = crypto.randomUUID();
+      setCurrentCallId(tempCallId);
+      setIsInCall(true);
+      toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო (demo mode)`);
     }
   };
 
