@@ -49,6 +49,12 @@ FOR EACH ROW EXECUTE FUNCTION public.update_call_duration();
 -- RLS
 ALTER TABLE public.calls ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "calls_select_own" ON public.calls;
+DROP POLICY IF EXISTS "calls_insert" ON public.calls;
+DROP POLICY IF EXISTS "calls_update" ON public.calls;
+DROP POLICY IF EXISTS "calls_admin_all" ON public.calls;
+
 -- Users can see calls they're involved in
 CREATE POLICY "calls_select_own" ON public.calls FOR SELECT
 USING (auth.uid() = caller_id OR auth.uid() = receiver_id);

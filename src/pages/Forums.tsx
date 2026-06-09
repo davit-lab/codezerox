@@ -4,7 +4,7 @@ import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
-import { Search, Plus, MessageSquare, ThumbsUp, Eye, Clock, TrendingUp, Flame, Code, Palette, Briefcase, HelpCircle, Calendar, User, Tag } from "lucide-react";
+import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, Code, Palette, Briefcase, HelpCircle, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, Image, Video, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 const Forums = () => {
@@ -140,161 +140,338 @@ const Forums = () => {
     return date.toLocaleDateString('ka-GE');
   };
 
-  const handleCreatePost = () => {
-    if (!user) {
-      toast.error('პოსტის შექმნისთვის საჭიროა ავტორიზაცია');
-      navigate('/auth');
-      return;
-    }
-    toast.info('პოსტის შექმნა მალე იქნება ხელმისაწვდომი');
+  const [likedPosts, setLikedPosts] = useState<Set<string>>(new Set());
+  const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
+  const [newPostText, setNewPostText] = useState("");
+
+  const toggleLike = (id: string) => {
+    setLikedPosts(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
   };
+
+  const toggleSave = (id: string) => {
+    setSavedPosts(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const handleCreatePost = () => {
+    if (!user) { navigate('/auth'); return; }
+    if (!newPostText.trim()) return;
+    toast.success('პოსტი გამოქვეყნდა!');
+    setNewPostText("");
+  };
+
+  const trendingTopics = [
+    { tag: "React", posts: 142 },
+    { tag: "Python", posts: 98 },
+    { tag: "TypeScript", posts: 76 },
+    { tag: "UI/UX", posts: 54 },
+    { tag: "Freelancing", posts: 43 },
+  ];
 
   return (
     <>
       <SEOHead title="ფორუმები" description="მონაწილეთ საზოგადოებაში და გააზიარეთ ცოდნა" path="/forums" />
       <Atmosphere />
       <Header />
-      
-      <main className="pt-32 pb-20 min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-        <div className="max-w-7xl mx-auto px-4">
-          {/* Header */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">
-                ფორუმები
-              </h1>
-              <p className="text-white/60 text-lg">
-                გააზიარეთ ცოდნა და დააკავშირეთ საზოგადოებას
-              </p>
-            </div>
-            <button
-              onClick={handleCreatePost}
-              className="mt-4 md:mt-0 px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold flex items-center gap-2 hover:shadow-lg hover:shadow-amber-500/30 transition-all"
-            >
-              <Plus className="w-5 h-5" />
-              ახალი პოსტი
-            </button>
-          </div>
 
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto mb-8">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ძებნა პოსტებში..."
-                className="w-full py-4 pl-12 pr-4 rounded-2xl bg-white/5 border border-white/10 text-white placeholder:text-white/40 text-lg outline-none focus:border-amber-500/50 focus:bg-white/10 transition-all"
-              />
-            </div>
-          </div>
+      <main style={{ minHeight: '100vh', backgroundColor: '#f3f2ef', paddingTop: '88px', paddingBottom: '40px' }}>
+        <div style={{ maxWidth: '1128px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}
+          className="lg:grid-cols-[280px_1fr_300px]"
+        >
 
-          {/* Categories */}
-          <div className="flex flex-wrap gap-3 mb-8">
-            {categories.map((category) => {
-              const Icon = category.icon;
-              const isActive = activeCategory === category.id;
-              return (
+          {/* ── LEFT SIDEBAR ── */}
+          <aside className="hidden lg:block space-y-3">
+            {/* Profile Card */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', overflow: 'hidden' }}>
+              <div style={{ height: '60px', background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)' }} />
+              <div style={{ padding: '0 16px 16px', textAlign: 'center' }}>
+                <div style={{
+                  width: '72px', height: '72px', borderRadius: '50%',
+                  background: getAvatarColor(user?.email || 'U'),
+                  border: '3px solid #fff', margin: '-36px auto 8px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '28px', fontWeight: 'bold', color: '#fff',
+                }}>
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
+                <div style={{ fontWeight: '600', fontSize: '16px', color: '#000', marginBottom: '2px' }}>
+                  {user?.email?.split('@')[0] || 'სტუმარი'}
+                </div>
+                <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>CodeZero Academy წევრი</div>
+                <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '12px', display: 'flex', justifyContent: 'space-between' }}>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>24</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>პოსტი</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>138</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>კავშირი</div>
+                  </div>
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>7</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>სერტ.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Category Nav */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '8px 0' }}>
+              <div style={{ padding: '8px 16px 4px', fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>კატეგორიები</div>
+              {categories.map((cat) => {
+                const Icon = cat.icon;
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    style={{
+                      width: '100%', textAlign: 'left', padding: '10px 16px',
+                      background: isActive ? '#e8f0fe' : 'transparent',
+                      border: 'none', cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', gap: '10px',
+                      color: isActive ? '#0a66c2' : '#333',
+                      fontWeight: isActive ? '600' : '400',
+                      fontSize: '14px',
+                      borderLeft: isActive ? '3px solid #0a66c2' : '3px solid transparent',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    <Icon style={{ width: '18px', height: '18px', flexShrink: 0 }} />
+                    {cat.name}
+                  </button>
+                );
+              })}
+            </div>
+          </aside>
+
+          {/* ── CENTER FEED ── */}
+          <div className="space-y-3">
+
+            {/* Search bar (mobile) */}
+            <div className="lg:hidden" style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px' }}>
+              <div style={{ position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#666' }} />
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="ძებნა პოსტებში..."
+                  style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '20px', border: '1px solid #e0e0e0', fontSize: '14px', outline: 'none', background: '#f3f2ef', boxSizing: 'border-box' }}
+                />
+              </div>
+            </div>
+
+            {/* Create Post Box */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                <div style={{
+                  width: '48px', height: '48px', borderRadius: '50%',
+                  background: getAvatarColor(user?.email || 'U'),
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
+                }}>
+                  {user?.email?.charAt(0).toUpperCase() || 'U'}
+                </div>
                 <button
-                  key={category.id}
-                  onClick={() => setActiveCategory(category.id)}
-                  className={`px-5 py-3 rounded-2xl font-medium flex items-center gap-2 transition-all ${
-                    isActive
-                      ? `bg-gradient-to-r ${category.color} text-white shadow-lg`
-                      : 'bg-white/5 text-white/70 hover:bg-white/10'
-                  }`}
+                  onClick={() => !user && navigate('/auth')}
+                  style={{
+                    flex: 1, padding: '12px 16px', borderRadius: '24px',
+                    border: '1px solid #c9cdd2', background: '#fff',
+                    textAlign: 'left', color: '#666', fontSize: '14px',
+                    cursor: 'pointer', transition: 'background 0.15s',
+                  }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
                 >
-                  <Icon className="w-4 h-4" />
-                  {category.name}
+                  გააზიარეთ პოსტი, სტატია ან განახლება...
                 </button>
+              </div>
+              <div style={{ display: 'flex', gap: '4px', borderTop: '1px solid #e0e0e0', paddingTop: '10px' }}>
+                {[
+                  { icon: Image, label: 'სურათი', color: '#70b5f9' },
+                  { icon: Video, label: 'ვიდეო', color: '#7fc15e' },
+                  { icon: FileText, label: 'სტატია', color: '#e06847' },
+                ].map(({ icon: Icon, label, color }) => (
+                  <button key={label} onClick={() => !user ? navigate('/auth') : toast.info(`${label} მალე`)}
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#666', fontSize: '13px', fontWeight: '600', transition: 'background 0.15s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  >
+                    <Icon style={{ width: '18px', height: '18px', color }} />
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Sort bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
+              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
+              <span style={{ fontSize: '12px', color: '#666', fontWeight: '600', whiteSpace: 'nowrap' }}>დალაგება: ახალი</span>
+              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
+            </div>
+
+            {/* Posts */}
+            {filteredPosts.length === 0 ? (
+              <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '48px', textAlign: 'center', color: '#666' }}>
+                პოსტები ვერ მოიძებნა
+              </div>
+            ) : filteredPosts.map((post) => {
+              const liked = likedPosts.has(post.id);
+              const saved = savedPosts.has(post.id);
+              return (
+                <article key={post.id} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', overflow: 'hidden' }}>
+                  {/* Post Header */}
+                  <div style={{ padding: '16px 16px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: '12px', cursor: 'pointer' }}>
+                      <div style={{
+                        width: '48px', height: '48px', borderRadius: '50%',
+                        background: getAvatarColor(post.author),
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
+                      }}>
+                        {post.author.charAt(0)}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: '600', fontSize: '14px', color: '#000', lineHeight: '1.3' }}>{post.author}</div>
+                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.3' }}>CodeZero Academy • {formatTime(post.createdAt)}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                          {post.isHot && (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: '#e25950', fontWeight: '600' }}>
+                              <Flame style={{ width: '11px', height: '11px' }} /> ტრენდი
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button
+                        onClick={() => toggleSave(post.id)}
+                        style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: saved ? '#0a66c2' : '#666' }}
+                      >
+                        <Bookmark style={{ width: '18px', height: '18px', fill: saved ? '#0a66c2' : 'none' }} />
+                      </button>
+                      <button style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
+                        <MoreHorizontal style={{ width: '18px', height: '18px' }} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Post Body */}
+                  <div style={{ padding: '12px 16px', cursor: 'pointer' }} onClick={() => navigate(`/forums/${post.id}`)}>
+                    <h3 style={{ fontWeight: '600', fontSize: '15px', color: '#000', marginBottom: '6px', lineHeight: '1.4' }}>{post.title}</h3>
+                    <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</p>
+                  </div>
+
+                  {/* Tags */}
+                  <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                    {post.tags.map(tag => (
+                      <span key={tag} style={{ fontSize: '13px', color: '#0a66c2', cursor: 'pointer' }}>#{tag}</span>
+                    ))}
+                  </div>
+
+                  {/* Reaction counts */}
+                  <div style={{ padding: '0 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#666' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', background: '#0a66c2' }}>
+                        <ThumbsUp style={{ width: '10px', height: '10px', color: '#fff' }} />
+                      </div>
+                      {post.likes + (liked ? 1 : 0)}
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#666' }}>
+                      {post.replies} კომენტარი • {post.views} ნახვა
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div style={{ borderTop: '1px solid #e0e0e0', margin: '0 16px' }} />
+
+                  {/* Action buttons */}
+                  <div style={{ padding: '4px 8px', display: 'flex', gap: '2px' }}>
+                    {[
+                      { icon: ThumbsUp, label: 'მოწონება', active: liked, action: () => toggleLike(post.id), activeColor: '#0a66c2' },
+                      { icon: MessageSquare, label: 'კომენტარი', active: false, action: () => navigate(`/forums/${post.id}`), activeColor: '#0a66c2' },
+                      { icon: Share2, label: 'გაზიარება', active: false, action: () => toast.success('ბმული დაკოპირდა'), activeColor: '#0a66c2' },
+                      { icon: Send, label: 'გაგზავნა', active: false, action: () => toast.info('გაგზავნა'), activeColor: '#0a66c2' },
+                    ].map(({ icon: Icon, label, active, action, activeColor }) => (
+                      <button key={label} onClick={action}
+                        style={{
+                          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                          padding: '10px 4px', borderRadius: '8px', border: 'none', background: 'transparent',
+                          cursor: 'pointer', color: active ? activeColor : '#666',
+                          fontSize: '13px', fontWeight: active ? '700' : '600', transition: 'background 0.15s',
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                      >
+                        <Icon style={{ width: '18px', height: '18px', fill: active ? activeColor : 'none', stroke: active ? activeColor : 'currentColor' }} />
+                        <span className="hidden sm:inline">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </article>
               );
             })}
           </div>
 
-          {/* Posts Grid */}
-          <div className="space-y-4">
-            {filteredPosts.map((post) => (
-              <div
-                key={post.id}
-                className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 hover:border-amber-500/30 transition-all duration-300 group cursor-pointer"
-                onClick={() => navigate(`/forums/${post.id}`)}
-              >
-                <div className="flex items-start gap-4">
-                  {/* Author Avatar */}
-                  <div
-                    className="w-12 h-12 rounded-xl flex items-center justify-center text-white text-lg font-bold flex-shrink-0"
-                    style={{ background: getAvatarColor(post.author) }}
-                  >
-                    {post.author.charAt(0)}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      {post.isHot && (
-                        <span className="px-2 py-1 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold flex items-center gap-1">
-                          <Flame className="w-3 h-3" />
-                          პოპულარული
-                        </span>
-                      )}
-                      <span className="text-white/40 text-xs flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {formatTime(post.createdAt)}
-                      </span>
-                    </div>
-
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:text-amber-500 transition-colors">
-                      {post.title}
-                    </h3>
-
-                    <p className="text-white/60 text-sm mb-3 line-clamp-2">
-                      {post.content}
-                    </p>
-
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2 mb-3">
-                      {post.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 rounded-lg bg-white/10 text-white/50 text-xs flex items-center gap-1"
-                        >
-                          <Tag className="w-3 h-3" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-6 text-white/40 text-sm">
-                      <div className="flex items-center gap-1">
-                        <User className="w-4 h-4" />
-                        <span>{post.author}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>{post.likes}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" />
-                        <span>{post.replies}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Eye className="w-4 h-4" />
-                        <span>{post.views}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {/* ── RIGHT SIDEBAR ── */}
+          <aside className="hidden lg:block space-y-3">
+            {/* Search */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px' }}>
+              <div style={{ position: 'relative' }}>
+                <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#666' }} />
+                <input
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  placeholder="ძებნა..."
+                  style={{ width: '100%', padding: '8px 10px 8px 34px', borderRadius: '20px', border: '1px solid #e0e0e0', fontSize: '14px', outline: 'none', background: '#f3f2ef', boxSizing: 'border-box' }}
+                />
               </div>
-            ))}
-          </div>
-
-          {filteredPosts.length === 0 && (
-            <div className="text-center py-16">
-              <p className="text-white/40 text-lg">პოსტები ვერ მოიძებნა</p>
             </div>
-          )}
+
+            {/* Trending */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                <h3 style={{ fontWeight: '600', fontSize: '15px', color: '#000' }}>ტრენდული თემები</h3>
+                <TrendingUp style={{ width: '16px', height: '16px', color: '#0a66c2' }} />
+              </div>
+              {trendingTopics.map((topic, i) => (
+                <div key={topic.tag}
+                  onClick={() => setSearchQuery(topic.tag)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', cursor: 'pointer', borderBottom: i < trendingTopics.length - 1 ? '1px solid #f3f2ef' : 'none' }}
+                >
+                  <div>
+                    <div style={{ fontWeight: '600', fontSize: '14px', color: '#000' }}>#{topic.tag}</div>
+                    <div style={{ fontSize: '12px', color: '#666' }}>{topic.posts} პოსტი</div>
+                  </div>
+                  <Tag style={{ width: '14px', height: '14px', color: '#0a66c2' }} />
+                </div>
+              ))}
+            </div>
+
+            {/* New Post CTA */}
+            <div style={{ background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
+              <div style={{ fontSize: '15px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>გააზიარეთ თქვენი ცოდნა</div>
+              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>დაეხმარეთ სხვა სტუდენტებს</div>
+              <button
+                onClick={handleCreatePost}
+                style={{ padding: '8px 20px', borderRadius: '20px', border: '1.5px solid #fff', background: 'transparent', color: '#fff', fontWeight: '600', fontSize: '14px', cursor: 'pointer', transition: 'all 0.15s' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#0a66c2'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#fff'; }}
+              >
+                <Plus style={{ width: '14px', height: '14px', display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
+                ახალი პოსტი
+              </button>
+            </div>
+          </aside>
+
         </div>
       </main>
     </>

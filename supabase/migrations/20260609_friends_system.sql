@@ -40,6 +40,13 @@ FOR EACH ROW EXECUTE FUNCTION public.update_friends_updated_at();
 -- RLS
 ALTER TABLE public.friends ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "friends_select_own" ON public.friends;
+DROP POLICY IF EXISTS "friends_insert" ON public.friends;
+DROP POLICY IF EXISTS "friends_update" ON public.friends;
+DROP POLICY IF EXISTS "friends_delete" ON public.friends;
+DROP POLICY IF EXISTS "friends_admin_all" ON public.friends;
+
 -- Users can see their own friendships
 CREATE POLICY "friends_select_own" ON public.friends FOR SELECT
 USING (auth.uid() = user_a OR auth.uid() = user_b);

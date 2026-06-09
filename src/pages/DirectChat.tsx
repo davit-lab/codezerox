@@ -237,7 +237,10 @@ const DirectChat = () => {
 
   // Call handlers
   const handleInitiateCall = async (callType: 'audio' | 'video') => {
-    if (!activeConvoId || !otherUserId) return;
+    if (!activeConvoId || !otherUserId) {
+      toast.error('საჭიროა აირჩიოთ საუბარი');
+      return;
+    }
     
     try {
       const callId = await initiateCall.mutateAsync({
@@ -250,14 +253,17 @@ const DirectChat = () => {
       toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო`);
     } catch (error: any) {
       console.error('Error initiating call:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      
       // Fallback: simulate call if database function doesn't exist
-      if (error?.message?.includes('initiate_call')) {
+      const errorMsg = error?.message || '';
+      if (errorMsg.includes('initiate_call') || errorMsg.includes('PGRST202')) {
         const tempCallId = crypto.randomUUID();
         setCurrentCallId(tempCallId);
         setIsInCall(true);
         toast.success(`${callType === 'video' ? 'ვიდეო' : 'აუდიო'} ზარი დაიწყო (demo mode)`);
       } else {
-        toast.error('ზარის დაწყება ვერ მოხერხდა');
+        toast.error(`ზარის დაწყება ვერ მოხერხდა: ${errorMsg}`);
       }
     }
   };
