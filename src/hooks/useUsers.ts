@@ -174,3 +174,20 @@ export const useTotalUsersCount = () => {
     enabled: isAdmin,
   });
 };
+
+// Fetch all profiles for Forums/Find Friends
+export const useAllProfiles = () => {
+  return useQuery({
+    queryKey: ['all-profiles'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, avatar_url, bio, location, created_at')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data || [];
+    },
+  });
+};

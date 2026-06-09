@@ -6,7 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
 import { useFriends, useSendFriendRequest, usePendingRequests } from "@/hooks/useFriends";
-import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText } from "lucide-react";
+import { useAllProfiles } from "@/hooks/useUsers";
+import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 
 const Forums = () => {
@@ -18,8 +19,6 @@ const Forums = () => {
   const [postTags, setPostTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
-  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
-  const [swipedUserId, setSwipedUserId] = useState<string | null>(null);
 
   const { data: friends } = useFriends();
   const { data: pendingRequests } = usePendingRequests();
@@ -28,16 +27,7 @@ const Forums = () => {
   const { data: myPostCount = 0 } = useMyForumPostCount(user?.id);
   const createPost = useCreateForumPost();
   const toggleLikeMutation = useToggleForumLike();
-
-  // Mock users for demo - in real app, fetch from profiles table
-  const mockUsers = [
-    { id: "1", full_name: "გიორგი ბერიძე", avatar_url: null, bio: "Frontend Developer", location: "თბილისი" },
-    { id: "2", full_name: "ნინო ჩხეიძე", avatar_url: null, bio: "UI/UX Designer", location: "ბათუმი" },
-    { id: "3", full_name: "დავით მამარდაშვილი", avatar_url: null, bio: "Full-stack Developer", location: "ქუთაისი" },
-    { id: "4", full_name: "ანა გიორგაძე", avatar_url: null, bio: "Marketing Specialist", location: "რუსთავი" },
-    { id: "5", full_name: "ლევან კაკაბაძე", avatar_url: null, bio: "Mobile Developer", location: "თბილისი" },
-    { id: "6", full_name: "მარიამ ალექსიძე", avatar_url: null, bio: "Data Analyst", location: "თბილისი" },
-  ];
+  const { data: allProfiles = [] } = useAllProfiles();
 
   const filteredPosts = posts.filter(post => {
     if (!searchQuery) return true;
@@ -47,8 +37,9 @@ const Forums = () => {
       post.tags.some(tag => tag.toLowerCase().includes(q));
   });
 
-  const filteredUsers = mockUsers.filter(u => 
-    u.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = allProfiles.filter(u => 
+    u.user_id !== user?.id &&
+    u.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const isFriend = (userId: string) => {
@@ -68,20 +59,6 @@ const Forums = () => {
       console.error('Error sending friend request:', error);
       toast.error('მოთხოვნის გაგზავნა ვერ მოხერხდა');
     }
-  };
-
-  const handleSwipe = (direction: 'left' | 'right', userId: string) => {
-    setSwipeDirection(direction);
-    setSwipedUserId(userId);
-    
-    if (direction === 'right') {
-      handleSendFriendRequest(userId);
-    }
-    
-    setTimeout(() => {
-      setSwipeDirection(null);
-      setSwipedUserId(null);
-    }, 300);
   };
 
   const getAvatarColor = (name: string) => {
@@ -333,72 +310,149 @@ const Forums = () => {
               </div>
             </div>
 
-            {/* User Cards with Swipe */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px' }}>
-              <div style={{ padding: '0 4px 8px', fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>მომხმარებლები</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {/* User Cards */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
+              <div style={{ padding: '0 4px 12px', fontSize: '13px', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.5px' }}>მომხმარებლები</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
                 {filteredUsers.map((u) => {
-                  const friendStatus = isFriend(u.id);
-                  const pending = isPending(u.id);
-                  const isSwiped = swipedUserId === u.id;
+                  const friendStatus = isFriend(u.user_id);
+                  const pending = isPending(u.user_id);
                   
                   return (
                     <div
-                      key={u.id}
+                      key={u.user_id}
                       style={{
-                        position: 'relative',
-                        padding: '12px',
-                        borderRadius: '10px',
-                        border: '1.5px solid #e0e0e0',
+                        padding: '16px',
+                        borderRadius: '16px',
+                        border: '1.5px solid #e5e7eb',
                         background: '#fff',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        transform: isSwiped && swipeDirection === 'right' ? 'translateX(20px)' : 
-                                  isSwiped && swipeDirection === 'left' ? 'translateX(-20px)' : 'translateX(0)',
-                        opacity: isSwiped ? 0.7 : 1,
+                        position: 'relative',
+                        overflow: 'hidden',
                       }}
-                      onClick={() => navigate(`/user/${u.id}`)}
+                      onClick={() => navigate(`/user/${u.user_id}`)}
+                      onMouseEnter={e => (e.currentTarget.style.borderColor = '#0a66c2')}
+                      onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      {/* Gradient background effect */}
+                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', opacity: 0.1 }} />
+                      
+                      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
                         {u.avatar_url ? (
-                          <img src={u.avatar_url} alt={u.full_name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                          <img 
+                            src={u.avatar_url} 
+                            alt={u.full_name} 
+                            style={{ 
+                              width: '72px', 
+                              height: '72px', 
+                              borderRadius: '50%', 
+                              objectFit: 'cover', 
+                              border: '3px solid #fff',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
+                            }} 
+                          />
                         ) : (
-                          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: getAvatarColor(u.full_name), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', flexShrink: 0 }}>
-                            {u.full_name.charAt(0)}
+                          <div style={{ 
+                            width: '72px', 
+                            height: '72px', 
+                            borderRadius: '50%', 
+                            background: `linear-gradient(135deg, ${getAvatarColor(u.full_name || 'U')} 0%, ${getAvatarColor(u.full_name || 'U')}99 100%)`, 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center', 
+                            fontWeight: 'bold', 
+                            color: '#fff', 
+                            fontSize: '28px',
+                            border: '3px solid #fff',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                          }}>
+                            {u.full_name?.charAt(0) || 'U'}
                           </div>
                         )}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: '600', fontSize: '14px', color: '#000', marginBottom: '2px' }}>{u.full_name}</div>
-                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>{u.bio}</div>
-                          <div style={{ fontSize: '11px', color: '#999' }}>{u.location}</div>
+                        
+                        <div style={{ textAlign: 'center', width: '100%' }}>
+                          <div style={{ fontWeight: '700', fontSize: '15px', color: '#000', marginBottom: '4px' }}>
+                            {u.full_name || 'უცნობი მომხმარებელი'}
+                          </div>
+                          
+                          {u.bio && (
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '6px', lineHeight: '1.4' }}>
+                              {u.bio}
+                            </div>
+                          )}
+                          
+                          {u.location && (
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '11px', color: '#999' }}>
+                              <MapPin style={{ width: '12px', height: '12px' }} />
+                              {u.location}
+                            </div>
+                          )}
                         </div>
-                        {friendStatus ? (
-                          <div style={{ padding: '6px 12px', borderRadius: '20px', background: '#d1fae5', color: '#059669', fontSize: '12px', fontWeight: '600' }}>
-                            მეგობარი
-                          </div>
-                        ) : pending ? (
-                          <div style={{ padding: '6px 12px', borderRadius: '20px', background: '#fef3c7', color: '#d97706', fontSize: '12px', fontWeight: '600' }}>
-                            მოთხოვნა
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleSwipe('right', u.id); }}
-                            style={{ padding: '8px', borderRadius: '50%', background: '#0a66c2', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                            title="დამატება მეგობრებში"
-                          >
-                            <UserPlus style={{ width: '16px', height: '16px' }} />
-                          </button>
-                        )}
-                      </div>
-                      {/* Swipe indicators */}
-                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', gap: '20px', opacity: 0, transition: 'opacity 0.2s' }}>
-                        <span style={{ fontSize: '24px', color: '#059669' }}>✓</span>
-                        <span style={{ fontSize: '24px', color: '#dc2626' }}>✗</span>
+                        
+                        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+                          {friendStatus ? (
+                            <div style={{ 
+                              padding: '8px 20px', 
+                              borderRadius: '24px', 
+                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
+                              color: '#fff', 
+                              fontSize: '13px', 
+                              fontWeight: '600',
+                              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                            }}>
+                              მეგობარი
+                            </div>
+                          ) : pending ? (
+                            <div style={{ 
+                              padding: '8px 20px', 
+                              borderRadius: '24px', 
+                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 
+                              color: '#fff', 
+                              fontSize: '13px', 
+                              fontWeight: '600',
+                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+                            }}>
+                              მოთხოვნა
+                            </div>
+                          ) : (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleSendFriendRequest(u.user_id); }}
+                              style={{ 
+                                padding: '8px 20px', 
+                                borderRadius: '24px', 
+                                background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)', 
+                                color: '#fff', 
+                                border: 'none', 
+                                cursor: 'pointer', 
+                                fontSize: '13px', 
+                                fontWeight: '600',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                boxShadow: '0 2px 8px rgba(10, 102, 194, 0.3)',
+                                transition: 'all 0.2s'
+                              }}
+                              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+                            >
+                              <UserPlus style={{ width: '14px', height: '14px' }} />
+                              დამატება
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
+              
+              {filteredUsers.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '24px', color: '#999' }}>
+                  <User style={{ width: '48px', height: '48px', margin: '0 auto 12px', opacity: 0.5 }} />
+                  <div style={{ fontSize: '14px' }}>მომხმარებლები ვერ მოიძებნა</div>
+                </div>
+              )}
             </div>
           </aside>
 
