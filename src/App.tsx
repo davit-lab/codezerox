@@ -56,6 +56,7 @@ import PackageCheckout from "./pages/PackageCheckout";
 import DirectChat from "./pages/DirectChat";
 import FindFriends from "./pages/FindFriends";
 import Forums from "./pages/Forums";
+import ForumPostDetail from "./pages/ForumPostDetail";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import UserProfile from "./pages/UserProfile";
@@ -183,6 +184,7 @@ const App = () => {
             <Route path="/direct-chat" element={<DirectChat />} />
             <Route path="/find-friends" element={<FindFriends />} />
             <Route path="/forums" element={<Forums />} />
+            <Route path="/forums/:id" element={<ForumPostDetail />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/blog" element={<Blog />} />

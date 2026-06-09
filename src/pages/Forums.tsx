@@ -23,11 +23,11 @@ const Forums = () => {
   const toggleLikeMutation = useToggleForumLike();
 
   const categories = [
-    { id: "all", name: "ყველა", icon: TrendingUp },
-    { id: "programming", name: "პროგრამირება", icon: Code },
-    { id: "design", name: "დიზაინი", icon: Palette },
-    { id: "business", name: "ბიზნესი", icon: Briefcase },
-    { id: "help", name: "დახმარება", icon: HelpCircle },
+    { id: "all",         name: "ყველა",         icon: TrendingUp, color: '#7c3aed', bg: '#f3e8ff' },
+    { id: "programming",name: "პროგრამირება", icon: Code,        color: '#1d4ed8', bg: '#dbeafe' },
+    { id: "design",     name: "დიზაინი",       icon: Palette,    color: '#be185d', bg: '#fce7f3' },
+    { id: "business",   name: "ბიზნესი",       icon: Briefcase,  color: '#d97706', bg: '#fef3c7' },
+    { id: "help",       name: "დახმარება",     icon: HelpCircle, color: '#059669', bg: '#d1fae5' },
   ];
 
   const filteredPosts = posts.filter(post => {
@@ -126,20 +126,20 @@ const Forums = () => {
                 value={newPost.title}
                 onChange={e => setNewPost(p => ({ ...p, title: e.target.value }))}
                 placeholder="სათაური *"
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box' }}
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', width: '100%', boxSizing: 'border-box', color: '#000', background: '#fff' }}
               />
               <textarea
                 value={newPost.content}
                 onChange={e => setNewPost(p => ({ ...p, content: e.target.value }))}
                 placeholder="რის გაზიარება გსურთ?"
                 rows={5}
-                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', color: '#000', background: '#fff' }}
               />
               <div style={{ display: 'flex', gap: '10px' }}>
                 <select
                   value={newPost.category}
                   onChange={e => setNewPost(p => ({ ...p, category: e.target.value }))}
-                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', background: '#fff', cursor: 'pointer' }}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', background: '#fff', cursor: 'pointer', color: '#000' }}
                 >
                   <option value="programming">პროგრამირება</option>
                   <option value="design">დიზაინი</option>
@@ -150,7 +150,7 @@ const Forums = () => {
                   value={newPost.tags}
                   onChange={e => setNewPost(p => ({ ...p, tags: e.target.value }))}
                   placeholder="ტეგები (React, Python...)"
-                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }}
+                  style={{ flex: 1, padding: '10px 14px', borderRadius: '8px', border: '1px solid #c9cdd2', fontSize: '14px', outline: 'none', boxSizing: 'border-box', color: '#000', background: '#fff' }}
                 />
               </div>
               <button
@@ -204,32 +204,38 @@ const Forums = () => {
             </div>
 
             {/* Category Nav */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '8px 0' }}>
-              <div style={{ padding: '8px 16px 4px', fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>კატეგორიები</div>
-              {categories.map((cat) => {
-                const Icon = cat.icon;
-                const isActive = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveCategory(cat.id)}
-                    style={{
-                      width: '100%', textAlign: 'left', padding: '10px 16px',
-                      background: isActive ? '#e8f0fe' : 'transparent',
-                      border: 'none', cursor: 'pointer',
-                      display: 'flex', alignItems: 'center', gap: '10px',
-                      color: isActive ? '#0a66c2' : '#333',
-                      fontWeight: isActive ? '600' : '400',
-                      fontSize: '14px',
-                      borderLeft: isActive ? '3px solid #0a66c2' : '3px solid transparent',
-                      transition: 'all 0.15s',
-                    }}
-                  >
-                    <Icon style={{ width: '18px', height: '18px', flexShrink: 0 }} />
-                    {cat.name}
-                  </button>
-                );
-              })}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px' }}>
+              <div style={{ padding: '0 4px 8px', fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>კატეგორიები</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                {categories.map((cat) => {
+                  const Icon = cat.icon;
+                  const isActive = activeCategory === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      onClick={() => setActiveCategory(cat.id)}
+                      style={{
+                        width: '100%', textAlign: 'left', padding: '10px 14px',
+                        background: isActive ? cat.bg : 'transparent',
+                        border: isActive ? `1.5px solid ${cat.color}30` : '1.5px solid transparent',
+                        borderRadius: '10px', cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', gap: '10px',
+                        color: isActive ? cat.color : '#444',
+                        fontWeight: isActive ? '700' : '500',
+                        fontSize: '14px',
+                        transition: 'all 0.15s',
+                      }}
+                      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = cat.bg + '80'; e.currentTarget.style.color = cat.color; } }}
+                      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#444'; } }}
+                    >
+                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: isActive ? cat.color : cat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
+                        <Icon style={{ width: '16px', height: '16px', color: isActive ? '#fff' : cat.color }} />
+                      </div>
+                      {cat.name}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </aside>
 

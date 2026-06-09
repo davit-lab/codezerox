@@ -126,6 +126,97 @@ export const useToggleForumLike = () => {
   });
 };
 
+export interface ForumComment {
+  id: string;
+  post_id: string;
+  author_id: string;
+  content: string;
+  created_at: string;
+  profile?: { full_name: string | null; avatar_url: string | null } | null;
+}
+
+export const useForumPost = (postId: string) => {
+  return useQuery({
+    queryKey: ["forum-post", postId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("forum_posts")
+        .select("*")
+        .eq("id", postId)
+        .single();
+      if (error) throw error;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .eq("user_id", data.author_id)
+        .single();
+      supabase.rpc("increment_forum_views", { _post_id: postId }).then(() => {});
+      return { ...data, profile: profile ?? null } as ForumPost;
+    },
+    enabled: !!postId,
+  });
+};
+
+export const useForumComments = (postId: string) => {
+  return useQuery({
+    queryKey: ["forum-comments", postId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("forum_comments")
+        .select("*")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      const comments = (data ?? []) as any[];
+      if (comments.length === 0) return [] as ForumComment[];
+      const authorIds = [...new Set(comments.map((c) => c.author_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, avatar_url")
+        .in("user_id", authorIds);
+      const profileMap = new Map((profiles ?? []).map((p) => [p.user_id, p]));
+      return comments.map((c) => ({
+        ...c,
+        profile: profileMap.get(c.author_id) ?? null,
+      })) as ForumComment[];
+    },
+    enabled: !!postId,
+  });
+};
+
+export const useCreateForumComment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ postId, content }: { postId: string; content: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await supabase
+        .from("forum_comments")
+        .insert({ post_id: postId, author_id: user.id, content });
+      if (error) throw error;
+    },
+    onSuccess: (_, { postId }) => {
+      qc.invalidateQueries({ queryKey: ["forum-comments", postId] });
+      qc.invalidateQueries({ queryKey: ["forum-post", postId] });
+      qc.invalidateQueries({ queryKey: ["forum-posts"] });
+    },
+  });
+};
+
+export const useDeleteForumComment = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ commentId, postId }: { commentId: string; postId: string }) => {
+      const { error } = await supabase.from("forum_comments").delete().eq("id", commentId);
+      if (error) throw error;
+    },
+    onSuccess: (_, { postId }) => {
+      qc.invalidateQueries({ queryKey: ["forum-comments", postId] });
+      qc.invalidateQueries({ queryKey: ["forum-posts"] });
+    },
+  });
+};
+
 export const useIncrementForumViews = () => {
   return useMutation({
     mutationFn: async (postId: string) => {

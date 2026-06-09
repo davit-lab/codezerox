@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export type CallStatus = 'initiated' | 'ringing' | 'connected' | 'ended' | 'rejected' | 'missed';
@@ -99,12 +100,40 @@ export const useEndCall = () => {
 };
 
 // Get active calls for current user
-export const useActiveCalls = () => {
+export const useActiveCalls = (userId?: string) => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!userId) return;
+
+    const channel = supabase
+      .channel(`calls-realtime-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'calls',
+        filter: `receiver_id=eq.${userId}`
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['active-calls'] });
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'calls',
+        filter: `caller_id=eq.${userId}`
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: ['active-calls'] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, queryClient]);
+
   return useQuery({
     queryKey: ['active-calls'],
     queryFn: async (): Promise<Call[]> => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+      if (!user) return [];
 
       const { data, error } = await supabase
         .from('calls')
@@ -116,7 +145,8 @@ export const useActiveCalls = () => {
       if (error) throw error;
       return data || [];
     },
-    refetchInterval: 3000, // Poll every 3 seconds
+    refetchInterval: 2000,
+    enabled: !!userId,
   });
 };
 
