@@ -524,7 +524,7 @@ const CertificateTemplate = forwardRef<HTMLDivElement, CertificateTemplateProps>
 
                 fontSize: '14px',
 
-                opacity: 0.7',
+                opacity: 0.7,
 
                 marginBottom: '5px',
 
