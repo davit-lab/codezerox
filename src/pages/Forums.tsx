@@ -5,31 +5,38 @@ import Header from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
-import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, Code, Palette, Briefcase, HelpCircle, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, Image, Video, FileText, X, Loader2 } from "lucide-react";
+import { useFriends, useSendFriendRequest, usePendingRequests } from "@/hooks/useFriends";
+import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText } from "lucide-react";
 import { toast } from "sonner";
 
 const Forums = () => {
   const navigate = useNavigate();
   const { user, profile } = useAuth();
-  const [activeCategory, setActiveCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [newPost, setNewPost] = useState({ title: "", content: "", category: "programming" });
   const [postTags, setPostTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
+  const [swipeDirection, setSwipeDirection] = useState<'left' | 'right' | null>(null);
+  const [swipedUserId, setSwipedUserId] = useState<string | null>(null);
 
-  const { data: posts = [], isLoading } = useForumPosts(activeCategory === "all" ? undefined : activeCategory);
+  const { data: friends } = useFriends();
+  const { data: pendingRequests } = usePendingRequests();
+  const sendFriendRequest = useSendFriendRequest();
+  const { data: posts = [], isLoading } = useForumPosts();
   const { data: myPostCount = 0 } = useMyForumPostCount(user?.id);
   const createPost = useCreateForumPost();
   const toggleLikeMutation = useToggleForumLike();
 
-  const categories = [
-    { id: "all",         name: "ყველა",         icon: TrendingUp, color: '#7c3aed', bg: '#f3e8ff' },
-    { id: "programming",name: "პროგრამირება", icon: Code,        color: '#1d4ed8', bg: '#dbeafe' },
-    { id: "design",     name: "დიზაინი",       icon: Palette,    color: '#be185d', bg: '#fce7f3' },
-    { id: "business",   name: "ბიზნესი",       icon: Briefcase,  color: '#d97706', bg: '#fef3c7' },
-    { id: "help",       name: "დახმარება",     icon: HelpCircle, color: '#059669', bg: '#d1fae5' },
+  // Mock users for demo - in real app, fetch from profiles table
+  const mockUsers = [
+    { id: "1", full_name: "გიორგი ბერიძე", avatar_url: null, bio: "Frontend Developer", location: "თბილისი" },
+    { id: "2", full_name: "ნინო ჩხეიძე", avatar_url: null, bio: "UI/UX Designer", location: "ბათუმი" },
+    { id: "3", full_name: "დავით მამარდაშვილი", avatar_url: null, bio: "Full-stack Developer", location: "ქუთაისი" },
+    { id: "4", full_name: "ანა გიორგაძე", avatar_url: null, bio: "Marketing Specialist", location: "რუსთავი" },
+    { id: "5", full_name: "ლევან კაკაბაძე", avatar_url: null, bio: "Mobile Developer", location: "თბილისი" },
+    { id: "6", full_name: "მარიამ ალექსიძე", avatar_url: null, bio: "Data Analyst", location: "თბილისი" },
   ];
 
   const filteredPosts = posts.filter(post => {
@@ -39,6 +46,43 @@ const Forums = () => {
       post.content.toLowerCase().includes(q) ||
       post.tags.some(tag => tag.toLowerCase().includes(q));
   });
+
+  const filteredUsers = mockUsers.filter(u => 
+    u.full_name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const isFriend = (userId: string) => {
+    return friends?.some(f => f.friend_id === userId);
+  };
+
+  const isPending = (userId: string) => {
+    return pendingRequests?.some(r => r.requester_id === userId);
+  };
+
+  const handleSendFriendRequest = async (userId: string) => {
+    if (userId === user?.id) return;
+    try {
+      await sendFriendRequest.mutateAsync(userId);
+      toast.success('მეგობრობის მოთხოვნა გაგზავნილია');
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      toast.error('მოთხოვნის გაგზავნა ვერ მოხერხდა');
+    }
+  };
+
+  const handleSwipe = (direction: 'left' | 'right', userId: string) => {
+    setSwipeDirection(direction);
+    setSwipedUserId(userId);
+    
+    if (direction === 'right') {
+      handleSendFriendRequest(userId);
+    }
+    
+    setTimeout(() => {
+      setSwipeDirection(null);
+      setSwipedUserId(null);
+    }, 300);
+  };
 
   const getAvatarColor = (name: string) => {
     const colors = ['#0a66c2', '#7c3aed', '#059669', '#dc2626', '#d97706', '#0891b2', '#be185d', '#4f46e5'];
@@ -289,36 +333,69 @@ const Forums = () => {
               </div>
             </div>
 
-            {/* Category Nav */}
+            {/* User Cards with Swipe */}
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px' }}>
-              <div style={{ padding: '0 4px 8px', fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>კატეგორიები</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                {categories.map((cat) => {
-                  const Icon = cat.icon;
-                  const isActive = activeCategory === cat.id;
+              <div style={{ padding: '0 4px 8px', fontSize: '12px', fontWeight: '600', color: '#666', textTransform: 'uppercase', letterSpacing: '0.5px' }}>მომხმარებლები</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {filteredUsers.map((u) => {
+                  const friendStatus = isFriend(u.id);
+                  const pending = isPending(u.id);
+                  const isSwiped = swipedUserId === u.id;
+                  
                   return (
-                    <button
-                      key={cat.id}
-                      onClick={() => setActiveCategory(cat.id)}
+                    <div
+                      key={u.id}
                       style={{
-                        width: '100%', textAlign: 'left', padding: '10px 14px',
-                        background: isActive ? cat.bg : 'transparent',
-                        border: isActive ? `1.5px solid ${cat.color}30` : '1.5px solid transparent',
-                        borderRadius: '10px', cursor: 'pointer',
-                        display: 'flex', alignItems: 'center', gap: '10px',
-                        color: isActive ? cat.color : '#444',
-                        fontWeight: isActive ? '700' : '500',
-                        fontSize: '14px',
-                        transition: 'all 0.15s',
+                        position: 'relative',
+                        padding: '12px',
+                        borderRadius: '10px',
+                        border: '1.5px solid #e0e0e0',
+                        background: '#fff',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        transform: isSwiped && swipeDirection === 'right' ? 'translateX(20px)' : 
+                                  isSwiped && swipeDirection === 'left' ? 'translateX(-20px)' : 'translateX(0)',
+                        opacity: isSwiped ? 0.7 : 1,
                       }}
-                      onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = cat.bg + '80'; e.currentTarget.style.color = cat.color; } }}
-                      onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#444'; } }}
+                      onClick={() => navigate(`/user/${u.id}`)}
                     >
-                      <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: isActive ? cat.color : cat.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'all 0.15s' }}>
-                        <Icon style={{ width: '16px', height: '16px', color: isActive ? '#fff' : cat.color }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {u.avatar_url ? (
+                          <img src={u.avatar_url} alt={u.full_name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: getAvatarColor(u.full_name), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', flexShrink: 0 }}>
+                            {u.full_name.charAt(0)}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: '600', fontSize: '14px', color: '#000', marginBottom: '2px' }}>{u.full_name}</div>
+                          <div style={{ fontSize: '12px', color: '#666', marginBottom: '2px' }}>{u.bio}</div>
+                          <div style={{ fontSize: '11px', color: '#999' }}>{u.location}</div>
+                        </div>
+                        {friendStatus ? (
+                          <div style={{ padding: '6px 12px', borderRadius: '20px', background: '#d1fae5', color: '#059669', fontSize: '12px', fontWeight: '600' }}>
+                            მეგობარი
+                          </div>
+                        ) : pending ? (
+                          <div style={{ padding: '6px 12px', borderRadius: '20px', background: '#fef3c7', color: '#d97706', fontSize: '12px', fontWeight: '600' }}>
+                            მოთხოვნა
+                          </div>
+                        ) : (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleSwipe('right', u.id); }}
+                            style={{ padding: '8px', borderRadius: '50%', background: '#0a66c2', color: '#fff', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            title="დამატება მეგობრებში"
+                          >
+                            <UserPlus style={{ width: '16px', height: '16px' }} />
+                          </button>
+                        )}
                       </div>
-                      {cat.name}
-                    </button>
+                      {/* Swipe indicators */}
+                      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', display: 'flex', gap: '20px', opacity: 0, transition: 'opacity 0.2s' }}>
+                        <span style={{ fontSize: '24px', color: '#059669' }}>✓</span>
+                        <span style={{ fontSize: '24px', color: '#dc2626' }}>✗</span>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
@@ -373,9 +450,9 @@ const Forums = () => {
               <div style={{ display: 'flex', gap: '4px', borderTop: '1px solid #e0e0e0', paddingTop: '10px' }}>
                 {[
                   { icon: Image, label: 'სურათი', color: '#70b5f9' },
-                  { icon: Video, label: 'ვიდეო', color: '#7fc15e' },
+                  { icon: MessageSquare, label: 'ვიდეო', color: '#7fc15e' },
                   { icon: FileText, label: 'სტატია', color: '#e06847' },
-                ].map(({ icon: Icon, label, color }) => (
+                ].map(({ icon: Icon, label, color }: any) => (
                   <button key={label} onClick={() => !user ? navigate('/auth') : setShowModal(true)}
                     style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#666', fontSize: '13px', fontWeight: '600', transition: 'background 0.15s' }}
                     onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
