@@ -54,6 +54,8 @@ import FreelancerProfile from "./pages/FreelancerProfile";
 // import PostingPackages from "./pages/PostingPackages";
 import PackageCheckout from "./pages/PackageCheckout";
 import DirectChat from "./pages/DirectChat";
+import FindFriends from "./pages/FindFriends";
+import Forums from "./pages/Forums";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import UserProfile from "./pages/UserProfile";
@@ -178,6 +180,9 @@ const App = () => {
             {/* <Route path="/packages" element={<PostingPackages />} /> */}
             <Route path="/package-checkout" element={<PackageCheckout />} />
             <Route path="/chat" element={<DirectChat />} />
+            <Route path="/direct-chat" element={<DirectChat />} />
+            <Route path="/find-friends" element={<FindFriends />} />
+            <Route path="/forums" element={<Forums />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/blog" element={<Blog />} />
