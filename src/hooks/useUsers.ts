@@ -182,7 +182,7 @@ export const useAllProfiles = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, full_name, avatar_url, bio, location, created_at')
+        .select('user_id, full_name, avatar_url, bio, created_at')
         .order('created_at', { ascending: false })
         .limit(50);
       

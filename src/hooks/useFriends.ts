@@ -60,6 +60,20 @@ export const usePendingRequests = () => {
   });
 };
 
+// Get requests sent BY current user (pending outbound)
+export const useSentRequests = () => {
+  return useQuery({
+    queryKey: ['sent-requests'],
+    queryFn: async (): Promise<{ target_user_id: string; friendship_id: string; created_at: string }[]> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      const { data, error } = await supabase.rpc('get_sent_requests', { _user_id: user.id });
+      if (error) throw error;
+      return data || [];
+    }
+  });
+};
+
 // Send friend request
 export const useSendFriendRequest = () => {
   const queryClient = useQueryClient();
@@ -76,6 +90,7 @@ export const useSendFriendRequest = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['friends'] });
       queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['sent-requests'] });
     }
   });
 };
@@ -96,6 +111,7 @@ export const useAcceptFriendRequest = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['friends'] });
       queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['sent-requests'] });
     }
   });
 };
@@ -115,6 +131,7 @@ export const useDeclineFriendRequest = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['pending-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['sent-requests'] });
     }
   });
 };

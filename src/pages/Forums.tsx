@@ -6,7 +6,7 @@ import Header from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
-import { useFriends, useSendFriendRequest, usePendingRequests, useAcceptFriendRequest, useDeclineFriendRequest } from "@/hooks/useFriends";
+import { useFriends, useSendFriendRequest, usePendingRequests, useSentRequests, useAcceptFriendRequest, useDeclineFriendRequest } from "@/hooks/useFriends";
 import { useAllProfiles } from "@/hooks/useUsers";
 import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase, ChevronDown, Video, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ const Forums = () => {
   const [tagInput, setTagInput] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
   const [userDisplayCount, setUserDisplayCount] = useState(6);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [mediaPreview, setMediaPreview] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
   const [uploadingMedia, setUploadingMedia] = useState(false);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -28,6 +29,7 @@ const Forums = () => {
 
   const { data: friends } = useFriends();
   const { data: pendingRequests } = usePendingRequests();
+  const { data: sentRequests } = useSentRequests();
   const sendFriendRequest = useSendFriendRequest();
   const acceptRequest = useAcceptFriendRequest();
   const declineRequest = useDeclineFriendRequest();
@@ -38,6 +40,7 @@ const Forums = () => {
   const { data: allProfiles = [] } = useAllProfiles();
 
   const filteredPosts = posts.filter(post => {
+    if (activeCategory !== 'all' && post.category !== activeCategory) return false;
     if (!searchQuery) return true;
     const q = searchQuery.toLowerCase();
     return post.title.toLowerCase().includes(q) ||
@@ -45,9 +48,9 @@ const Forums = () => {
       post.tags.some(tag => tag.toLowerCase().includes(q));
   });
 
-  const filteredUsers = allProfiles.filter(u => 
+  const filteredUsers = allProfiles.filter(u =>
     u.user_id !== user?.id &&
-    u.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+    (!searchQuery || u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const isFriend = (userId: string) => {
@@ -56,6 +59,10 @@ const Forums = () => {
 
   const isPending = (userId: string) => {
     return pendingRequests?.some(r => r.requester_id === userId);
+  };
+
+  const isSentRequest = (userId: string) => {
+    return sentRequests?.some(r => r.target_user_id === userId);
   };
 
   const handleSendFriendRequest = async (userId: string) => {
@@ -185,7 +192,7 @@ const Forums = () => {
               </button>
             </div>
 
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px', maxHeight: 'calc(90vh - 70px)', overflowY: 'auto' }}>
               {/* Author */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 {profile?.avatar_url ? (
@@ -300,9 +307,9 @@ const Forums = () => {
                 ) : (
                   <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
                     {mediaPreview.type === 'image' ? (
-                      <img src={mediaPreview.url} alt="preview" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', display: 'block' }} />
+                      <img src={mediaPreview.url} alt="preview" style={{ width: '100%', maxHeight: '240px', objectFit: 'cover', display: 'block' }} />
                     ) : (
-                      <video src={mediaPreview.url} controls style={{ width: '100%', maxHeight: '300px', display: 'block' }} />
+                      <video src={mediaPreview.url} controls style={{ width: '100%', maxHeight: '240px', display: 'block' }} />
                     )}
                     <button onClick={() => setMediaPreview(null)}
                       style={{ position: 'absolute', top: '8px', right: '8px', width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
@@ -423,7 +430,8 @@ const Forums = () => {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
                 {filteredUsers.slice(0, userDisplayCount).map((u) => {
                   const friendStatus = isFriend(u.user_id);
-                  const pending = isPending(u.user_id);
+                  const sentReq = isSentRequest(u.user_id);
+                  const receivedReq = isPending(u.user_id);
                   
                   return (
                     <div
@@ -484,43 +492,27 @@ const Forums = () => {
                           </div>
                           
                           {u.bio && (
-                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '6px', lineHeight: '1.4' }}>
+                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '6px', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
                               {u.bio}
-                            </div>
-                          )}
-                          
-                          {u.location && (
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px', fontSize: '11px', color: '#999' }}>
-                              <MapPin style={{ width: '12px', height: '12px' }} />
-                              {u.location}
                             </div>
                           )}
                         </div>
                         
                         <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                           {friendStatus ? (
-                            <div style={{ 
-                              padding: '8px 20px', 
-                              borderRadius: '24px', 
-                              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
-                              color: '#fff', 
-                              fontSize: '13px', 
-                              fontWeight: '600',
-                              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
-                            }}>
-                              მეგობარი
+                            <div style={{ padding: '8px 20px', borderRadius: '24px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '13px', fontWeight: '600', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
+                              ✓ მეგობარი
                             </div>
-                          ) : pending ? (
-                            <div style={{ 
-                              padding: '8px 20px', 
-                              borderRadius: '24px', 
-                              background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', 
-                              color: '#fff', 
-                              fontSize: '13px', 
-                              fontWeight: '600',
-                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
-                            }}>
-                              მოთხოვნა
+                          ) : sentReq ? (
+                            <div style={{ padding: '8px 20px', borderRadius: '24px', background: '#f3f2ef', color: '#666', fontSize: '13px', fontWeight: '600', border: '1.5px solid #e0e0e0' }}>
+                              ⏳ გაგზავნილია
+                            </div>
+                          ) : receivedReq ? (
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button onClick={e => { e.stopPropagation(); const req = pendingRequests?.find(r => r.requester_id === u.user_id); if (req) acceptRequest.mutate(req.friendship_id); }}
+                                style={{ padding: '6px 14px', borderRadius: '16px', border: 'none', background: '#0a66c2', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>დათანხმება</button>
+                              <button onClick={e => { e.stopPropagation(); const req = pendingRequests?.find(r => r.requester_id === u.user_id); if (req) declineRequest.mutate(req.friendship_id); }}
+                                style={{ padding: '6px 14px', borderRadius: '16px', border: '1.5px solid #e0e0e0', background: '#fff', color: '#666', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>უარყოფა</button>
                             </div>
                           ) : (
                             <button
@@ -622,7 +614,7 @@ const Forums = () => {
               <div style={{ display: 'flex', gap: '4px', borderTop: '1px solid #e0e0e0', paddingTop: '10px' }}>
                 {[
                   { icon: Image, label: 'სურათი', color: '#70b5f9' },
-                  { icon: MessageSquare, label: 'ვიდეო', color: '#7fc15e' },
+                  { icon: Video, label: 'ვიდეო', color: '#7fc15e' },
                   { icon: FileText, label: 'სტატია', color: '#e06847' },
                 ].map(({ icon: Icon, label, color }: any) => (
                   <button key={label} onClick={() => !user ? navigate('/auth') : setShowModal(true)}
@@ -637,11 +629,24 @@ const Forums = () => {
               </div>
             </div>
 
-            {/* Sort bar */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 0' }}>
-              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
-              <span style={{ fontSize: '12px', color: '#666', fontWeight: '600', whiteSpace: 'nowrap' }}>დალაგება: ახალი</span>
-              <div style={{ flex: 1, height: '1px', background: '#e0e0e0' }} />
+            {/* Category filter bar */}
+            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px 16px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {[
+                { id: 'all', name: 'ყველა', color: '#333', bg: '#f3f2ef' },
+                { id: 'programming', name: 'პროგრამირება', color: '#1d4ed8', bg: '#dbeafe' },
+                { id: 'design', name: 'დიზაინი', color: '#be185d', bg: '#fce7f3' },
+                { id: 'business', name: 'ბიზნესი', color: '#d97706', bg: '#fef3c7' },
+                { id: 'help', name: 'დახმარება', color: '#059669', bg: '#d1fae5' },
+              ].map(cat => {
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
+                    style={{ padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: isActive ? '700' : '600', background: isActive ? cat.color : cat.bg, color: isActive ? '#fff' : cat.color, transition: 'all 0.15s' }}>
+                    {cat.name}
+                  </button>
+                );
+              })}
+              <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#999' }}>{filteredPosts.length} პოსტი</span>
             </div>
 
             {/* Posts */}
@@ -693,7 +698,7 @@ const Forums = () => {
                       )}
                       <div>
                         <div style={{ fontWeight: '600', fontSize: '14px', color: '#000', lineHeight: '1.3' }}>{authorName}</div>
-                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.3' }}>CodeZero Academy • {formatTime(post.created_at)}</div>
+                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.3', display: 'flex', alignItems: 'center', gap: '6px' }}>CodeZero Academy • {formatTime(post.created_at)}</div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
                           {isHot && (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: '#e25950', fontWeight: '600' }}>
@@ -703,7 +708,18 @@ const Forums = () => {
                         </div>
                       </div>
                     </div>
-                    <div style={{ display: 'flex', gap: '4px' }}>
+                    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+                      {(() => {
+                        const catColors: Record<string, { bg: string; text: string }> = {
+                          programming: { bg: '#dbeafe', text: '#1d4ed8' },
+                          design: { bg: '#fce7f3', text: '#be185d' },
+                          business: { bg: '#fef3c7', text: '#d97706' },
+                          help: { bg: '#d1fae5', text: '#059669' },
+                        };
+                        const cs = catColors[post.category] ?? { bg: '#f3f2ef', text: '#333' };
+                        const catNames: Record<string,string> = { programming: 'კოდი', design: 'დიზაინი', business: 'ბიზნესი', help: 'დახმარება' };
+                        return <span style={{ padding: '3px 10px', borderRadius: '12px', background: cs.bg, color: cs.text, fontSize: '11px', fontWeight: '700' }}>{catNames[post.category] ?? post.category}</span>;
+                      })()}
                       <button
                         onClick={() => toggleSave(post.id)}
                         style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: saved ? '#0a66c2' : '#666' }}
@@ -764,7 +780,7 @@ const Forums = () => {
                     {[
                       { icon: ThumbsUp, label: 'მოწონება', active: liked, action: () => handleToggleLike(post.id, liked), activeColor: '#0a66c2' },
                       { icon: MessageSquare, label: 'კომენტარი', active: false, action: () => navigate(`/forums/${post.id}`), activeColor: '#0a66c2' },
-                      { icon: Share2, label: 'გაზიარება', active: false, action: () => toast.success('ბმული დაკოპირდა'), activeColor: '#0a66c2' },
+                      { icon: Share2, label: 'გაზიარება', active: false, action: () => { navigator.clipboard?.writeText(window.location.origin + '/forums/' + post.id).then(() => toast.success('ბმული დაკოპირდა')).catch(() => toast.error('ვერ დაკოპირდა')); }, activeColor: '#0a66c2' },
                       { icon: Send, label: 'გაგზავნა', active: false, action: () => toast.info('გაგზავნა'), activeColor: '#0a66c2' },
                     ].map(({ icon: Icon, label, active, action, activeColor }: any) => (
                       <button key={label} onClick={action}
