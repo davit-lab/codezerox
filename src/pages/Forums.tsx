@@ -8,7 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
 import { useFriends, useSendFriendRequest, usePendingRequests, useSentRequests, useAcceptFriendRequest, useDeclineFriendRequest } from "@/hooks/useFriends";
 import { useAllProfiles } from "@/hooks/useUsers";
-import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase, ChevronDown, Video, Trash2 } from "lucide-react";
+import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, X, Loader2, UserPlus, Bell, Image, FileText, ChevronDown, Video } from "lucide-react";
 import { toast } from "sonner";
 
 const Forums = () => {
@@ -164,15 +164,27 @@ const Forums = () => {
   };
 
   const trendingTopics = [
-    { tag: "React", posts: filteredPosts.filter(p => p.tags.includes("React")).length || 0 },
-    { tag: "Python", posts: filteredPosts.filter(p => p.tags.includes("Python")).length || 0 },
-    { tag: "TypeScript", posts: filteredPosts.filter(p => p.tags.includes("TypeScript")).length || 0 },
-    { tag: "UI/UX", posts: filteredPosts.filter(p => p.tags.includes("UI/UX")).length || 0 },
-    { tag: "Freelancing", posts: filteredPosts.filter(p => p.tags.includes("Freelancing")).length || 0 },
+    { tag: "React", count: posts.filter(p => p.tags.includes("React")).length },
+    { tag: "Python", count: posts.filter(p => p.tags.includes("Python")).length },
+    { tag: "TypeScript", count: posts.filter(p => p.tags.includes("TypeScript")).length },
+    { tag: "UI/UX", count: posts.filter(p => p.tags.includes("UI/UX")).length },
+    { tag: "Freelancing", count: posts.filter(p => p.tags.includes("Freelancing")).length },
   ];
+
+  const CATS = [
+    { id: 'all', label: 'ყველა', color: '#6366f1', bg: '#eef2ff' },
+    { id: 'programming', label: 'კოდი', color: '#2563eb', bg: '#dbeafe' },
+    { id: 'design', label: 'დიზაინი', color: '#be185d', bg: '#fce7f3' },
+    { id: 'business', label: 'ბიზნესი', color: '#d97706', bg: '#fef3c7' },
+    { id: 'help', label: 'დახმარება', color: '#059669', bg: '#d1fae5' },
+  ];
+
+  const catStyle = (id: string) => CATS.find(c => c.id === id) ?? { color: '#555', bg: '#f3f4f6', label: id };
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'სტუმარი';
   const avatarLetter = displayName.charAt(0).toUpperCase();
+
+  const card = { background: '#fff', borderRadius: '16px', border: '1px solid #e8eaf6', boxShadow: '0 2px 8px rgba(99,102,241,0.06)' } as const;
 
   return (
     <>
@@ -182,40 +194,36 @@ const Forums = () => {
 
       {/* Create Post Modal */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '600px', overflow: 'hidden', boxShadow: '0 25px 60px rgba(0,0,0,0.3)' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15,15,40,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div style={{ background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '600px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
             {/* Header */}
-            <div style={{ padding: '18px 24px', borderBottom: '1px solid #e0e0e0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontWeight: '700', fontSize: '18px', color: '#000' }}>პოსტის შექმნა</h2>
-              <button onClick={() => setShowModal(false)} style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: '#f3f2ef', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }} onMouseEnter={e => (e.currentTarget.style.background = '#e8e6e3')} onMouseLeave={e => (e.currentTarget.style.background = '#f3f2ef')}>
-                <X style={{ width: '18px', height: '18px', color: '#666' }} />
+            <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={displayName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.5)' }} />
+                ) : (
+                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', border: '2px solid rgba(255,255,255,0.4)' }}>{avatarLetter}</div>
+                )}
+                <div>
+                  <div style={{ fontWeight: '700', fontSize: '15px', color: '#fff' }}>{displayName}</div>
+                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>ახალი პოსტი</div>
+                </div>
+              </div>
+              <button onClick={() => setShowModal(false)} style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                <X style={{ width: '18px', height: '18px' }} />
               </button>
             </div>
 
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '18px', maxHeight: 'calc(90vh - 70px)', overflowY: 'auto' }}>
-              {/* Author */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt={displayName} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                ) : (
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: getAvatarColor(displayName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', flexShrink: 0 }}>
-                    {avatarLetter}
-                  </div>
-                )}
-                <div>
-                  <div style={{ fontWeight: '700', fontSize: '14px', color: '#000' }}>{displayName}</div>
-                  <div style={{ fontSize: '12px', color: '#666' }}>CodeZero Academy წევრი</div>
-                </div>
-              </div>
+            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: 'calc(90vh - 88px)', overflowY: 'auto' }}>
 
               {/* Title */}
               <input
                 value={newPost.title}
                 onChange={e => setNewPost(p => ({ ...p, title: e.target.value }))}
                 placeholder="სათაური *"
-                style={{ padding: '12px 16px', borderRadius: '10px', border: '1.5px solid #e0e0e0', fontSize: '15px', outline: 'none', width: '100%', boxSizing: 'border-box', color: '#000', background: '#fff', fontWeight: '600', transition: 'border-color 0.15s' }}
-                onFocus={e => (e.currentTarget.style.borderColor = '#0a66c2')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#e0e0e0')}
+                style={{ padding: '13px 16px', borderRadius: '12px', border: '2px solid #e8eaf6', fontSize: '15px', outline: 'none', width: '100%', boxSizing: 'border-box', color: '#111', background: '#fafafe', fontWeight: '600', transition: 'border-color 0.15s' }}
+                onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#e8eaf6')}
               />
 
               {/* Content */}
@@ -224,37 +232,27 @@ const Forums = () => {
                   value={newPost.content}
                   onChange={e => setNewPost(p => ({ ...p, content: e.target.value }))}
                   placeholder="რის გაზიარება გსურთ?"
-                  rows={6}
-                  style={{ padding: '12px 16px', borderRadius: '10px', border: '1.5px solid #e0e0e0', fontSize: '15px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', color: '#000', background: '#fff', lineHeight: '1.6', transition: 'border-color 0.15s' }}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#0a66c2')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#e0e0e0')}
+                  rows={5}
+                  style={{ padding: '13px 16px', borderRadius: '12px', border: '2px solid #e8eaf6', fontSize: '14px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', color: '#111', background: '#fafafe', lineHeight: '1.6', transition: 'border-color 0.15s' }}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#e8eaf6')}
                 />
-                <div style={{ position: 'absolute', right: '10px', bottom: '10px', fontSize: '11px', color: '#999' }}>
+                <div style={{ position: 'absolute', right: '12px', bottom: '10px', fontSize: '11px', color: '#aaa' }}>
                   {newPost.content.length}/2000
                 </div>
               </div>
 
               {/* Category Pills */}
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#333', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>კატეგორია</div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>კატეგორია</div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {[
-                    { id: 'programming', name: 'პროგრამირება', color: '#1d4ed8', bg: '#dbeafe' },
-                    { id: 'design', name: 'დიზაინი', color: '#be185d', bg: '#fce7f3' },
-                    { id: 'business', name: 'ბიზნესი', color: '#d97706', bg: '#fef3c7' },
-                    { id: 'help', name: 'დახმარება', color: '#059669', bg: '#d1fae5' },
-                  ].map((cat) => {
+                  {CATS.filter(c => c.id !== 'all').map((cat) => {
                     const isActive = newPost.category === cat.id;
                     return (
                       <button key={cat.id} onClick={() => setNewPost(p => ({ ...p, category: cat.id }))}
-                        style={{
-                          padding: '8px 16px', borderRadius: '24px', border: isActive ? '2px solid ' + cat.color : '1.5px solid ' + cat.bg,
-                          background: isActive ? cat.color : cat.bg, color: isActive ? '#fff' : cat.color,
-                          fontWeight: isActive ? '700' : '600', fontSize: '13px', cursor: 'pointer',
-                          transition: 'all 0.15s',
-                        }}
+                        style={{ padding: '8px 18px', borderRadius: '24px', border: isActive ? 'none' : '1.5px solid ' + cat.color + '55', background: isActive ? cat.color : cat.bg, color: isActive ? '#fff' : cat.color, fontWeight: isActive ? '700' : '600', fontSize: '13px', cursor: 'pointer', transition: 'all 0.15s' }}
                       >
-                        {cat.name}
+                        {cat.label}
                       </button>
                     );
                   })}
@@ -263,43 +261,37 @@ const Forums = () => {
 
               {/* Tag Chips */}
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#333', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>ტეგები ({postTags.length}/5)</div>
-                <div style={{ padding: '8px 12px', borderRadius: '10px', border: '1.5px solid #e0e0e0', background: '#f9f9f9', minHeight: '44px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', transition: 'border-color 0.15s' }}
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>ტეგები ({postTags.length}/5)</div>
+                <div style={{ padding: '8px 12px', borderRadius: '12px', border: '2px solid #e8eaf6', background: '#fafafe', minHeight: '44px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}
                   onClick={e => { if (e.currentTarget === e.target) (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus(); }}
                 >
                   {postTags.map((tag, i) => (
-                    <span key={i} style={{ padding: '4px 10px', borderRadius: '16px', background: '#0a66c2', color: '#fff', fontSize: '13px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <span key={i} style={{ padding: '4px 10px', borderRadius: '16px', background: '#6366f1', color: '#fff', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
                       #{tag}
                       <button onClick={() => setPostTags(prev => prev.filter((_, idx) => idx !== i))}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: '0', display: 'flex', alignItems: 'center', fontSize: '12px' }}
-                      >
-                        <X style={{ width: '12px', height: '12px' }} />
-                      </button>
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: '0', display: 'flex', alignItems: 'center' }}
+                      ><X style={{ width: '11px', height: '11px' }} /></button>
                     </span>
                   ))}
-                  <input
-                    value={tagInput}
-                    onChange={e => setTagInput(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                    placeholder={postTags.length === 0 ? "დაწერე ტეგი და დააჭირე Enter-ს..." : ""}
-                    style={{ flex: 1, minWidth: '100px', padding: '6px 4px', border: 'none', outline: 'none', fontSize: '14px', color: '#000', background: 'transparent', fontFamily: 'inherit' }}
+                  <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={handleTagKeyDown}
+                    placeholder={postTags.length === 0 ? "ტეგი + Enter..." : ""}
+                    style={{ flex: 1, minWidth: '80px', padding: '4px', border: 'none', outline: 'none', fontSize: '13px', color: '#111', background: 'transparent', fontFamily: 'inherit' }}
                   />
                 </div>
-                <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>Enter ან comma (,) ტეგის დასამატებლად</div>
               </div>
 
               {/* Media Upload */}
               <div>
-                <div style={{ fontSize: '12px', fontWeight: '700', color: '#333', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>მედია</div>
+                <div style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>მედია</div>
                 {!mediaPreview ? (
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button onClick={() => imageInputRef.current?.click()} disabled={uploadingMedia}
-                      style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1.5px dashed #c9cdd2', background: '#f9f9f9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#666', fontSize: '13px', fontWeight: '600' }}>
+                      style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px dashed #c7d2fe', background: '#eef2ff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#6366f1', fontSize: '13px', fontWeight: '600', transition: 'all 0.15s' }}>
                       {uploadingMedia ? <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} /> : <Image style={{ width: '20px', height: '20px' }} />}
                       ფოტო
                     </button>
                     <button onClick={() => videoInputRef.current?.click()} disabled={uploadingMedia}
-                      style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1.5px dashed #c9cdd2', background: '#f9f9f9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#666', fontSize: '13px', fontWeight: '600' }}>
+                      style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px dashed #c7d2fe', background: '#eef2ff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#6366f1', fontSize: '13px', fontWeight: '600', transition: 'all 0.15s' }}>
                       {uploadingMedia ? <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} /> : <Video style={{ width: '20px', height: '20px' }} />}
                       ვიდეო
                     </button>
@@ -329,11 +321,11 @@ const Forums = () => {
                 disabled={createPost.isPending || !newPost.title.trim() || !newPost.content.trim()}
                 style={{
                   padding: '14px', borderRadius: '28px', border: 'none',
-                  background: newPost.title.trim() && newPost.content.trim() ? '#0a66c2' : '#e0e0e0',
-                  color: newPost.title.trim() && newPost.content.trim() ? '#fff' : '#999',
+                  background: newPost.title.trim() && newPost.content.trim() ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : '#e8eaf6',
+                  color: newPost.title.trim() && newPost.content.trim() ? '#fff' : '#a5b4fc',
                   fontWeight: '700', fontSize: '15px', cursor: newPost.title.trim() && newPost.content.trim() ? 'pointer' : 'default',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  transition: 'all 0.15s',
+                  transition: 'all 0.15s', boxShadow: newPost.title.trim() && newPost.content.trim() ? '0 4px 16px rgba(99,102,241,0.35)' : 'none',
                 }}
               >
                 {createPost.isPending ? <Loader2 style={{ width: '18px', height: '18px', animation: 'spin 1s linear infinite' }} /> : <Plus style={{ width: '18px', height: '18px' }} />}
@@ -344,16 +336,16 @@ const Forums = () => {
         </div>
       )}
 
-      <main style={{ minHeight: '100vh', backgroundColor: '#f3f2ef', paddingTop: '88px', paddingBottom: '40px' }}>
-        <div style={{ maxWidth: '1128px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}
-          className="lg:grid-cols-[280px_1fr_300px]"
+      <main style={{ minHeight: '100vh', background: 'linear-gradient(160deg,#f0f2fb 0%,#f8f7ff 60%,#eff6ff 100%)', paddingTop: '88px', paddingBottom: '48px' }}>
+        <div style={{ maxWidth: '1148px', margin: '0 auto', padding: '24px 16px', display: 'grid', gridTemplateColumns: '1fr', gap: '20px' }}
+          className="lg:grid-cols-[270px_1fr_290px]"
         >
 
           {/* ── LEFT SIDEBAR ── */}
-          <aside className="hidden lg:block space-y-3">
+          <aside className="hidden lg:block" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Profile Card */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', overflow: 'hidden' }}>
-              <div style={{ height: '60px', background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)' }} />
+            <div style={{ ...card, overflow: 'hidden' }}>
+              <div style={{ height: '64px', background: 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)' }} />
               <div style={{ padding: '0 16px 16px', textAlign: 'center' }}>
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} alt={displayName} style={{ width: '72px', height: '72px', borderRadius: '50%', border: '3px solid #fff', margin: '-36px auto 8px', objectFit: 'cover', display: 'block' }} />
@@ -362,60 +354,48 @@ const Forums = () => {
                     {avatarLetter}
                   </div>
                 )}
-                <div style={{ fontWeight: '600', fontSize: '16px', color: '#000', marginBottom: '2px' }}>{displayName}</div>
-                <div style={{ fontSize: '13px', color: '#666', marginBottom: '12px' }}>CodeZero Academy წევრი</div>
-                <div style={{ borderTop: '1px solid #e0e0e0', paddingTop: '12px', display: 'flex', justifyContent: 'space-between' }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>{myPostCount}</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>პოსტი</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>{posts.length}</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>ყველა</div>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <div style={{ fontWeight: '600', fontSize: '15px', color: '#0a66c2' }}>{posts.reduce((s, p) => s + (p.likes_count ?? 0), 0)}</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>მოწ.</div>
-                  </div>
+                <div style={{ fontWeight: '700', fontSize: '16px', color: '#111', marginBottom: '2px' }}>{displayName}</div>
+                <div style={{ fontSize: '12px', color: '#8b8fa8', marginBottom: '14px' }}>CodeZero Academy</div>
+                <div style={{ borderTop: '1px solid #e8eaf6', paddingTop: '12px', display: 'flex', justifyContent: 'space-around' }}>
+                  {[{ val: myPostCount, lbl: 'პოსტი' }, { val: posts.length, lbl: 'სულ' }, { val: posts.reduce((s, p) => s + (p.likes_count ?? 0), 0), lbl: 'მოწ.' }].map(({ val, lbl }) => (
+                    <div key={lbl} style={{ textAlign: 'center' }}>
+                      <div style={{ fontWeight: '700', fontSize: '16px', color: '#6366f1' }}>{val}</div>
+                      <div style={{ fontSize: '11px', color: '#888', marginTop: '1px' }}>{lbl}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
             {/* Friend Requests */}
             {pendingRequests && pendingRequests.length > 0 && (
-              <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
-                <div style={{ padding: '0 4px 12px', fontSize: '13px', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Bell style={{ width: '16px', height: '16px', color: '#0a66c2' }} />
-                  მეგობრობის მოთხოვნები ({pendingRequests.length})
+              <div style={{ ...card, padding: '16px' }}>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '12px' }}>
+                  <Bell style={{ width: '14px', height: '14px' }} />
+                  მოთხოვნები ({pendingRequests.length})
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {pendingRequests.map(req => {
-                    const reqProfile = allProfiles.find(p => p.user_id === req.requester_id);
-                    const reqName = reqProfile?.full_name || 'მომხმარებელი';
+                    const rp = allProfiles.find(p => p.user_id === req.requester_id);
+                    const rn = rp?.full_name || 'მომხმარებელი';
                     return (
-                      <div key={req.friendship_id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '10px', background: '#f9f9f9' }}>
-                        {reqProfile?.avatar_url ? (
-                          <img src={reqProfile.avatar_url} alt={reqName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                      <div key={req.friendship_id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '12px', background: '#fafafe', border: '1px solid #e8eaf6' }}>
+                        {rp?.avatar_url ? (
+                          <img src={rp.avatar_url} alt={rn} style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
                         ) : (
-                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: getAvatarColor(reqName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 'bold', color: '#fff', flexShrink: 0 }}>
-                            {reqName.charAt(0).toUpperCase()}
+                          <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: getAvatarColor(rn), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '15px', fontWeight: 'bold', color: '#fff', flexShrink: 0 }}>
+                            {rn.charAt(0).toUpperCase()}
                           </div>
                         )}
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontWeight: '600', fontSize: '14px', color: '#000' }}>{reqName}</div>
-                          <div style={{ fontSize: '12px', color: '#666' }}>გიგზავნის მეგობრობის მოთხოვნას</div>
+                          <div style={{ fontWeight: '600', fontSize: '13px', color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{rn}</div>
+                          <div style={{ fontSize: '11px', color: '#888' }}>მოთხოვნა გამოგიგზავნა</div>
                         </div>
-                        <div style={{ display: 'flex', gap: '6px' }}>
-                          <button onClick={() => acceptRequest.mutate(req.friendship_id)}
-                            disabled={acceptRequest.isPending}
-                            style={{ padding: '6px 14px', borderRadius: '16px', border: 'none', background: '#0a66c2', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
-                            {acceptRequest.isPending ? <Loader2 style={{ width: '12px', height: '12px', animation: 'spin 1s linear infinite' }} /> : 'დათანხმება'}
-                          </button>
-                          <button onClick={() => declineRequest.mutate(req.friendship_id)}
-                            disabled={declineRequest.isPending}
-                            style={{ padding: '6px 14px', borderRadius: '16px', border: '1.5px solid #e0e0e0', background: '#fff', color: '#666', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
-                            {declineRequest.isPending ? <Loader2 style={{ width: '12px', height: '12px', animation: 'spin 1s linear infinite' }} /> : 'უარყოფა'}
-                          </button>
+                        <div style={{ display: 'flex', gap: '5px' }}>
+                          <button onClick={() => acceptRequest.mutate(req.friendship_id)} disabled={acceptRequest.isPending}
+                            style={{ padding: '5px 12px', borderRadius: '14px', border: 'none', background: '#6366f1', color: '#fff', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}>✓</button>
+                          <button onClick={() => declineRequest.mutate(req.friendship_id)} disabled={declineRequest.isPending}
+                            style={{ padding: '5px 10px', borderRadius: '14px', border: '1.5px solid #e0e0e0', background: '#fff', color: '#888', fontSize: '11px', cursor: 'pointer' }}>✕</button>
                         </div>
                       </div>
                     );
@@ -424,250 +404,138 @@ const Forums = () => {
               </div>
             )}
 
-            {/* User Cards */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
-              <div style={{ padding: '0 4px 12px', fontSize: '13px', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.5px' }}>მომხმარებლები</div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
+            {/* People you may know — compact rows */}
+            <div style={{ ...card, padding: '16px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>მომხმარებლები</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                 {filteredUsers.slice(0, userDisplayCount).map((u) => {
                   const friendStatus = isFriend(u.user_id);
                   const sentReq = isSentRequest(u.user_id);
                   const receivedReq = isPending(u.user_id);
-                  
                   return (
-                    <div
-                      key={u.user_id}
-                      style={{
-                        padding: '16px',
-                        borderRadius: '16px',
-                        border: '1.5px solid #e5e7eb',
-                        background: '#fff',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
+                    <div key={u.user_id}
+                      style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 6px', borderRadius: '10px', cursor: 'pointer', transition: 'background 0.12s' }}
                       onClick={() => navigate(`/user/${u.user_id}`)}
-                      onMouseEnter={e => (e.currentTarget.style.borderColor = '#0a66c2')}
-                      onMouseLeave={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f5f4ff')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                     >
-                      {/* Gradient background effect */}
-                      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '60px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', opacity: 0.1 }} />
-                      
-                      <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                        {u.avatar_url ? (
-                          <img 
-                            src={u.avatar_url} 
-                            alt={u.full_name} 
-                            style={{ 
-                              width: '72px', 
-                              height: '72px', 
-                              borderRadius: '50%', 
-                              objectFit: 'cover', 
-                              border: '3px solid #fff',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.1)' 
-                            }} 
-                          />
-                        ) : (
-                          <div style={{ 
-                            width: '72px', 
-                            height: '72px', 
-                            borderRadius: '50%', 
-                            background: `linear-gradient(135deg, ${getAvatarColor(u.full_name || 'U')} 0%, ${getAvatarColor(u.full_name || 'U')}99 100%)`, 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center', 
-                            fontWeight: 'bold', 
-                            color: '#fff', 
-                            fontSize: '28px',
-                            border: '3px solid #fff',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-                          }}>
-                            {u.full_name?.charAt(0) || 'U'}
-                          </div>
-                        )}
-                        
-                        <div style={{ textAlign: 'center', width: '100%' }}>
-                          <div style={{ fontWeight: '700', fontSize: '15px', color: '#000', marginBottom: '4px' }}>
-                            {u.full_name || 'უცნობი მომხმარებელი'}
-                          </div>
-                          
-                          {u.bio && (
-                            <div style={{ fontSize: '12px', color: '#666', marginBottom: '6px', lineHeight: '1.4', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                              {u.bio}
-                            </div>
-                          )}
+                      {u.avatar_url ? (
+                        <img src={u.avatar_url} alt={u.full_name || ''} style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                      ) : (
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: getAvatarColor(u.full_name || 'U'), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '14px', flexShrink: 0 }}>
+                          {u.full_name?.charAt(0) || 'U'}
                         </div>
-                        
-                        <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
-                          {friendStatus ? (
-                            <div style={{ padding: '8px 20px', borderRadius: '24px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: '#fff', fontSize: '13px', fontWeight: '600', boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
-                              ✓ მეგობარი
-                            </div>
-                          ) : sentReq ? (
-                            <div style={{ padding: '8px 20px', borderRadius: '24px', background: '#f3f2ef', color: '#666', fontSize: '13px', fontWeight: '600', border: '1.5px solid #e0e0e0' }}>
-                              ⏳ გაგზავნილია
-                            </div>
-                          ) : receivedReq ? (
-                            <div style={{ display: 'flex', gap: '6px' }}>
-                              <button onClick={e => { e.stopPropagation(); const req = pendingRequests?.find(r => r.requester_id === u.user_id); if (req) acceptRequest.mutate(req.friendship_id); }}
-                                style={{ padding: '6px 14px', borderRadius: '16px', border: 'none', background: '#0a66c2', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>დათანხმება</button>
-                              <button onClick={e => { e.stopPropagation(); const req = pendingRequests?.find(r => r.requester_id === u.user_id); if (req) declineRequest.mutate(req.friendship_id); }}
-                                style={{ padding: '6px 14px', borderRadius: '16px', border: '1.5px solid #e0e0e0', background: '#fff', color: '#666', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>უარყოფა</button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={(e) => { e.stopPropagation(); handleSendFriendRequest(u.user_id); }}
-                              style={{ 
-                                padding: '8px 20px', 
-                                borderRadius: '24px', 
-                                background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)', 
-                                color: '#fff', 
-                                border: 'none', 
-                                cursor: 'pointer', 
-                                fontSize: '13px', 
-                                fontWeight: '600',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                boxShadow: '0 2px 8px rgba(10, 102, 194, 0.3)',
-                                transition: 'all 0.2s'
-                              }}
-                              onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
-                              onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
-                            >
-                              <UserPlus style={{ width: '14px', height: '14px' }} />
-                              დამატება
-                            </button>
-                          )}
-                        </div>
+                      )}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: '600', fontSize: '13px', color: '#111', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.full_name || 'უცნობი'}</div>
+                        {u.bio && <div style={{ fontSize: '11px', color: '#888', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{u.bio}</div>}
                       </div>
+                      {friendStatus ? (
+                        <span style={{ fontSize: '11px', color: '#059669', fontWeight: '700', flexShrink: 0 }}>✓</span>
+                      ) : sentReq ? (
+                        <span style={{ fontSize: '10px', color: '#888', background: '#f3f4f6', padding: '3px 8px', borderRadius: '10px', flexShrink: 0 }}>გაგ.</span>
+                      ) : receivedReq ? (
+                        <button onClick={e => { e.stopPropagation(); const req = pendingRequests?.find(r => r.requester_id === u.user_id); if (req) acceptRequest.mutate(req.friendship_id); }}
+                          style={{ fontSize: '10px', color: '#6366f1', background: '#eef2ff', padding: '3px 8px', borderRadius: '10px', border: 'none', cursor: 'pointer', fontWeight: '700', flexShrink: 0 }}>+ მიღება</button>
+                      ) : (
+                        <button onClick={e => { e.stopPropagation(); handleSendFriendRequest(u.user_id); }}
+                          style={{ width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: '#eef2ff', color: '#6366f1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <UserPlus style={{ width: '13px', height: '13px' }} />
+                        </button>
+                      )}
                     </div>
                   );
                 })}
               </div>
-              
               {filteredUsers.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '24px', color: '#999' }}>
-                  <User style={{ width: '48px', height: '48px', margin: '0 auto 12px', opacity: 0.5 }} />
-                  <div style={{ fontSize: '14px' }}>მომხმარებლები ვერ მოიძებნა</div>
-                </div>
+                <div style={{ textAlign: 'center', padding: '16px', color: '#aaa', fontSize: '13px' }}>ვერ მოიძებნა</div>
               )}
               {filteredUsers.length > userDisplayCount && (
-                <button
-                  onClick={() => setUserDisplayCount(prev => prev + 6)}
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid #e0e0e0', background: '#f3f2ef', color: '#0a66c2', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '8px', transition: 'background 0.15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#e8e6e3')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '#f3f2ef')}
-                >
-                  <ChevronDown style={{ width: '16px', height: '16px' }} />
-                  მეტის ნახვა ({filteredUsers.length - userDisplayCount} დარჩა)
+                <button onClick={() => setUserDisplayCount(p => p + 6)}
+                  style={{ width: '100%', marginTop: '8px', padding: '8px', borderRadius: '10px', border: 'none', background: '#eef2ff', color: '#6366f1', fontWeight: '600', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
+                  <ChevronDown style={{ width: '14px', height: '14px' }} />
+                  კიდევ {Math.min(6, filteredUsers.length - userDisplayCount)}
                 </button>
               )}
             </div>
           </aside>
 
           {/* ── CENTER FEED ── */}
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-            {/* Search bar (mobile) */}
-            <div className="lg:hidden" style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px' }}>
+            {/* Mobile search */}
+            <div className="lg:hidden" style={{ ...card, padding: '12px' }}>
               <div style={{ position: 'relative' }}>
-                <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#666' }} />
-                <input
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="ძებნა პოსტებში..."
-                  style={{ width: '100%', padding: '8px 12px 8px 36px', borderRadius: '20px', border: '1px solid #e0e0e0', fontSize: '14px', outline: 'none', background: '#f3f2ef', boxSizing: 'border-box' }}
-                />
+                <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#a5b4fc' }} />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="ძებნა..."
+                  style={{ width: '100%', padding: '9px 12px 9px 38px', borderRadius: '12px', border: '2px solid #e8eaf6', fontSize: '14px', outline: 'none', background: '#fafafe', boxSizing: 'border-box', color: '#111' }} />
               </div>
             </div>
 
             {/* Create Post Box */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px 16px' }}>
+            <div style={{ ...card, padding: '14px 16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                 {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt={displayName} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                  <img src={profile.avatar_url} alt={displayName} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #e8eaf6' }} />
                 ) : (
-                  <div style={{
-                    width: '48px', height: '48px', borderRadius: '50%',
-                    background: getAvatarColor(displayName),
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
-                  }}>
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: getAvatarColor(displayName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 'bold', color: '#fff', flexShrink: 0 }}>
                     {avatarLetter}
                   </div>
                 )}
-                <button
-                  onClick={() => user ? setShowModal(true) : navigate('/auth')}
-                  style={{
-                    flex: 1, padding: '12px 16px', borderRadius: '24px',
-                    border: '1px solid #c9cdd2', background: '#fff',
-                    textAlign: 'left', color: '#666', fontSize: '14px',
-                    cursor: 'pointer', transition: 'background 0.15s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
-                  onMouseLeave={e => (e.currentTarget.style.background = '#fff')}
+                <button onClick={() => user ? setShowModal(true) : navigate('/auth')}
+                  style={{ flex: 1, padding: '11px 18px', borderRadius: '24px', border: '2px solid #e8eaf6', background: '#fafafe', textAlign: 'left', color: '#aaa', fontSize: '14px', cursor: 'pointer', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = '#a5b4fc'; e.currentTarget.style.background = '#f5f4ff'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = '#e8eaf6'; e.currentTarget.style.background = '#fafafe'; }}
                 >
-                  გააზიარეთ პოსტი, სტატია ან განახლება...
+                  გააზიარეთ პოსტი, სტატია ან სიახლე...
                 </button>
               </div>
-              <div style={{ display: 'flex', gap: '4px', borderTop: '1px solid #e0e0e0', paddingTop: '10px' }}>
-                {[
-                  { icon: Image, label: 'სურათი', color: '#70b5f9' },
-                  { icon: Video, label: 'ვიდეო', color: '#7fc15e' },
-                  { icon: FileText, label: 'სტატია', color: '#e06847' },
-                ].map(({ icon: Icon, label, color }: any) => (
+              <div style={{ display: 'flex', gap: '4px', borderTop: '1px solid #e8eaf6', paddingTop: '10px' }}>
+                {[{ icon: Image, label: 'სურათი', color: '#818cf8' }, { icon: Video, label: 'ვიდეო', color: '#34d399' }, { icon: FileText, label: 'სტატია', color: '#f97316' }].map(({ icon: Icon, label, color }: any) => (
                   <button key={label} onClick={() => !user ? navigate('/auth') : setShowModal(true)}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#666', fontSize: '13px', fontWeight: '600', transition: 'background 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <Icon style={{ width: '18px', height: '18px', color }} />
+                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '8px', borderRadius: '10px', border: 'none', background: 'transparent', cursor: 'pointer', color: '#666', fontSize: '13px', fontWeight: '600', transition: 'background 0.12s' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = '#f5f4ff')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    <Icon style={{ width: '17px', height: '17px', color }} />
                     {label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Category filter bar */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px 16px', display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
-              {[
-                { id: 'all', name: 'ყველა', color: '#333', bg: '#f3f2ef' },
-                { id: 'programming', name: 'პროგრამირება', color: '#1d4ed8', bg: '#dbeafe' },
-                { id: 'design', name: 'დიზაინი', color: '#be185d', bg: '#fce7f3' },
-                { id: 'business', name: 'ბიზნესი', color: '#d97706', bg: '#fef3c7' },
-                { id: 'help', name: 'დახმარება', color: '#059669', bg: '#d1fae5' },
-              ].map(cat => {
+            {/* Category tabs */}
+            <div style={{ ...card, padding: '10px 14px', display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+              {CATS.map(cat => {
                 const isActive = activeCategory === cat.id;
                 return (
                   <button key={cat.id} onClick={() => setActiveCategory(cat.id)}
-                    style={{ padding: '6px 14px', borderRadius: '20px', border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: isActive ? '700' : '600', background: isActive ? cat.color : cat.bg, color: isActive ? '#fff' : cat.color, transition: 'all 0.15s' }}>
-                    {cat.name}
+                    style={{ padding: '6px 16px', borderRadius: '20px', border: isActive ? 'none' : '1.5px solid #e8eaf6', cursor: 'pointer', fontSize: '13px', fontWeight: isActive ? '700' : '500', background: isActive ? cat.color : '#fff', color: isActive ? '#fff' : '#555', transition: 'all 0.15s', boxShadow: isActive ? `0 2px 8px ${cat.color}44` : 'none' }}>
+                    {cat.label}
                   </button>
                 );
               })}
-              <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#999' }}>{filteredPosts.length} პოსტი</span>
+              <span style={{ marginLeft: 'auto', fontSize: '12px', color: '#aaa' }}>{filteredPosts.length} პოსტი</span>
             </div>
 
             {/* Posts */}
             {isLoading ? (
-              [1,2,3].map(i => (
-                <div key={i} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '20px' }}>
-                  <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                    <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#e0e0e0' }} />
+              [1, 2, 3].map(i => (
+                <div key={i} style={{ ...card, padding: '20px' }}>
+                  <div style={{ display: 'flex', gap: '12px', marginBottom: '14px' }}>
+                    <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: '#e8eaf6' }} />
                     <div style={{ flex: 1 }}>
-                      <div style={{ height: '14px', background: '#e0e0e0', borderRadius: '4px', marginBottom: '8px', width: '40%' }} />
-                      <div style={{ height: '12px', background: '#f0f0f0', borderRadius: '4px', width: '25%' }} />
+                      <div style={{ height: '13px', background: '#e8eaf6', borderRadius: '6px', marginBottom: '8px', width: '40%' }} />
+                      <div style={{ height: '11px', background: '#f0f2fb', borderRadius: '6px', width: '25%' }} />
                     </div>
                   </div>
-                  <div style={{ height: '16px', background: '#e0e0e0', borderRadius: '4px', marginBottom: '8px' }} />
-                  <div style={{ height: '14px', background: '#f0f0f0', borderRadius: '4px', width: '80%' }} />
+                  <div style={{ height: '15px', background: '#e8eaf6', borderRadius: '6px', marginBottom: '8px' }} />
+                  <div style={{ height: '13px', background: '#f0f2fb', borderRadius: '6px', width: '75%' }} />
                 </div>
               ))
             ) : filteredPosts.length === 0 ? (
-              <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '48px', textAlign: 'center', color: '#666' }}>
-                <div style={{ fontSize: '40px', marginBottom: '12px' }}>💬</div>
-                <div style={{ fontWeight: '600', marginBottom: '6px' }}>პოსტები ვერ მოიძებნა</div>
+              <div style={{ ...card, padding: '56px 24px', textAlign: 'center', color: '#aaa' }}>
+                <div style={{ fontSize: '48px', marginBottom: '14px' }}>💬</div>
+                <div style={{ fontWeight: '700', fontSize: '16px', color: '#555', marginBottom: '6px' }}>პოსტები ვერ მოიძებნა</div>
                 <div style={{ fontSize: '13px' }}>პირველი იყავი — შექმენი ახალი პოსტი!</div>
               </div>
             ) : filteredPosts.map((post) => {
@@ -676,124 +544,87 @@ const Forums = () => {
               const liked = post.user_liked ?? false;
               const saved = savedPosts.has(post.id);
               const isHot = (post.likes_count ?? 0) >= 5 || (post.views_count ?? 0) >= 50;
+              const cs = catStyle(post.category);
               return (
-                <article key={post.id} style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', overflow: 'hidden', transition: 'box-shadow 0.15s' }}
-                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)')}
-                  onMouseLeave={e => (e.currentTarget.style.boxShadow = 'none')}
+                <article key={post.id}
+                  style={{ ...card, overflow: 'hidden', borderLeft: `4px solid ${cs.color}`, transition: 'box-shadow 0.15s, transform 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 6px 24px ${cs.color}22`; e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.boxShadow = '0 2px 8px rgba(99,102,241,0.06)'; e.currentTarget.style.transform = 'translateY(0)'; }}
                 >
-                  {/* Post Header */}
-                  <div style={{ padding: '16px 16px 0', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', gap: '12px', cursor: 'pointer' }}>
+                  {/* Header */}
+                  <div style={{ padding: '16px 16px 0 14px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: '11px', alignItems: 'flex-start' }}>
                       {authorAvatar ? (
-                        <img src={authorAvatar} alt={authorName} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                        <img src={authorAvatar} alt={authorName} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: '2px solid #e8eaf6' }} />
                       ) : (
-                        <div style={{
-                          width: '48px', height: '48px', borderRadius: '50%',
-                          background: getAvatarColor(authorName),
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          fontSize: '20px', fontWeight: 'bold', color: '#fff', flexShrink: 0,
-                        }}>
+                        <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: getAvatarColor(authorName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 'bold', color: '#fff', flexShrink: 0 }}>
                           {authorName.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
-                        <div style={{ fontWeight: '600', fontSize: '14px', color: '#000', lineHeight: '1.3' }}>{authorName}</div>
-                        <div style={{ fontSize: '12px', color: '#666', lineHeight: '1.3', display: 'flex', alignItems: 'center', gap: '6px' }}>CodeZero Academy • {formatTime(post.created_at)}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                          {isHot && (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px', fontSize: '11px', color: '#e25950', fontWeight: '600' }}>
-                              <Flame style={{ width: '11px', height: '11px' }} /> ტრენდი
-                            </span>
-                          )}
+                        <div style={{ fontWeight: '700', fontSize: '14px', color: '#111' }}>{authorName}</div>
+                        <div style={{ fontSize: '12px', color: '#9ca3af', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
+                          CodeZero · {formatTime(post.created_at)}
+                          {isHot && <span style={{ color: '#ef4444', display: 'inline-flex', alignItems: 'center', gap: '2px', fontWeight: '600' }}><Flame style={{ width: '10px', height: '10px' }} />ტრენდი</span>}
                         </div>
                       </div>
                     </div>
                     <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                      {(() => {
-                        const catColors: Record<string, { bg: string; text: string }> = {
-                          programming: { bg: '#dbeafe', text: '#1d4ed8' },
-                          design: { bg: '#fce7f3', text: '#be185d' },
-                          business: { bg: '#fef3c7', text: '#d97706' },
-                          help: { bg: '#d1fae5', text: '#059669' },
-                        };
-                        const cs = catColors[post.category] ?? { bg: '#f3f2ef', text: '#333' };
-                        const catNames: Record<string,string> = { programming: 'კოდი', design: 'დიზაინი', business: 'ბიზნესი', help: 'დახმარება' };
-                        return <span style={{ padding: '3px 10px', borderRadius: '12px', background: cs.bg, color: cs.text, fontSize: '11px', fontWeight: '700' }}>{catNames[post.category] ?? post.category}</span>;
-                      })()}
-                      <button
-                        onClick={() => toggleSave(post.id)}
-                        style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: saved ? '#0a66c2' : '#666' }}
-                      >
-                        <Bookmark style={{ width: '18px', height: '18px', fill: saved ? '#0a66c2' : 'none' }} />
-                      </button>
-                      <button style={{ width: '32px', height: '32px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#666' }}>
-                        <MoreHorizontal style={{ width: '18px', height: '18px' }} />
+                      <span style={{ padding: '3px 10px', borderRadius: '12px', background: cs.bg, color: cs.color, fontSize: '11px', fontWeight: '700' }}>{cs.label}</span>
+                      <button onClick={() => toggleSave(post.id)}
+                        style={{ width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: saved ? '#6366f1' : '#bbb' }}>
+                        <Bookmark style={{ width: '16px', height: '16px', fill: saved ? '#6366f1' : 'none' }} />
                       </button>
                     </div>
                   </div>
 
-                  {/* Post Body */}
-                  <div style={{ padding: '12px 16px', cursor: 'pointer' }} onClick={() => navigate(`/forums/${post.id}`)}>
-                    <h3 style={{ fontWeight: '600', fontSize: '15px', color: '#000', marginBottom: '6px', lineHeight: '1.4' }}>{post.title}</h3>
-                    <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</p>
-
-                    {/* Media */}
-                    {post.image_url && (
-                      <img src={post.image_url} alt="" style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', borderRadius: '8px', marginTop: '12px', display: 'block' }} />
-                    )}
-                    {post.video_url && (
-                      <video src={post.video_url} controls style={{ width: '100%', maxHeight: '400px', borderRadius: '8px', marginTop: '12px', display: 'block' }} />
-                    )}
+                  {/* Body */}
+                  <div style={{ padding: '12px 16px 10px 14px', cursor: 'pointer' }} onClick={() => navigate(`/forums/${post.id}`)}>
+                    <h3 style={{ fontWeight: '700', fontSize: '15px', color: '#111', marginBottom: '6px', lineHeight: '1.45' }}>{post.title}</h3>
+                    <p style={{ fontSize: '13px', color: '#555', lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</p>
+                    {post.image_url && <img src={post.image_url} alt="" style={{ width: '100%', maxHeight: '380px', objectFit: 'cover', borderRadius: '10px', marginTop: '12px', display: 'block' }} />}
+                    {post.video_url && <video src={post.video_url} controls style={{ width: '100%', maxHeight: '380px', borderRadius: '10px', marginTop: '12px', display: 'block' }} />}
                   </div>
 
                   {/* Tags */}
-                  <div style={{ padding: '0 16px 12px', display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                    {post.tags.map(tag => (
-                      <span key={tag} style={{ fontSize: '13px', color: '#0a66c2', cursor: 'pointer' }}>#{tag}</span>
-                    ))}
-                  </div>
-
-                  {/* Reaction counts */}
-                  <div style={{ padding: '0 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', color: '#666' }}>
-                      {(post.likes_count ?? 0) > 0 && (
-                        <>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '18px', height: '18px', borderRadius: '50%', background: '#0a66c2' }}>
-                            <ThumbsUp style={{ width: '10px', height: '10px', color: '#fff' }} />
-                          </div>
-                          {post.likes_count}
-                        </>
-                      )}
+                  {post.tags.length > 0 && (
+                    <div style={{ padding: '0 16px 10px 14px', display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                      {post.tags.map(tag => (
+                        <span key={tag} onClick={() => setSearchQuery(tag)} style={{ fontSize: '12px', color: '#6366f1', background: '#eef2ff', padding: '2px 9px', borderRadius: '10px', cursor: 'pointer', fontWeight: '500' }}>#{tag}</span>
+                      ))}
                     </div>
-                    <div style={{ fontSize: '13px', color: '#666' }}>
-                      {(post.comments_count ?? 0) > 0 && `${post.comments_count} კომენტარი`}
-                      {(post.comments_count ?? 0) > 0 && (post.views_count ?? 0) > 0 && ' • '}
-                      {(post.views_count ?? 0) > 0 && `${post.views_count} ნახვა`}
+                  )}
+
+                  {/* Stats row */}
+                  {((post.likes_count ?? 0) > 0 || (post.comments_count ?? 0) > 0) && (
+                    <div style={{ padding: '0 16px 8px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#888' }}>
+                        {(post.likes_count ?? 0) > 0 && (
+                          <><div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#6366f1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <ThumbsUp style={{ width: '9px', height: '9px', color: '#fff' }} />
+                          </div> {post.likes_count}</>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '12px', color: '#888' }}>
+                        {(post.comments_count ?? 0) > 0 && `${post.comments_count} კომენტარი`}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Divider */}
-                  <div style={{ borderTop: '1px solid #e0e0e0', margin: '0 16px' }} />
+                  <div style={{ borderTop: '1px solid #f0f2fb', margin: '0 12px' }} />
 
-                  {/* Action buttons */}
-                  <div style={{ padding: '4px 8px', display: 'flex', gap: '2px' }}>
+                  {/* Actions */}
+                  <div style={{ padding: '3px 8px', display: 'flex', gap: '2px' }}>
                     {[
-                      { icon: ThumbsUp, label: 'მოწონება', active: liked, action: () => handleToggleLike(post.id, liked), activeColor: '#0a66c2' },
-                      { icon: MessageSquare, label: 'კომენტარი', active: false, action: () => navigate(`/forums/${post.id}`), activeColor: '#0a66c2' },
-                      { icon: Share2, label: 'გაზიარება', active: false, action: () => { navigator.clipboard?.writeText(window.location.origin + '/forums/' + post.id).then(() => toast.success('ბმული დაკოპირდა')).catch(() => toast.error('ვერ დაკოპირდა')); }, activeColor: '#0a66c2' },
-                      { icon: Send, label: 'გაგზავნა', active: false, action: () => toast.info('გაგზავნა'), activeColor: '#0a66c2' },
-                    ].map(({ icon: Icon, label, active, action, activeColor }: any) => (
+                      { icon: ThumbsUp, label: 'მოწონება', active: liked, action: () => handleToggleLike(post.id, liked) },
+                      { icon: MessageSquare, label: 'კომენტარი', active: false, action: () => navigate(`/forums/${post.id}`) },
+                      { icon: Share2, label: 'გაზიარება', active: false, action: () => navigator.clipboard?.writeText(window.location.origin + '/forums/' + post.id).then(() => toast.success('ბმული დაკოპირდა')).catch(() => toast.error('ვერ დაკოპირდა')) },
+                    ].map(({ icon: Icon, label, active, action }: any) => (
                       <button key={label} onClick={action}
-                        style={{
-                          flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                          padding: '10px 4px', borderRadius: '8px', border: 'none', background: 'transparent',
-                          cursor: 'pointer', color: active ? activeColor : '#666',
-                          fontSize: '13px', fontWeight: active ? '700' : '600', transition: 'background 0.15s',
-                        }}
-                        onMouseEnter={e => (e.currentTarget.style.background = '#f3f2ef')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                      >
-                        <Icon style={{ width: '18px', height: '18px', fill: active ? activeColor : 'none', stroke: active ? activeColor : 'currentColor' }} />
+                        style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '10px 4px', borderRadius: '8px', border: 'none', background: 'transparent', cursor: 'pointer', color: active ? '#6366f1' : '#888', fontSize: '12px', fontWeight: active ? '700' : '500', transition: 'all 0.12s' }}
+                        onMouseEnter={e => { e.currentTarget.style.background = '#f5f4ff'; e.currentTarget.style.color = '#6366f1'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = active ? '#6366f1' : '#888'; }}>
+                        <Icon style={{ width: '16px', height: '16px' }} />
                         <span className="hidden sm:inline">{label}</span>
                       </button>
                     ))}
@@ -804,51 +635,48 @@ const Forums = () => {
           </div>
 
           {/* ── RIGHT SIDEBAR ── */}
-          <aside className="hidden lg:block space-y-3">
+          <aside className="hidden lg:block" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             {/* Search */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '12px' }}>
+            <div style={{ ...card, padding: '12px' }}>
               <div style={{ position: 'relative' }}>
-                <Search style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#666' }} />
-                <input
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="ძებნა..."
-                  style={{ width: '100%', padding: '8px 10px 8px 34px', borderRadius: '20px', border: '1px solid #e0e0e0', fontSize: '14px', outline: 'none', background: '#f3f2ef', boxSizing: 'border-box' }}
-                />
+                <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '15px', height: '15px', color: '#a5b4fc' }} />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="ძებნა..."
+                  style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: '12px', border: '2px solid #e8eaf6', fontSize: '13px', outline: 'none', background: '#fafafe', boxSizing: 'border-box', color: '#111', transition: 'border-color 0.15s' }}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#e8eaf6')} />
               </div>
             </div>
 
             {/* Trending */}
-            <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                <h3 style={{ fontWeight: '600', fontSize: '15px', color: '#000' }}>ტრენდული თემები</h3>
-                <TrendingUp style={{ width: '16px', height: '16px', color: '#0a66c2' }} />
+            <div style={{ ...card, padding: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                <h3 style={{ fontWeight: '700', fontSize: '14px', color: '#111' }}>ტრენდული</h3>
+                <TrendingUp style={{ width: '15px', height: '15px', color: '#6366f1' }} />
               </div>
               {trendingTopics.map((topic, i) => (
-                <div key={topic.tag}
-                  onClick={() => setSearchQuery(topic.tag)}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', cursor: 'pointer', borderBottom: i < trendingTopics.length - 1 ? '1px solid #f3f2ef' : 'none' }}
-                >
+                <div key={topic.tag} onClick={() => setSearchQuery(topic.tag)}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 8px', borderRadius: '10px', cursor: 'pointer', transition: 'background 0.12s', borderBottom: i < trendingTopics.length - 1 ? '1px solid #f0f2fb' : 'none' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#f5f4ff')}
+                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                   <div>
-                    <div style={{ fontWeight: '600', fontSize: '14px', color: '#000' }}>#{topic.tag}</div>
-                    <div style={{ fontSize: '12px', color: '#666' }}>{topic.posts} პოსტი</div>
+                    <div style={{ fontWeight: '600', fontSize: '13px', color: '#111' }}>#{topic.tag}</div>
+                    <div style={{ fontSize: '11px', color: '#aaa', marginTop: '1px' }}>{topic.count} პოსტი</div>
                   </div>
-                  <Tag style={{ width: '14px', height: '14px', color: '#0a66c2' }} />
+                  <Tag style={{ width: '13px', height: '13px', color: '#6366f1' }} />
                 </div>
               ))}
             </div>
 
-            {/* New Post CTA */}
-            <div style={{ background: 'linear-gradient(135deg, #0a66c2 0%, #004182 100%)', borderRadius: '12px', padding: '20px', textAlign: 'center' }}>
-              <div style={{ fontSize: '15px', fontWeight: '600', color: '#fff', marginBottom: '8px' }}>გააზიარეთ თქვენი ცოდნა</div>
-              <div style={{ fontSize: '13px', color: 'rgba(255,255,255,0.8)', marginBottom: '16px' }}>დაეხმარეთ სხვა სტუდენტებს</div>
-              <button
-                onClick={() => user ? setShowModal(true) : navigate('/auth')}
-                style={{ padding: '8px 20px', borderRadius: '20px', border: '1.5px solid #fff', background: 'transparent', color: '#fff', fontWeight: '600', fontSize: '14px', cursor: 'pointer', transition: 'all 0.15s' }}
-                onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#0a66c2'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#fff'; }}
-              >
-                <Plus style={{ width: '14px', height: '14px', display: 'inline', marginRight: '4px', verticalAlign: 'middle' }} />
+            {/* CTA */}
+            <div style={{ borderRadius: '16px', overflow: 'hidden', background: 'linear-gradient(135deg,#6366f1 0%,#8b5cf6 60%,#a855f7 100%)', padding: '24px', textAlign: 'center', boxShadow: '0 8px 24px rgba(99,102,241,0.3)' }}>
+              <div style={{ fontSize: '28px', marginBottom: '10px' }}>💡</div>
+              <div style={{ fontSize: '15px', fontWeight: '700', color: '#fff', marginBottom: '6px' }}>გააზიარეთ ცოდნა</div>
+              <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)', marginBottom: '18px', lineHeight: '1.5' }}>დაეხმარეთ სხვა სტუდენტებს საკუთარი გამოცდილებით</div>
+              <button onClick={() => user ? setShowModal(true) : navigate('/auth')}
+                style={{ padding: '10px 24px', borderRadius: '24px', border: '2px solid rgba(255,255,255,0.6)', background: 'rgba(255,255,255,0.15)', color: '#fff', fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'all 0.15s', backdropFilter: 'blur(4px)' }}
+                onMouseEnter={e => { e.currentTarget.style.background = '#fff'; e.currentTarget.style.color = '#6366f1'; }}
+                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.color = '#fff'; }}>
+                <Plus style={{ width: '13px', height: '13px', display: 'inline', marginRight: '5px', verticalAlign: 'middle' }} />
                 ახალი პოსტი
               </button>
             </div>
