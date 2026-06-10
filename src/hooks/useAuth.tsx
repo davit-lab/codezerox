@@ -32,6 +32,7 @@ interface AuthContextType {
   isLoading: boolean;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null; needsEmailVerification: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithOAuth: (provider: 'google' | 'github') => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
 }
@@ -146,6 +147,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
   };
 
+  const signInWithOAuth = async (provider: 'google' | 'github') => {
+    const redirectUrl = `${window.location.origin}/auth`;
+    
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: redirectUrl,
+        queryParams: provider === 'google' ? {
+          prompt: 'consent',
+          access_type: 'offline',
+        } : undefined,
+      },
+    });
+
+    return { error };
+  };
+
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -214,6 +232,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isLoading,
         signUp,
         signIn,
+        signInWithOAuth,
         signOut,
         updateProfile,
       }}

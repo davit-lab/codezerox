@@ -1,13 +1,16 @@
+import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
 import SEOHead from "@/components/SEOHead";
-import { useCyberChallenge, useCyberSolves } from "@/hooks/useCyberLab";
+import { useCyberChallenge, useCyberSolves, useCyberPurchase, usePurchaseCyberChallenge } from "@/hooks/useCyberLab";
 import { useAuth } from "@/hooks/useAuth";
 import CTFPanel from "@/components/cyberlab/CTFPanel";
 import InteractivePanel from "@/components/cyberlab/InteractivePanel";
 import QuizPanel from "@/components/cyberlab/QuizPanel";
 import TerminalPanel from "@/components/cyberlab/TerminalPanel";
+import SimulationRenderer from "@/components/cyberlab/SimulationRenderer";
+import { toast } from "sonner";
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   easy: '#22c55e', medium: '#eab308', hard: '#f97316', insane: '#ef4444', flagship: '#a855f7',
@@ -22,7 +25,11 @@ const CyberLabChallenge = () => {
   const { user } = useAuth();
   const { data: challenge, isLoading } = useCyberChallenge(slug || '');
   const { data: solves = [] } = useCyberSolves();
+  const { data: purchase } = useCyberPurchase(challenge?.id);
+  const purchaseChallenge = usePurchaseCyberChallenge();
+  const [purchasing, setPurchasing] = useState(false);
   const isSolved = solves.some(s => s.challenge_id === challenge?.id);
+  const hasAccess = challenge?.is_free !== false && (challenge?.price_gel || 0) === 0 && (challenge?.price_credits || 0) === 0 || !!purchase || isSolved;
 
   if (isLoading) {
     return (
@@ -69,6 +76,11 @@ const CyberLabChallenge = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: diffColor, border: `1px solid ${diffColor}40`, padding: '2px 10px', borderRadius: 6 }}>{diffLabel}</span>
                   <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.05)', padding: '2px 10px', borderRadius: 6 }}>{challenge.base_points} XP</span>
+                  {challenge.is_free === false && (challenge.price_gel || 0) > 0 && (
+                    <span style={{ fontSize: '0.7rem', color: '#fbbf24', background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', padding: '2px 10px', borderRadius: 6, fontWeight: 700 }}>
+                      {challenge.price_gel} ₾
+                    </span>
+                  )}
                   {(challenge.tags || []).map((t: string) => <span key={t} style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)' }}>#{t}</span>)}
                 </div>
                 <h1 style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 900, color: '#fff', margin: '0 0 8px' }}>{challenge.title_ka}</h1>
@@ -86,7 +98,7 @@ const CyberLabChallenge = () => {
               </span>
               <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.35)', display: 'flex', alignItems: 'center', gap: 4 }}>
                 <span className="material-symbols-rounded" style={{ fontSize: 14 }}>bolt</span>
-                {challenge.engine === 'static' ? 'CTF' : challenge.engine === 'interactive' ? 'სიმულაცია' : challenge.engine === 'quiz' ? 'ქვიზი' : challenge.engine === 'terminal' ? 'ტერმინალი' : 'AI'}
+                {challenge.engine === 'static' ? 'CTF' : challenge.engine === 'interactive' ? 'სიმულაცია' : challenge.engine === 'quiz' ? 'ქვიზი' : challenge.engine === 'terminal' ? 'ტერმინალი' : challenge.engine === 'custom' ? 'კონტენტი' : 'AI'}
               </span>
             </div>
           </div>
@@ -100,6 +112,16 @@ const CyberLabChallenge = () => {
                 შესვლა
               </button>
             </div>
+          ) : !hasAccess ? (
+            <PurchaseGate challenge={challenge} onPurchase={async () => {
+              setPurchasing(true);
+              try {
+                await purchaseChallenge.mutateAsync({ challengeId: challenge.id, creditsUsed: challenge.price_credits });
+                toast.success('თასქი შეძენილია!');
+              } catch (e: any) {
+                toast.error(e?.message || 'შეცდომა შეძენისას');
+              } finally { setPurchasing(false); }
+            }} purchasing={purchasing} />
           ) : challenge.engine === 'static' ? (
             <CTFPanel challenge={challenge} isSolved={isSolved} />
           ) : challenge.engine === 'interactive' ? (
@@ -108,6 +130,16 @@ const CyberLabChallenge = () => {
             <QuizPanel challenge={challenge} isSolved={isSolved} />
           ) : challenge.engine === 'terminal' ? (
             <TerminalPanel challenge={challenge} isSolved={isSolved} />
+          ) : challenge.engine === 'custom' ? (
+            <SimulationRenderer
+              html={challenge.custom_html || ''}
+              css={challenge.custom_css || ''}
+              js={challenge.custom_js || ''}
+              config={challenge.simulation_config}
+              onSuccess={(flag) => {
+                toast.success(`სიმულაცია გაიარე! ${flag}`);
+              }}
+            />
           ) : (
             <div style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', padding: 40 }}>ეს თასქი AI-ტიპისაა და მალე გახდება ხელმისაწვდომი.</div>
           )}
@@ -116,5 +148,40 @@ const CyberLabChallenge = () => {
     </>
   );
 };
+
+const PurchaseGate = ({ challenge, onPurchase, purchasing }: { challenge: any; onPurchase: () => void; purchasing: boolean }) => (
+  <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '40px 24px', textAlign: 'center' }}>
+    <span className="material-symbols-rounded" style={{ fontSize: 48, color: '#fbbf24', marginBottom: 12, display: 'block' }}>lock</span>
+    <h3 style={{ color: '#fff', marginBottom: 8 }}>ფასიანი თასქი</h3>
+    <p style={{ color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
+      ეს თასქი ფასიანია. შეიძინე წვდომა და დაიწყე ჰაკინგი.
+    </p>
+    <div style={{ display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+      {(challenge.price_gel || 0) > 0 && (
+        <div style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.3)', borderRadius: 10, padding: '12px 24px' }}>
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>ფასი</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#fbbf24' }}>{challenge.price_gel} ₾</div>
+        </div>
+      )}
+      {(challenge.price_credits || 0) > 0 && (
+        <div style={{ background: 'rgba(168,85,247,0.1)', border: '1px solid rgba(168,85,247,0.3)', borderRadius: 10, padding: '12px 24px' }}>
+          <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.5)' }}>ან კრედიტებით</div>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#a855f7' }}>{challenge.price_credits} CR</div>
+        </div>
+      )}
+    </div>
+    <button
+      onClick={onPurchase}
+      disabled={purchasing}
+      style={{
+        marginTop: 24, padding: '12px 36px', borderRadius: 12, border: 'none',
+        background: '#00ff41', color: '#000', fontWeight: 700, cursor: purchasing ? 'default' : 'pointer',
+        fontSize: '1rem',
+      }}
+    >
+      {purchasing ? 'იტვირთება...' : 'შეძენა'}
+    </button>
+  </div>
+);
 
 export default CyberLabChallenge;

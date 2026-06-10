@@ -16,9 +16,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import SimulationBuilder from "@/components/cyberlab/SimulationBuilder";
 
 const emptyCategory: Partial<CyberCategory> = { slug: '', name_ka: '', name_en: '', description_ka: '', icon: '', color: '#00ff41', sort: 0 };
-const emptyChallenge: Partial<CyberChallenge> = { slug: '', title_ka: '', title_en: '', story_md: '', difficulty: 'easy', engine: 'static', base_points: 25, status: 'draft', tags: [] };
+const emptyChallenge: Partial<CyberChallenge> = { slug: '', title_ka: '', title_en: '', story_md: '', difficulty: 'easy', engine: 'static', base_points: 25, status: 'draft', tags: [], price_gel: 0, price_credits: 0, is_free: true };
 
 const AdminCyberLab = () => {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
@@ -32,6 +33,7 @@ const AdminCyberLab = () => {
   const [tab, setTab] = useState<'categories' | 'challenges'>('categories');
   const [editingCategory, setEditingCategory] = useState<Partial<CyberCategory> | null>(null);
   const [editingChallenge, setEditingChallenge] = useState<Partial<CyberChallenge> | null>(null);
+  const [simChallenge, setSimChallenge] = useState<Partial<CyberChallenge> | null>(null);
 
   if (authLoading) return <div style={{ padding: 80, textAlign: 'center' }}>იტვირთება...</div>;
   if (!isAdmin) return <Navigate to="/" replace />;
@@ -107,6 +109,9 @@ const AdminCyberLab = () => {
                   <span style={{ color: 'rgba(255,255,255,0.35)', fontSize: '0.78rem' }}>{ch.status}</span>
                   <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
                     <button onClick={() => setEditingChallenge(ch)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#fff', cursor: 'pointer', fontSize: '0.8rem' }}>რედაქტირება</button>
+                    {ch.engine === 'custom' && (
+                      <button onClick={() => setSimChallenge(ch)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(0,255,65,0.3)', background: 'transparent', color: '#00ff41', cursor: 'pointer', fontSize: '0.8rem' }}>🛠 სიმულაცია</button>
+                    )}
                     <button onClick={() => { if (confirm('წავშალო?')) deleteChal.mutate(ch.id); }} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.4)', background: 'transparent', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}>წაშლა</button>
                   </div>
                 </div>
@@ -159,12 +164,22 @@ const AdminCyberLab = () => {
                 </Field>
                 <Field label="engine">
                   <select value={editingChallenge.engine || 'static'} onChange={e => setEditingChallenge({ ...editingChallenge, engine: e.target.value })} style={{ width: '100%', padding: 8, borderRadius: 8, background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}>
-                    {['static','interactive','quiz','terminal','ai'].map(d => <option key={d} value={d}>{d}</option>)}
+                    {['static','interactive','quiz','terminal','ai','custom'].map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </Field>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
                 <Field label="base_points"><Input type="number" value={editingChallenge.base_points || 25} onChange={e => setEditingChallenge({ ...editingChallenge, base_points: Number(e.target.value) })} /></Field>
+                <Field label="price_gel (₾)"><Input type="number" value={editingChallenge.price_gel || 0} onChange={e => setEditingChallenge({ ...editingChallenge, price_gel: Number(e.target.value), is_free: Number(e.target.value) === 0 })} /></Field>
+                <Field label="price_credits"><Input type="number" value={editingChallenge.price_credits || 0} onChange={e => setEditingChallenge({ ...editingChallenge, price_credits: Number(e.target.value) })} /></Field>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <Field label="is_free">
+                  <select value={String(editingChallenge.is_free ?? true)} onChange={e => setEditingChallenge({ ...editingChallenge, is_free: e.target.value === 'true' })} style={{ width: '100%', padding: 8, borderRadius: 8, background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}>
+                    <option value="true">უფასო</option>
+                    <option value="false">ფასიანი</option>
+                  </select>
+                </Field>
                 <Field label="status">
                   <select value={editingChallenge.status || 'draft'} onChange={e => setEditingChallenge({ ...editingChallenge, status: e.target.value })} style={{ width: '100%', padding: 8, borderRadius: 8, background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', color: '#fff' }}>
                     {['draft','review','published','archived'].map(d => <option key={d} value={d}>{d}</option>)}
@@ -179,6 +194,22 @@ const AdminCyberLab = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Simulation Builder */}
+      <SimulationBuilder
+        challengeId={simChallenge?.id || ''}
+        open={!!simChallenge}
+        onOpenChange={(open) => { if (!open) setSimChallenge(null); }}
+        initialHtml={simChallenge?.custom_html}
+        initialCss={simChallenge?.custom_css}
+        initialJs={simChallenge?.custom_js}
+        initialConfig={simChallenge?.simulation_config}
+        onSave={(payload) => {
+          if (simChallenge?.id) {
+            upsertChal.mutateAsync({ id: simChallenge.id, ...payload } as any);
+          }
+        }}
+      />
     </AdminLayout>
   );
 };

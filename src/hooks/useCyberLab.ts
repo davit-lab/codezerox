@@ -31,6 +31,13 @@ export interface CyberChallenge {
   scenario: any;
   flag_hash?: string;
   flag_format?: string;
+  price_gel?: number;
+  price_credits?: number;
+  is_free?: boolean;
+  custom_html?: string;
+  custom_css?: string;
+  custom_js?: string;
+  simulation_config?: any;
 }
 
 export interface CyberRank {
@@ -548,6 +555,47 @@ export const useDeleteCyberQuizQuestion = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cyber-quiz'] });
+    },
+  });
+};
+
+// Purchase hooks
+export const useCyberPurchase = (challengeId?: string) => {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['cyber-purchase', user?.id, challengeId],
+    queryFn: async () => {
+      if (!user || !challengeId) return null;
+      const { data, error } = await supabase
+        .from('cyberrange_purchases')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('challenge_id', challengeId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!challengeId,
+  });
+};
+
+export const usePurchaseCyberChallenge = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async ({ challengeId, creditsUsed }: { challengeId: string; creditsUsed?: number }) => {
+      if (!user) throw new Error('Not authenticated');
+      const { data, error } = await supabase
+        .from('cyberrange_purchases')
+        .insert({ user_id: user.id, challenge_id: challengeId, credits_used: creditsUsed || 0 })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['cyber-purchase'] });
+      queryClient.invalidateQueries({ queryKey: ['cyber-purchase', variables.challengeId] });
     },
   });
 };

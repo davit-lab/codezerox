@@ -273,6 +273,11 @@ const ChallengeCard = ({ challenge, isCompleted }: { challenge: { id: string; sl
         }}>
           {engineLabel[challenge.engine] || challenge.engine}
         </span>
+        {(challenge as any).is_free === false && ((challenge as any).price_gel || 0) > 0 && (
+          <span style={{ fontSize: '0.7rem', background: 'rgba(251,191,36,0.1)', color: '#fbbf24', padding: '2px 8px', borderRadius: 6, fontWeight: 600 }}>
+            {(challenge as any).price_gel} ₾
+          </span>
+        )}
         {(challenge.tags || []).slice(0, 3).map(t => (
           <span key={t} style={{
             fontSize: '0.7rem', background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.55)',
