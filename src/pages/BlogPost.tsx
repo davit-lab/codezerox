@@ -42,12 +42,7 @@ const BlogPost = () => {
   };
 
   const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success("ლინკი დაკოპირდა!");
-    } catch {
-      toast.error("ვერ დაკოპირდა");
-    }
+    // Disabled
   };
 
   if (isLoading) {
@@ -106,11 +101,11 @@ const BlogPost = () => {
             "name": "CodeZero Academy",
             "logo": {
               "@type": "ImageObject",
-              "url": "https://read-connect-zone.lovable.app/favicon.png"
+              "url": "https://codezero.ge/favicon.png"
             }
           },
-          "image": post.cover_url || "https://read-connect-zone.lovable.app/favicon.png",
-          "url": `https://read-connect-zone.lovable.app/blog/${post.id}`
+          "image": post.cover_url || "https://codezero.ge/favicon.png",
+          "url": `https://codezero.ge/blog/${post.id}`
         }}
       />
       <Atmosphere />
@@ -179,10 +174,6 @@ const BlogPost = () => {
               border: '1px solid var(--border-subtle)',
             }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>მოგეწონა?</span>
-              <button onClick={handleShare} className="btn btn-ghost" style={{ gap: 6 }}>
-                <span className="material-symbols-rounded" style={{ fontSize: 18 }}>share</span>
-                გაზიარება
-              </button>
               <Link to="/blog" className="btn btn-ghost" style={{ gap: 6 }}>
                 <span className="material-symbols-rounded" style={{ fontSize: 18 }}>arrow_back</span>
                 სხვა სტატიები

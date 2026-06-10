@@ -88,8 +88,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         setSession(session);
         setUser(session?.user ?? null);
-        
+
         if (session?.user) {
+          if (session.user.app_metadata?.provider === 'google') {
+            createProfileFromOAuth(session.user);
+          }
           setTimeout(() => {
             fetchProfile(session.user.id);
             checkRoles(session.user.id);
@@ -108,8 +111,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       initialSessionResolved = true;
       setSession(session);
       setUser(session?.user ?? null);
-      
+
       if (session?.user) {
+        if (session.user.app_metadata?.provider === 'google') {
+          createProfileFromOAuth(session.user);
+        }
         fetchProfile(session.user.id);
         checkRoles(session.user.id);
       }
@@ -148,8 +154,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signInWithOAuth = async (provider: 'google' | 'github') => {
-    const redirectUrl = `${window.location.origin}/auth`;
-    
+    const redirectUrl = 'https://codezero.ge/auth';
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -162,6 +168,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return { error };
+  };
+
+  const createProfileFromOAuth = async (authUser: User) => {
+    const metadata = authUser.user_metadata || {};
+    const fullName = metadata.full_name || metadata.name || '';
+    const avatarUrl = metadata.avatar_url || metadata.picture || '';
+
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('user_id', authUser.id)
+      .single();
+
+    if (!existing) {
+      await supabase.from('profiles').insert({
+        user_id: authUser.id,
+        email: authUser.email || '',
+        full_name: fullName,
+        avatar_url: avatarUrl,
+        cover_url: null,
+        bio: null,
+        experience: null,
+        github_url: null,
+        website_url: null,
+        linkedin_url: null,
+        facebook_url: null,
+        cv_url: null,
+        location: null,
+        skills: [],
+      });
+    } else {
+      const updates: Partial<Profile> = {};
+      if (fullName) updates.full_name = fullName;
+      if (avatarUrl) updates.avatar_url = avatarUrl;
+      if (Object.keys(updates).length > 0) {
+        await supabase.from('profiles').update(updates).eq('user_id', authUser.id);
+      }
+    }
   };
 
   const signIn = async (email: string, password: string) => {

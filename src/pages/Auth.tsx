@@ -57,6 +57,32 @@ const Auth = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Handle OAuth callback (PKCE code exchange)
+  useEffect(() => {
+    const hash = window.location.hash;
+    const query = new URLSearchParams(window.location.search);
+    const code = query.get('code');
+
+    if (code) {
+      setLoading(true);
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          toast.error('ავტორიზაცია ვერ მოხერხდა: ' + error.message);
+        } else {
+          toast.success('წარმატებით შეხვედით!');
+        }
+        setLoading(false);
+        // Clean the URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+      });
+    }
+
+    // Also handle hash-based tokens if present
+    if (hash && hash.includes('access_token')) {
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   // Custom cursor effect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
