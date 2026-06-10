@@ -194,141 +194,153 @@ const Forums = () => {
 
       {/* Create Post Modal */}
       {showModal && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(15,15,40,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
-          <div style={{ background: '#fff', borderRadius: '20px', width: '100%', maxWidth: '600px', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.35)' }}>
-            {/* Header */}
-            <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt={displayName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', border: '2px solid rgba(255,255,255,0.5)' }} />
-                ) : (
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', border: '2px solid rgba(255,255,255,0.4)' }}>{avatarLetter}</div>
-                )}
-                <div>
-                  <div style={{ fontWeight: '700', fontSize: '15px', color: '#fff' }}>{displayName}</div>
-                  <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.75)' }}>ახალი პოსტი</div>
-                </div>
-              </div>
-              <button onClick={() => setShowModal(false)} style={{ width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: 'rgba(255,255,255,0.15)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}
+          onClick={e => { if (e.target === e.currentTarget) setShowModal(false); }}
+        >
+          <div style={{ background: '#fff', borderRadius: '16px', width: '100%', maxWidth: '520px', boxShadow: '0 24px 64px rgba(0,0,0,0.28)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '92vh' }}>
+
+            {/* ── Top bar ── */}
+            <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', borderBottom: '1px solid #e4e6eb' }}>
+              <span style={{ fontWeight: '700', fontSize: '17px', color: '#050505' }}>პოსტის შექმნა</span>
+              <button onClick={() => setShowModal(false)}
+                style={{ position: 'absolute', right: '12px', width: '36px', height: '36px', borderRadius: '50%', border: 'none', background: '#e4e6eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#050505', transition: 'background 0.12s' }}
+                onMouseEnter={e => (e.currentTarget.style.background = '#d8dadf')}
+                onMouseLeave={e => (e.currentTarget.style.background = '#e4e6eb')}>
                 <X style={{ width: '18px', height: '18px' }} />
               </button>
             </div>
 
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: 'calc(90vh - 88px)', overflowY: 'auto' }}>
+            {/* ── Scrollable body ── */}
+            <div style={{ overflowY: 'auto', flex: 1 }}>
 
-              {/* Title */}
-              <input
-                value={newPost.title}
-                onChange={e => setNewPost(p => ({ ...p, title: e.target.value }))}
-                placeholder="სათაური *"
-                style={{ padding: '13px 16px', borderRadius: '12px', border: '2px solid #e8eaf6', fontSize: '15px', outline: 'none', width: '100%', boxSizing: 'border-box', color: '#111', background: '#fafafe', fontWeight: '600', transition: 'border-color 0.15s' }}
-                onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
-                onBlur={e => (e.currentTarget.style.borderColor = '#e8eaf6')}
-              />
+              {/* Author row */}
+              <div style={{ padding: '12px 16px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt={displayName} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                ) : (
+                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: getAvatarColor(displayName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#fff', fontSize: '18px', flexShrink: 0 }}>{avatarLetter}</div>
+                )}
+                <div>
+                  <div style={{ fontWeight: '600', fontSize: '15px', color: '#050505' }}>{displayName}</div>
+                  {/* Category as audience-style selector */}
+                  <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                    {CATS.filter(c => c.id !== 'all').map(cat => {
+                      const isActive = newPost.category === cat.id;
+                      return (
+                        <button key={cat.id} onClick={() => setNewPost(p => ({ ...p, category: cat.id }))}
+                          style={{ padding: '3px 10px', borderRadius: '6px', border: 'none', background: isActive ? cat.color : '#e4e6eb', color: isActive ? '#fff' : '#444', fontWeight: '600', fontSize: '12px', cursor: 'pointer', transition: 'all 0.12s' }}>
+                          {cat.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
 
-              {/* Content */}
-              <div style={{ position: 'relative' }}>
+              {/* Title input */}
+              <div style={{ padding: '10px 16px 0' }}>
+                <input
+                  value={newPost.title}
+                  onChange={e => setNewPost(p => ({ ...p, title: e.target.value }))}
+                  placeholder="სათაური *"
+                  style={{ width: '100%', padding: '8px 0', border: 'none', borderBottom: '2px solid #e4e6eb', fontSize: '16px', fontWeight: '600', outline: 'none', color: '#050505', background: 'transparent', boxSizing: 'border-box', transition: 'border-color 0.15s' }}
+                  onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
+                  onBlur={e => (e.currentTarget.style.borderColor = '#e4e6eb')}
+                />
+              </div>
+
+              {/* Main textarea — Facebook-style, no border */}
+              <div style={{ padding: '10px 16px', position: 'relative' }}>
                 <textarea
                   value={newPost.content}
                   onChange={e => setNewPost(p => ({ ...p, content: e.target.value }))}
-                  placeholder="რის გაზიარება გსურთ?"
+                  placeholder={`რის გაზიარება გსურთ, ${displayName.split(' ')[0]}?`}
                   rows={5}
-                  style={{ padding: '13px 16px', borderRadius: '12px', border: '2px solid #e8eaf6', fontSize: '14px', outline: 'none', resize: 'vertical', width: '100%', boxSizing: 'border-box', fontFamily: 'inherit', color: '#111', background: '#fafafe', lineHeight: '1.6', transition: 'border-color 0.15s' }}
-                  onFocus={e => (e.currentTarget.style.borderColor = '#6366f1')}
-                  onBlur={e => (e.currentTarget.style.borderColor = '#e8eaf6')}
+                  style={{ width: '100%', border: 'none', outline: 'none', resize: 'none', fontSize: newPost.content.length < 85 ? '22px' : '16px', color: '#050505', background: 'transparent', fontFamily: 'inherit', lineHeight: '1.5', boxSizing: 'border-box', transition: 'font-size 0.1s' }}
                 />
-                <div style={{ position: 'absolute', right: '12px', bottom: '10px', fontSize: '11px', color: '#aaa' }}>
+                <div style={{ position: 'absolute', right: '20px', bottom: '14px', fontSize: '11px', color: newPost.content.length > 1800 ? '#e25950' : '#bcc0c4' }}>
                   {newPost.content.length}/2000
                 </div>
               </div>
 
-              {/* Category Pills */}
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>კატეგორია</div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  {CATS.filter(c => c.id !== 'all').map((cat) => {
-                    const isActive = newPost.category === cat.id;
-                    return (
-                      <button key={cat.id} onClick={() => setNewPost(p => ({ ...p, category: cat.id }))}
-                        style={{ padding: '8px 18px', borderRadius: '24px', border: isActive ? 'none' : '1.5px solid ' + cat.color + '55', background: isActive ? cat.color : cat.bg, color: isActive ? '#fff' : cat.color, fontWeight: isActive ? '700' : '600', fontSize: '13px', cursor: 'pointer', transition: 'all 0.15s' }}
-                      >
-                        {cat.label}
-                      </button>
-                    );
-                  })}
+              {/* Media preview */}
+              {mediaPreview && (
+                <div style={{ margin: '0 16px 12px', position: 'relative', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e4e6eb' }}>
+                  {mediaPreview.type === 'image' ? (
+                    <img src={mediaPreview.url} alt="preview" style={{ width: '100%', maxHeight: '280px', objectFit: 'cover', display: 'block' }} />
+                  ) : (
+                    <video src={mediaPreview.url} controls style={{ width: '100%', maxHeight: '280px', display: 'block' }} />
+                  )}
+                  <button onClick={() => setMediaPreview(null)}
+                    style={{ position: 'absolute', top: '8px', right: '8px', width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.65)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                    <X style={{ width: '15px', height: '15px' }} />
+                  </button>
                 </div>
+              )}
+
+              {/* Tags row */}
+              <div style={{ margin: '0 16px 12px', padding: '8px 12px', borderRadius: '12px', border: '1.5px solid #e4e6eb', background: '#f7f8fa', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}
+                onClick={e => { if (e.currentTarget === e.target) (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus(); }}>
+                {postTags.map((tag, i) => (
+                  <span key={i} style={{ padding: '3px 10px', borderRadius: '14px', background: '#6366f1', color: '#fff', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    #{tag}
+                    <button onClick={() => setPostTags(prev => prev.filter((_, idx) => idx !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: 0, display: 'flex' }}>
+                      <X style={{ width: '10px', height: '10px' }} />
+                    </button>
+                  </span>
+                ))}
+                <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={handleTagKeyDown}
+                  placeholder={postTags.length === 0 ? '# ტეგი + Enter' : ''}
+                  style={{ flex: 1, minWidth: '90px', border: 'none', outline: 'none', fontSize: '13px', color: '#444', background: 'transparent', fontFamily: 'inherit' }}
+                />
+                <span style={{ fontSize: '11px', color: '#bcc0c4', flexShrink: 0 }}>{postTags.length}/5</span>
               </div>
 
-              {/* Tag Chips */}
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>ტეგები ({postTags.length}/5)</div>
-                <div style={{ padding: '8px 12px', borderRadius: '12px', border: '2px solid #e8eaf6', background: '#fafafe', minHeight: '44px', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}
-                  onClick={e => { if (e.currentTarget === e.target) (e.currentTarget.querySelector('input') as HTMLInputElement)?.focus(); }}
-                >
-                  {postTags.map((tag, i) => (
-                    <span key={i} style={{ padding: '4px 10px', borderRadius: '16px', background: '#6366f1', color: '#fff', fontSize: '12px', fontWeight: '600', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-                      #{tag}
-                      <button onClick={() => setPostTags(prev => prev.filter((_, idx) => idx !== i))}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', padding: '0', display: 'flex', alignItems: 'center' }}
-                      ><X style={{ width: '11px', height: '11px' }} /></button>
-                    </span>
+              {/* "Add to your post" toolbar */}
+              <div style={{ margin: '0 16px 14px', borderRadius: '12px', border: '1.5px solid #e4e6eb', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '14px', fontWeight: '600', color: '#444' }}>პოსტს დაამატე</span>
+                <div style={{ display: 'flex', gap: '4px' }}>
+                  {[
+                    { icon: Image, label: 'ფოტო', color: '#45bd62', action: () => imageInputRef.current?.click() },
+                    { icon: Video, label: 'ვიდეო', color: '#f02849', action: () => videoInputRef.current?.click() },
+                    { icon: Tag, label: 'ტეგი', color: '#1877f2', action: () => (document.querySelector('#tag-input') as HTMLInputElement)?.focus() },
+                  ].map(({ icon: Icon, label, color, action }) => (
+                    <button key={label} onClick={action} disabled={uploadingMedia} title={label}
+                      style={{ width: '38px', height: '38px', borderRadius: '50%', border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.12s' }}
+                      onMouseEnter={e => (e.currentTarget.style.background = '#f0f2f5')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                      {uploadingMedia && (label === 'ფოტო' || label === 'ვიდეო')
+                        ? <Loader2 style={{ width: '22px', height: '22px', color, animation: 'spin 1s linear infinite' }} />
+                        : <Icon style={{ width: '24px', height: '24px', color }} />
+                      }
+                    </button>
                   ))}
-                  <input value={tagInput} onChange={e => setTagInput(e.target.value)} onKeyDown={handleTagKeyDown}
-                    placeholder={postTags.length === 0 ? "ტეგი + Enter..." : ""}
-                    style={{ flex: 1, minWidth: '80px', padding: '4px', border: 'none', outline: 'none', fontSize: '13px', color: '#111', background: 'transparent', fontFamily: 'inherit' }}
-                  />
                 </div>
               </div>
 
-              {/* Media Upload */}
-              <div>
-                <div style={{ fontSize: '11px', fontWeight: '700', color: '#6366f1', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '1px' }}>მედია</div>
-                {!mediaPreview ? (
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => imageInputRef.current?.click()} disabled={uploadingMedia}
-                      style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px dashed #c7d2fe', background: '#eef2ff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#6366f1', fontSize: '13px', fontWeight: '600', transition: 'all 0.15s' }}>
-                      {uploadingMedia ? <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} /> : <Image style={{ width: '20px', height: '20px' }} />}
-                      ფოტო
-                    </button>
-                    <button onClick={() => videoInputRef.current?.click()} disabled={uploadingMedia}
-                      style={{ flex: 1, padding: '14px', borderRadius: '12px', border: '2px dashed #c7d2fe', background: '#eef2ff', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#6366f1', fontSize: '13px', fontWeight: '600', transition: 'all 0.15s' }}>
-                      {uploadingMedia ? <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} /> : <Video style={{ width: '20px', height: '20px' }} />}
-                      ვიდეო
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
-                    {mediaPreview.type === 'image' ? (
-                      <img src={mediaPreview.url} alt="preview" style={{ width: '100%', maxHeight: '240px', objectFit: 'cover', display: 'block' }} />
-                    ) : (
-                      <video src={mediaPreview.url} controls style={{ width: '100%', maxHeight: '240px', display: 'block' }} />
-                    )}
-                    <button onClick={() => setMediaPreview(null)}
-                      style={{ position: 'absolute', top: '8px', right: '8px', width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
-                      <X style={{ width: '14px', height: '14px' }} />
-                    </button>
-                  </div>
-                )}
-                <input ref={imageInputRef} type="file" accept="image/*" style={{ display: 'none' }}
-                  onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload(f, 'image'); }} />
-                <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }}
-                  onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload(f, 'video'); }} />
-              </div>
+              <input ref={imageInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload(f, 'image'); }} />
+              <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload(f, 'video'); }} />
+            </div>
 
-              {/* Submit */}
+            {/* ── Publish button ── */}
+            <div style={{ padding: '12px 16px', borderTop: '1px solid #e4e6eb' }}>
               <button
                 onClick={handleCreatePost}
                 disabled={createPost.isPending || !newPost.title.trim() || !newPost.content.trim()}
                 style={{
-                  padding: '14px', borderRadius: '28px', border: 'none',
-                  background: newPost.title.trim() && newPost.content.trim() ? 'linear-gradient(135deg,#6366f1,#4f46e5)' : '#e8eaf6',
-                  color: newPost.title.trim() && newPost.content.trim() ? '#fff' : '#a5b4fc',
-                  fontWeight: '700', fontSize: '15px', cursor: newPost.title.trim() && newPost.content.trim() ? 'pointer' : 'default',
+                  width: '100%', padding: '10px', borderRadius: '8px', border: 'none',
+                  background: newPost.title.trim() && newPost.content.trim() ? '#6366f1' : '#e4e6eb',
+                  color: newPost.title.trim() && newPost.content.trim() ? '#fff' : '#bcc0c4',
+                  fontWeight: '700', fontSize: '15px',
+                  cursor: newPost.title.trim() && newPost.content.trim() ? 'pointer' : 'default',
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-                  transition: 'all 0.15s', boxShadow: newPost.title.trim() && newPost.content.trim() ? '0 4px 16px rgba(99,102,241,0.35)' : 'none',
+                  transition: 'all 0.15s',
                 }}
+                onMouseEnter={e => { if (newPost.title.trim() && newPost.content.trim()) e.currentTarget.style.background = '#4f46e5'; }}
+                onMouseLeave={e => { if (newPost.title.trim() && newPost.content.trim()) e.currentTarget.style.background = '#6366f1'; }}
               >
-                {createPost.isPending ? <Loader2 style={{ width: '18px', height: '18px', animation: 'spin 1s linear infinite' }} /> : <Plus style={{ width: '18px', height: '18px' }} />}
+                {createPost.isPending ? <Loader2 style={{ width: '18px', height: '18px', animation: 'spin 1s linear infinite' }} /> : null}
                 გამოქვეყნება
               </button>
             </div>
