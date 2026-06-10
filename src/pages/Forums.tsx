@@ -19,7 +19,7 @@ const Forums = () => {
   const [postTags, setPostTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
-  const [userDisplayCount, setUserDisplayCount] = useState(10);
+  const [userDisplayCount, setUserDisplayCount] = useState(6);
 
   const { data: friends } = useFriends();
   const { data: pendingRequests } = usePendingRequests();
@@ -456,7 +456,7 @@ const Forums = () => {
               )}
               {filteredUsers.length > userDisplayCount && (
                 <button
-                  onClick={() => setUserDisplayCount(prev => prev + 10)}
+                  onClick={() => setUserDisplayCount(prev => prev + 6)}
                   style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid #e0e0e0', background: '#f3f2ef', color: '#0a66c2', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '8px', transition: 'background 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#e8e6e3')}
                   onMouseLeave={e => (e.currentTarget.style.background = '#f3f2ef')}
