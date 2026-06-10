@@ -154,6 +154,14 @@ const ForumPostDetail = () => {
               <h1 style={{ fontSize: '22px', fontWeight: '700', color: '#000', marginBottom: '12px', lineHeight: '1.4' }}>{post.title}</h1>
               <p style={{ fontSize: '15px', color: '#333', lineHeight: '1.7', whiteSpace: 'pre-wrap' }}>{post.content}</p>
 
+              {/* Media */}
+              {post.image_url && (
+                <img src={post.image_url} alt="" style={{ width: '100%', borderRadius: '8px', marginTop: '16px', display: 'block' }} />
+              )}
+              {post.video_url && (
+                <video src={post.video_url} controls style={{ width: '100%', borderRadius: '8px', marginTop: '16px', display: 'block' }} />
+              )}
+
               {/* Tags */}
               {post.tags.length > 0 && (
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '16px' }}>

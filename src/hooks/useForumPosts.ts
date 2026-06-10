@@ -8,6 +8,8 @@ export interface ForumPost {
   content: string;
   category: string;
   tags: string[];
+  image_url: string | null;
+  video_url: string | null;
   likes_count: number;
   views_count: number;
   comments_count: number;
@@ -92,6 +94,8 @@ export const useCreateForumPost = () => {
       content: string;
       category: string;
       tags: string[];
+      image_url?: string | null;
+      video_url?: string | null;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");

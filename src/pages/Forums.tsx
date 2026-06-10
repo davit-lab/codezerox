@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,7 +8,7 @@ import SEOHead from "@/components/SEOHead";
 import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
 import { useFriends, useSendFriendRequest, usePendingRequests } from "@/hooks/useFriends";
 import { useAllProfiles } from "@/hooks/useUsers";
-import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase, ChevronDown } from "lucide-react";
+import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase, ChevronDown, Video, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Forums = () => {
@@ -20,6 +21,10 @@ const Forums = () => {
   const [tagInput, setTagInput] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
   const [userDisplayCount, setUserDisplayCount] = useState(6);
+  const [mediaPreview, setMediaPreview] = useState<{ url: string; type: 'image' | 'video' } | null>(null);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
 
   const { data: friends } = useFriends();
   const { data: pendingRequests } = usePendingRequests();
@@ -104,6 +109,24 @@ const Forums = () => {
     }
   };
 
+  const handleMediaUpload = async (file: File, type: 'image' | 'video') => {
+    if (!user) return;
+    setUploadingMedia(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadErr } = await supabase.storage.from('forum-media').upload(path, file, { upsert: true });
+      if (uploadErr) throw uploadErr;
+      const { data: urlData } = supabase.storage.from('forum-media').getPublicUrl(path);
+      setMediaPreview({ url: urlData.publicUrl, type });
+    } catch (err: any) {
+      toast.error(type === 'image' ? 'ფოტოს ატვირთვა ვერ მოხერხდა' : 'ვიდეოს ატვირთვა ვერ მოხერხდა');
+      console.error(err);
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
   const handleCreatePost = async () => {
     if (!user) { navigate('/auth'); return; }
     if (!newPost.title.trim() || !newPost.content.trim()) {
@@ -117,12 +140,15 @@ const Forums = () => {
         content: newPost.content.trim(),
         category: newPost.category,
         tags: finalTags,
+        image_url: mediaPreview?.type === 'image' ? mediaPreview.url : null,
+        video_url: mediaPreview?.type === 'video' ? mediaPreview.url : null,
       });
       toast.success("პოსტი გამოქვეყნდა!");
       setShowModal(false);
       setNewPost({ title: "", content: "", category: "programming" });
       setPostTags([]);
       setTagInput("");
+      setMediaPreview(null);
     } catch {
       toast.error("პოსტის შექმნა ვერ მოხერხდა");
     }
@@ -251,6 +277,41 @@ const Forums = () => {
                   />
                 </div>
                 <div style={{ fontSize: '11px', color: '#999', marginTop: '4px' }}>Enter ან comma (,) ტეგის დასამატებლად</div>
+              </div>
+
+              {/* Media Upload */}
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#333', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>მედია</div>
+                {!mediaPreview ? (
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={() => imageInputRef.current?.click()} disabled={uploadingMedia}
+                      style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1.5px dashed #c9cdd2', background: '#f9f9f9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#666', fontSize: '13px', fontWeight: '600' }}>
+                      {uploadingMedia ? <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} /> : <Image style={{ width: '20px', height: '20px' }} />}
+                      ფოტო
+                    </button>
+                    <button onClick={() => videoInputRef.current?.click()} disabled={uploadingMedia}
+                      style={{ flex: 1, padding: '12px', borderRadius: '10px', border: '1.5px dashed #c9cdd2', background: '#f9f9f9', cursor: 'pointer', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', color: '#666', fontSize: '13px', fontWeight: '600' }}>
+                      {uploadingMedia ? <Loader2 style={{ width: '20px', height: '20px', animation: 'spin 1s linear infinite' }} /> : <Video style={{ width: '20px', height: '20px' }} />}
+                      ვიდეო
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ position: 'relative', borderRadius: '10px', overflow: 'hidden', border: '1px solid #e0e0e0' }}>
+                    {mediaPreview.type === 'image' ? (
+                      <img src={mediaPreview.url} alt="preview" style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', display: 'block' }} />
+                    ) : (
+                      <video src={mediaPreview.url} controls style={{ width: '100%', maxHeight: '300px', display: 'block' }} />
+                    )}
+                    <button onClick={() => setMediaPreview(null)}
+                      style={{ position: 'absolute', top: '8px', right: '8px', width: '28px', height: '28px', borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.6)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                      <X style={{ width: '14px', height: '14px' }} />
+                    </button>
+                  </div>
+                )}
+                <input ref={imageInputRef} type="file" accept="image/*" style={{ display: 'none' }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload(f, 'image'); }} />
+                <input ref={videoInputRef} type="file" accept="video/*" style={{ display: 'none' }}
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handleMediaUpload(f, 'video'); }} />
               </div>
 
               {/* Submit */}
@@ -614,6 +675,14 @@ const Forums = () => {
                   <div style={{ padding: '12px 16px', cursor: 'pointer' }} onClick={() => navigate(`/forums/${post.id}`)}>
                     <h3 style={{ fontWeight: '600', fontSize: '15px', color: '#000', marginBottom: '6px', lineHeight: '1.4' }}>{post.title}</h3>
                     <p style={{ fontSize: '14px', color: '#333', lineHeight: '1.5', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{post.content}</p>
+
+                    {/* Media */}
+                    {post.image_url && (
+                      <img src={post.image_url} alt="" style={{ width: '100%', maxHeight: '400px', objectFit: 'cover', borderRadius: '8px', marginTop: '12px', display: 'block' }} />
+                    )}
+                    {post.video_url && (
+                      <video src={post.video_url} controls style={{ width: '100%', maxHeight: '400px', borderRadius: '8px', marginTop: '12px', display: 'block' }} />
+                    )}
                   </div>
 
                   {/* Tags */}
