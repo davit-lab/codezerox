@@ -1,11 +1,8 @@
--- Emergency fix: Disable RLS to restore admin access
--- Run this immediately in Supabase SQL Editor
+-- ⚠️ DANGER: This script disables Row Level Security.
+-- It was created as an emergency fix and should NOT be run in production.
+-- RLS is a critical security layer. Only use this in local development if absolutely necessary.
+-- In production, fix the root cause (e.g., broken policies) rather than disabling RLS.
 
--- Disable RLS on user_roles (restore access)
-ALTER TABLE user_roles DISABLE ROW LEVEL SECURITY;
-
--- Disable RLS on profiles (restore access)
-ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;
-
--- Confirm
-SELECT 'RLS disabled on user_roles and profiles' as status;
+-- DISABLED to prevent accidental execution:
+-- ALTER TABLE user_roles DISABLE ROW LEVEL SECURITY;
+-- ALTER TABLE profiles DISABLE ROW LEVEL SECURITY;

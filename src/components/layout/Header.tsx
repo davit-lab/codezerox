@@ -86,6 +86,10 @@ const Header = () => {
                     <span className="material-symbols-rounded">workspace_premium</span>
                     სერტიფიკატები
                   </Link>
+                  <Link to="/cyber-lab" className={`nav-dropdown-item ${isActive('/cyber-lab') || location.pathname.startsWith('/cyber-lab/') ? 'active' : ''}`}>
+                    <span className="material-symbols-rounded">security</span>
+                    Cyber Lab
+                  </Link>
                   <Link to="/video-courses" className={`nav-dropdown-item ${isActive('/video-courses') || location.pathname.startsWith('/video-courses/') ? 'active' : ''}`}>
                     <span className="material-symbols-rounded">smart_display</span>
                     ვიდეო კურსები

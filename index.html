@@ -23,6 +23,11 @@
     <meta name="twitter:site" content="@CodeZeroAcademy" />
     <meta name="twitter:image" content="https://read-connect-zone.lovable.app/favicon.png" />
 
+    <!-- Security headers (applied via meta tags for SPA deployments) -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co; img-src 'self' data: https://*.supabase.co https://read-connect-zone.lovable.app blob:; frame-src 'self'; base-uri 'self'; form-action 'self';">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,6 +53,58 @@
           );
         }
       }(window.location))
+    </script>
+    <script type="text/javascript">
+      // Anti-debug / inspect-element deterrent
+      (function() {
+        'use strict';
+        const devtools = { open: false, threshold: 160 };
+
+        // Block right-click
+        document.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          return false;
+        });
+
+        // Block common devtools shortcuts
+        document.addEventListener('keydown', function(e) {
+          if (
+            e.key === 'F12' ||
+            (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+            (e.ctrlKey && e.key === 'U')
+          ) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+          }
+        });
+
+        // Detect devtools via debugger timing
+        const check = function() {
+          const start = performance.now();
+          debugger;
+          const end = performance.now();
+          if ((end - start) > devtools.threshold) {
+            if (!devtools.open) {
+              devtools.open = true;
+              // Attempt to disrupt console
+              console.clear && console.clear();
+              setInterval(function() { console.clear && console.clear(); }, 100);
+            }
+          } else {
+            devtools.open = false;
+          }
+        };
+        setInterval(check, 1000);
+
+        // Obscure console methods on load
+        (function() {
+          var noop = function() {};
+          ['log','warn','error','info','debug','trace','dir','table'].forEach(function(m) {
+            if (window.console && window.console[m]) window.console[m] = noop;
+          });
+        })();
+      })();
     </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>

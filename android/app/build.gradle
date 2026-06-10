@@ -24,8 +24,9 @@ android {
             keyPassword 'android'
         }
         release {
-            // For now, use debug keystore for release to make APK installable
-            // TODO: Replace with production keystore for Play Store
+            // SECURITY WARNING: debug.keystore must NOT be used for Play Store releases.
+            // Generate a production keystore and replace these values before distribution.
+            // Using debug keys allows anyone to resign/modify the APK.
             storeFile file('debug.keystore')
             storePassword 'android'
             keyAlias 'androiddebugkey'

@@ -97,6 +97,11 @@ import NotFound from "./pages/NotFound";
 import AdminPricing from "./pages/AdminPricing";
 import AdminCredits from "./pages/AdminCredits";
 import PaymentStatus from "./pages/PaymentStatus";
+import CyberLab from "./pages/CyberLab";
+import CyberLabCategory from "./pages/CyberLabCategory";
+import CyberLabChallenge from "./pages/CyberLabChallenge";
+import CyberLabLeaderboard from "./pages/CyberLabLeaderboard";
+import AdminCyberLab from "./pages/AdminCyberLab";
 
 const queryClient = new QueryClient();
 
@@ -205,6 +210,11 @@ const App = () => {
             <Route path="/admin/credits" element={<AdminCredits />} />
             <Route path="/payment-status" element={<PaymentStatus />} />
             <Route path="/payment/status" element={<PaymentStatus />} />
+            <Route path="/cyber-lab" element={<CyberLab />} />
+            <Route path="/cyber-lab/leaderboard" element={<CyberLabLeaderboard />} />
+            <Route path="/cyber-lab/:categorySlug" element={<CyberLabCategory />} />
+            <Route path="/cyber-lab/challenge/:slug" element={<CyberLabChallenge />} />
+            <Route path="/admin/cyber-lab" element={<AdminCyberLab />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>
