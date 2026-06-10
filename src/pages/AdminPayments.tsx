@@ -54,21 +54,39 @@ const AdminPayments = () => {
   }, [isAdmin]);
 
   const fetchSettings = async () => {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('payment_settings')
       .select('*')
       .order('provider')
       .order('setting_key');
-    
+
     if (error) {
       toast.error("პარამეტრების ჩატვირთვა ვერ მოხერხდა");
       return;
     }
 
-    setSettings(data || []);
+    const rows = data || [];
+    const hasFlitt = rows.some((s: PaymentSetting) => s.provider === 'flitt');
+    if (!hasFlitt) {
+      const { data: inserted } = await supabase
+        .from('payment_settings')
+        .insert([
+          { provider: 'flitt', setting_key: 'merchant_id', setting_value: '', is_active: false },
+          { provider: 'flitt', setting_key: 'secret_key', setting_value: '', is_active: false },
+          { provider: 'flitt', setting_key: 'credit_secret_key', setting_value: '', is_active: false },
+          { provider: 'flitt', setting_key: 'callback_url', setting_value: '', is_active: false },
+        ])
+        .select('*');
+      if (inserted) {
+        rows.push(...inserted);
+        rows.sort((a, b) => a.provider.localeCompare(b.provider) || a.setting_key.localeCompare(b.setting_key));
+      }
+    }
+
+    setSettings(rows);
     const values: Record<string, string> = {};
     const active: Record<string, boolean> = {};
-    (data || []).forEach((s: PaymentSetting) => {
+    rows.forEach((s: PaymentSetting) => {
       values[s.id] = s.setting_value;
       if (!active.hasOwnProperty(s.provider)) active[s.provider] = s.is_active;
       if (s.is_active) active[s.provider] = true;
