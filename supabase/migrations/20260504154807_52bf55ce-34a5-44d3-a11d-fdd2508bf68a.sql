@@ -1,10 +1,10 @@
 
 -- 1. Add Flitt provider settings
 INSERT INTO public.payment_settings (provider, setting_key, setting_value, is_active) VALUES
-  ('flitt', 'merchant_id', '4056272', true),
-  ('flitt', 'secret_key', 'uIEzk7IK3ga5xWrdCyZMjgRHYnA9vg2h', true),
-  ('flitt', 'credit_secret_key', 'v4mVf7v7YbOowOomb5Tmba6rWLTGu6C6', true),
-  ('flitt', 'callback_url', '', true)
+  ('flitt', 'merchant_id', '', false),
+  ('flitt', 'secret_key', '', false),
+  ('flitt', 'credit_secret_key', '', false),
+  ('flitt', 'callback_url', '', false)
 ON CONFLICT (provider, setting_key) DO NOTHING;
 
 -- 2. Manual payment links table (admin fallback)

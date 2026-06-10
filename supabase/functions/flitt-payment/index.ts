@@ -112,7 +112,7 @@ serve(async (req) => {
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
 
     if (action === "initiate") {
-      const { items, discount, site_credits_used } = body;
+      const { items, discount, site_credits_used, payment_type } = body;
       let totalAmount = (items || []).reduce((s: number, i: any) => s + (i.price || 0), 0);
       const creditsUsed = Math.max(0, Number(site_credits_used) || 0);
       if (creditsUsed > 0) {
@@ -177,7 +177,9 @@ serve(async (req) => {
         response_url: responseUrl,
         server_callback_url: callbackUrl,
       };
-      const signature = await buildSignature(settings.secret_key, params);
+      const useCredit = payment_type === "credit" && settings.credit_secret_key;
+      const secretKey = useCredit ? settings.credit_secret_key : settings.secret_key;
+      const signature = await buildSignature(secretKey, params);
 
       const flittRes = await fetch(FLITT_URL, {
         method: "POST",

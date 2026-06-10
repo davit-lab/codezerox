@@ -46,10 +46,15 @@ serve(async (req) => {
     const conf: Record<string, string> = {};
     (settings || []).forEach((s: any) => { conf[s.setting_key] = s.setting_value; });
 
-    if (conf.secret_key && payload.signature) {
-      const expected = await buildSignature(conf.secret_key, payload);
-      if (expected !== payload.signature) {
-        console.error("Bad signature", { expected, received: payload.signature });
+    if (payload.signature) {
+      const keysToTry = [conf.credit_secret_key, conf.secret_key].filter(Boolean);
+      let valid = false;
+      for (const key of keysToTry) {
+        const expected = await buildSignature(key, payload);
+        if (expected === payload.signature) { valid = true; break; }
+      }
+      if (!valid) {
+        console.error("Bad signature", { received: payload.signature });
         return new Response("bad signature", { status: 400, headers: corsHeaders });
       }
     }
