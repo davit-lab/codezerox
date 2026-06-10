@@ -221,6 +221,40 @@ export const useDeleteForumComment = () => {
   });
 };
 
+export const useUserForumPosts = (userId?: string) => {
+  return useQuery({
+    queryKey: ["user-forum-posts", userId],
+    queryFn: async () => {
+      if (!userId) return [] as ForumPost[];
+      const { data: posts, error } = await supabase
+        .from("forum_posts")
+        .select("*")
+        .eq("author_id", userId)
+        .eq("is_published", true)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (posts || []) as ForumPost[];
+    },
+    enabled: !!userId,
+  });
+};
+
+export const useUserForumPostCount = (userId?: string) => {
+  return useQuery({
+    queryKey: ["user-forum-post-count", userId],
+    queryFn: async () => {
+      if (!userId) return 0;
+      const { count } = await supabase
+        .from("forum_posts")
+        .select("id", { count: "exact", head: true })
+        .eq("author_id", userId)
+        .eq("is_published", true);
+      return count ?? 0;
+    },
+    enabled: !!userId,
+  });
+};
+
 export const useIncrementForumViews = () => {
   return useMutation({
     mutationFn: async (postId: string) => {

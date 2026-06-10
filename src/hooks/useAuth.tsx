@@ -8,6 +8,7 @@ interface Profile {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  cover_url: string | null;
   bio: string | null;
   experience: string | null;
   github_url: string | null;
