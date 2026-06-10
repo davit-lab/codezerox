@@ -7,7 +7,7 @@ import SEOHead from "@/components/SEOHead";
 import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
 import { useFriends, useSendFriendRequest, usePendingRequests } from "@/hooks/useFriends";
 import { useAllProfiles } from "@/hooks/useUsers";
-import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase } from "lucide-react";
+import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 const Forums = () => {
@@ -19,6 +19,7 @@ const Forums = () => {
   const [postTags, setPostTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [savedPosts, setSavedPosts] = useState<Set<string>>(new Set());
+  const [userDisplayCount, setUserDisplayCount] = useState(10);
 
   const { data: friends } = useFriends();
   const { data: pendingRequests } = usePendingRequests();
@@ -314,7 +315,7 @@ const Forums = () => {
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
               <div style={{ padding: '0 4px 12px', fontSize: '13px', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.5px' }}>მომხმარებლები</div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px' }}>
-                {filteredUsers.map((u) => {
+                {filteredUsers.slice(0, userDisplayCount).map((u) => {
                   const friendStatus = isFriend(u.user_id);
                   const pending = isPending(u.user_id);
                   
@@ -452,6 +453,17 @@ const Forums = () => {
                   <User style={{ width: '48px', height: '48px', margin: '0 auto 12px', opacity: 0.5 }} />
                   <div style={{ fontSize: '14px' }}>მომხმარებლები ვერ მოიძებნა</div>
                 </div>
+              )}
+              {filteredUsers.length > userDisplayCount && (
+                <button
+                  onClick={() => setUserDisplayCount(prev => prev + 10)}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1.5px solid #e0e0e0', background: '#f3f2ef', color: '#0a66c2', fontWeight: '600', fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '8px', transition: 'background 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.background = '#e8e6e3')}
+                  onMouseLeave={e => (e.currentTarget.style.background = '#f3f2ef')}
+                >
+                  <ChevronDown style={{ width: '16px', height: '16px' }} />
+                  მეტის ნახვა ({filteredUsers.length - userDisplayCount} დარჩა)
+                </button>
               )}
             </div>
           </aside>
