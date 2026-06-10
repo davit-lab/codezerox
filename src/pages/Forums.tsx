@@ -6,7 +6,7 @@ import Header from "@/components/layout/Header";
 import { useAuth } from "@/hooks/useAuth";
 import SEOHead from "@/components/SEOHead";
 import { useForumPosts, useCreateForumPost, useToggleForumLike, useMyForumPostCount } from "@/hooks/useForumPosts";
-import { useFriends, useSendFriendRequest, usePendingRequests } from "@/hooks/useFriends";
+import { useFriends, useSendFriendRequest, usePendingRequests, useAcceptFriendRequest, useDeclineFriendRequest } from "@/hooks/useFriends";
 import { useAllProfiles } from "@/hooks/useUsers";
 import { Search, Plus, MessageSquare, ThumbsUp, Share2, Send, TrendingUp, Flame, Tag, Bookmark, MoreHorizontal, X, Loader2, UserPlus, User, ChevronRight, Bell, Image, FileText, MapPin, Briefcase, ChevronDown, Video, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -29,6 +29,8 @@ const Forums = () => {
   const { data: friends } = useFriends();
   const { data: pendingRequests } = usePendingRequests();
   const sendFriendRequest = useSendFriendRequest();
+  const acceptRequest = useAcceptFriendRequest();
+  const declineRequest = useDeclineFriendRequest();
   const { data: posts = [], isLoading } = useForumPosts();
   const { data: myPostCount = 0 } = useMyForumPostCount(user?.id);
   const createPost = useCreateForumPost();
@@ -371,6 +373,49 @@ const Forums = () => {
                 </div>
               </div>
             </div>
+
+            {/* Friend Requests */}
+            {pendingRequests && pendingRequests.length > 0 && (
+              <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
+                <div style={{ padding: '0 4px 12px', fontSize: '13px', fontWeight: '700', color: '#000', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Bell style={{ width: '16px', height: '16px', color: '#0a66c2' }} />
+                  მეგობრობის მოთხოვნები ({pendingRequests.length})
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {pendingRequests.map(req => {
+                    const reqProfile = allProfiles.find(p => p.user_id === req.requester_id);
+                    const reqName = reqProfile?.full_name || 'მომხმარებელი';
+                    return (
+                      <div key={req.friendship_id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '10px', background: '#f9f9f9' }}>
+                        {reqProfile?.avatar_url ? (
+                          <img src={reqProfile.avatar_url} alt={reqName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+                        ) : (
+                          <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: getAvatarColor(reqName), display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', fontWeight: 'bold', color: '#fff', flexShrink: 0 }}>
+                            {reqName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: '600', fontSize: '14px', color: '#000' }}>{reqName}</div>
+                          <div style={{ fontSize: '12px', color: '#666' }}>გიგზავნის მეგობრობის მოთხოვნას</div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button onClick={() => acceptRequest.mutate(req.friendship_id)}
+                            disabled={acceptRequest.isPending}
+                            style={{ padding: '6px 14px', borderRadius: '16px', border: 'none', background: '#0a66c2', color: '#fff', fontSize: '12px', fontWeight: '700', cursor: 'pointer' }}>
+                            {acceptRequest.isPending ? <Loader2 style={{ width: '12px', height: '12px', animation: 'spin 1s linear infinite' }} /> : 'დათანხმება'}
+                          </button>
+                          <button onClick={() => declineRequest.mutate(req.friendship_id)}
+                            disabled={declineRequest.isPending}
+                            style={{ padding: '6px 14px', borderRadius: '16px', border: '1.5px solid #e0e0e0', background: '#fff', color: '#666', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>
+                            {declineRequest.isPending ? <Loader2 style={{ width: '12px', height: '12px', animation: 'spin 1s linear infinite' }} /> : 'უარყოფა'}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* User Cards */}
             <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e0e0e0', padding: '16px' }}>
