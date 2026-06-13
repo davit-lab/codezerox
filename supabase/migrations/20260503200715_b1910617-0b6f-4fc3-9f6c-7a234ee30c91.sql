@@ -1,0 +1,1 @@
+DROP VIEW IF EXISTS public.cyberrange_challenges_public;

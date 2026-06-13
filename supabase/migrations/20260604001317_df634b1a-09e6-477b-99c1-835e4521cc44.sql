@@ -1,0 +1,1 @@
+ALTER VIEW public.manual_payment_links_public SET (security_invoker = on);

@@ -1,0 +1,51 @@
+# CodeZero Academy
+
+CodeZero Academy is a Georgian programming education platform that provides premium programming books, courses, and resources in the Georgian language.
+
+## Purpose
+To teach programming to Georgian speakers through high-quality educational content including books, video courses, mentoring, and AI tutoring.
+
+## Target Audience
+- Beginner and experienced developers in Georgia
+- Students learning programming
+- Professionals looking to improve their skills
+- Georgian speakers seeking programming education in their native language
+
+## Main Features
+- **Premium Programming Books**: High-quality books on React, TypeScript, Node.js, Python, and other technologies
+- **Video Courses**: Structured video courses with assignments and progress tracking
+- **Mentoring**: Individual mentoring with experienced developers
+- **AI Tutor**: AI-powered tutoring for programming questions in Georgian
+- **Code Playground**: Online code editor for practice
+- **Certifications**: Professional exams and certificates
+- **Community**: Forums and leaderboards for learning together
+
+## Technologies Covered
+- Frontend: React, TypeScript, Next.js, Vue.js
+- Backend: Node.js, Python, Go
+- Databases: PostgreSQL, MongoDB
+- Tools: Git, Docker, CI/CD
+- Mobile: React Native, Flutter
+
+## Content Structure
+- Books are organized by category and difficulty level
+- Courses are structured by weeks with lectures and assignments
+- Mentoring courses include syllabus and project-based learning
+- Certifications validate skills through exams
+
+## Business Model
+- One-time purchases for books and courses
+- Subscription-based access to premium content
+- Free tier with limited access to basic content
+- Bundles for multiple books at discounted prices
+
+## Technical Stack
+- Frontend: React, TypeScript, Vite
+- Backend: Supabase (PostgreSQL)
+- Authentication: Supabase Auth
+- Storage: Supabase Storage
+- Payment: PayPal, Bank transfer
+- Deployment: Vercel
+
+## Language
+All content is primarily in Georgian (ka), with some English technical terms preserved.

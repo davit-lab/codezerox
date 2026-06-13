@@ -1,0 +1,27 @@
+project_id = "cnkhdwcqfxkdmluvikzv"
+
+[functions]
+  [functions.ai-tutor]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.bank-callback]
+    verify_jwt = false
+  [functions.bank-payment]
+    verify_jwt = false
+  [functions.generate-chapter]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.send-transactional-email]
+    verify_jwt = false
+  [functions.preview-transactional-email]
+    verify_jwt = false
+  [functions.handle-email-unsubscribe]
+    verify_jwt = false
+  [functions.handle-email-suppression]
+    verify_jwt = false
+  [functions.flitt-payment-callback]
+    verify_jwt = false
+  [functions.manual-payment-callback]
+    verify_jwt = false

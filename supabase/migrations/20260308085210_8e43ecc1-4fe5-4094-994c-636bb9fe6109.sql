@@ -1,0 +1,1 @@
+ALTER TABLE public.code_snippets ADD COLUMN hide_code boolean NOT NULL DEFAULT false;
