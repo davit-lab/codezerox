@@ -25,3 +25,7 @@ project_id = "cnkhdwcqfxkdmluvikzv"
     verify_jwt = false
   [functions.manual-payment-callback]
     verify_jwt = false
+  [functions.send-reset-code]
+    verify_jwt = false
+  [functions.verify-reset-code]
+    verify_jwt = false
