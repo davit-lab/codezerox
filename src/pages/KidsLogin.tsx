@@ -18,7 +18,7 @@ const KidsLogin = () => {
       return;
     }
     setLoading(true);
-    const email = `${username.trim().toLowerCase()}@kids.codezero.georgia`;
+    const email = `${username.trim().toLowerCase()}@kids.codezero.internal`;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
