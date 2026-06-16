@@ -64,55 +64,32 @@ const Kids = () => {
   const challengeCount = kidsLessons.filter(l => l.type === 'challenge').length;
 
   return (
-    <main className="min-h-screen" style={{ background: 'var(--bg-void)' }}>
+    <main className="min-h-screen bg-[#0c0a09]">
       {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 50,
-        background: 'rgba(13,13,20,0.92)',
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        borderBottom: '1px solid rgba(124,58,237,0.1)',
-      }}>
-        <div className="flex items-center justify-between px-5 py-3" style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div className="sticky top-0 z-50 bg-[#0c0a09]/92 backdrop-blur-xl border-b border-[#5F13CA]/10">
+        <div className="flex items-center justify-between px-5 py-3 max-w-[1200px] mx-auto">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#7c3aed' }}>
-              <GraduationCap size={20} color="#fff" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-violet-600">
+              <GraduationCap size={20} className="text-white" />
             </div>
             <div>
-              <h1 className="text-sm font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
-                CodeZero Kids
-              </h1>
-              <p className="text-[0.62rem]" style={{ color: 'var(--text-dim)' }}>
-                HTML & CSS
-              </p>
+              <h1 className="text-sm font-black leading-tight text-white">CodeZero Kids</h1>
+              <p className="text-[0.62rem] text-stone-500">HTML & CSS</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {level && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem]" style={{
-                background: 'rgba(124,58,237,0.06)',
-                border: '1px solid rgba(124,58,237,0.12)',
-              }}>
-                <Star size={12} style={{ color: 'var(--gold)' }} />
-                <span className="font-black" style={{ color: 'var(--gold)' }}>
-                  Lv.{level.level}
-                </span>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem] bg-violet-500/10 border border-violet-500/20">
+                <Star size={12} className="text-amber-400" />
+                <span className="font-black text-amber-400">Lv.{level.level}</span>
               </div>
             )}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem]" style={{
-              background: 'rgba(255,215,0,0.05)',
-              border: '1px solid rgba(255,215,0,0.1)',
-            }}>
-              <Zap size={12} style={{ color: 'var(--gold)' }} />
-              <span className="font-bold" style={{ color: 'var(--gold)' }}>{xp} XP</span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem] bg-amber-500/5 border border-amber-500/10">
+              <Zap size={12} className="text-amber-400" />
+              <span className="font-bold text-amber-400">{xp} XP</span>
             </div>
             {user && (
-              <button onClick={handleSignOut} className="p-2 rounded-lg" style={{
-                background: 'rgba(124,58,237,0.05)',
-                border: '1px solid rgba(124,58,237,0.1)',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-              }}>
+              <button onClick={handleSignOut} className="p-2 rounded-lg bg-violet-500/5 border border-violet-500/10 text-stone-400 hover:text-white transition-colors cursor-pointer">
                 <LogOut size={14} />
               </button>
             )}
@@ -120,39 +97,23 @@ const Kids = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+      <div className="max-w-[1200px] mx-auto">
         {/* Hero */}
         <div className="px-5 pt-6">
-          <div className="rounded-2xl p-6" style={{
-            background: 'rgba(124,58,237,0.04)',
-            border: '1px solid rgba(124,58,237,0.1)',
-          }}>
+          <div className="rounded-2xl p-6 bg-[#5F13CA]/5 border border-[#5F13CA]/15">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
               <div>
-                <h2 className="text-lg sm:text-xl font-black mb-1.5" style={{
-                  color: 'var(--text-primary)',
-                  fontFamily: 'var(--font-georgian)',
-                }}>
-                  ისწავლე HTML & CSS
-                </h2>
-                <p className="text-sm mb-3" style={{
-                  color: 'var(--text-secondary)',
-                  fontFamily: 'var(--font-georgian)',
-                }}>
+                <h2 className="text-lg sm:text-xl font-black mb-1.5 text-white">ისწავლე HTML & CSS</h2>
+                <p className="text-sm mb-3 text-stone-400">
                   {totalLessons} გაკვეთილი · {modules.length} მოდული
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { icon: Puzzle, count: puzzleCount, label: 'პაზლი', color: '#a78bfa' },
-                    { icon: Code, count: editorCount, label: 'რედაქტორი', color: '#34d399' },
-                    { icon: Eye, count: challengeCount, label: 'გამოწვევა', color: '#f59e0b' },
+                    { icon: Puzzle, count: puzzleCount, label: 'პაზლი', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
+                    { icon: Code, count: editorCount, label: 'რედაქტორი', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+                    { icon: Eye, count: challengeCount, label: 'გამოწვევა', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
                   ].map((stat, i) => (
-                    <div key={i} className="flex items-center gap-1.5 text-[0.7rem] font-semibold px-2.5 py-1 rounded-md" style={{
-                      background: 'var(--bg-card)',
-                      border: '1px solid var(--border-light)',
-                      color: stat.color,
-                      fontFamily: 'var(--font-georgian)',
-                    }}>
+                    <div key={i} className={`flex items-center gap-1.5 text-[0.7rem] font-semibold px-2.5 py-1 rounded-md ${stat.bg} ${stat.border} border ${stat.color}`}>
                       <stat.icon size={11} />
                       {stat.count} {stat.label}
                     </div>
@@ -162,21 +123,16 @@ const Kids = () => {
 
               <div className="sm:w-[200px] shrink-0">
                 <div className="flex justify-between text-[0.7rem] mb-1.5">
-                  <span className="flex items-center gap-1 font-semibold" style={{ color: 'var(--text-muted)' }}>
-                    <Trophy size={11} style={{ color: 'var(--gold)' }} />
+                  <span className="flex items-center gap-1 font-semibold text-stone-500">
+                    <Trophy size={11} className="text-amber-400" />
                     {completedCount}/{totalLessons}
                   </span>
-                  <span className="font-bold" style={{ color: 'var(--gold)' }}>
-                    {xp} XP
-                  </span>
+                  <span className="font-bold text-amber-400">{xp} XP</span>
                 </div>
-                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(124,58,237,0.08)' }}>
-                  <div className="h-full rounded-full transition-all duration-1000" style={{
-                    width: `${progressPct}%`,
-                    background: 'var(--gold)',
-                  }} />
+                <div className="h-2 rounded-full overflow-hidden bg-violet-500/10">
+                  <div className="h-full rounded-full transition-all duration-1000 bg-amber-400" style={{ width: `${progressPct}%` }} />
                 </div>
-                <p className="text-[0.65rem] mt-1" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-georgian)' }}>
+                <p className="text-[0.65rem] mt-1 text-stone-500">
                   {progressPct > 0 ? `${Math.round(progressPct)}% დასრულებული` : 'დაიწყე სწავლა'}
                 </p>
               </div>
@@ -328,12 +284,11 @@ const Kids = () => {
             {/* Grid */}
             <div className="px-5 pb-10">
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>
-                {filtered.map((lesson, i) => (
+                {filtered.map((lesson) => (
                   <LessonCard
                     key={lesson.id}
                     lesson={lesson}
                     completed={completed.includes(lesson.id)}
-                    index={i}
                   />
                 ))}
               </div>
