@@ -5,7 +5,7 @@ import Atmosphere from '@/components/layout/Atmosphere';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Users, Plus, Trash2, BookOpen, ShieldCheck, GraduationCap, Sparkles, CheckCircle, AlertCircle, CreditCard, Clock } from 'lucide-react';
+import { Users, Plus, Trash2, GraduationCap, CheckCircle, AlertCircle, CreditCard, Zap, Star } from 'lucide-react';
 import { usePrice } from '@/hooks/usePricing';
 import { daysRemaining, formatExpiryDate } from '@/lib/dateUtils';
 
@@ -16,6 +16,9 @@ interface Child {
   child_username: string;
   child_display_name: string;
   created_at: string;
+  xp?: number;
+  lessons_completed?: number;
+  total_lessons?: number;
 }
 
 interface Subscription {
@@ -25,6 +28,15 @@ interface Subscription {
   expires_at: string;
   amount_gel: number;
 }
+
+const TOTAL_LESSONS = 282;
+
+const getLevelLabel = (xp: number) => {
+  if (xp < 100) return 'Lv.1 - დამწყები';
+  if (xp < 300) return 'Lv.2 - საშუალო';
+  if (xp < 600) return 'Lv.3 - გამოცდილი';
+  return 'Lv.4 - ექსპერტი';
+};
 
 // price comes from pricing_config (admin-editable)
 
@@ -146,71 +158,85 @@ const ParentDashboard = () => {
 
   if (authLoading || !user) return null;
 
+  const totalXP = children.reduce((sum, c) => sum + (c.xp || 0), 0);
+  const activeCount = children.filter(c => {
+    const sub = getChildSub(c.child_id);
+    return sub && new Date(sub.expires_at) > new Date();
+  }).length;
+
   return (
     <>
       <Atmosphere />
       <Header />
       <main className="page-content">
-        <div style={{ maxWidth: 900, margin: '0 auto', padding: '32px 20px 80px' }}>
-          {/* Page header */}
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: '#7c3aed' }}>
-                <ShieldCheck size={24} color="#fff" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>
-                  მშობლის პანელი
-                </h1>
-                <p className="text-sm" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
-                  მართეთ ბავშვების ანგარიშები
-                </p>
-              </div>
+        <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 20px 80px' }}>
+
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 28 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 14, background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <GraduationCap size={26} color="#fff" />
+            </div>
+            <div>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.2 }}>CodeZero Kids</h1>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
+                მშობლის პანელი · მართეთ ბავშვების ანგარიშები
+              </p>
             </div>
           </div>
 
-          {/* Pricing info banner */}
-          <div className="rounded-2xl p-6 mb-8" style={{
-            background: 'rgba(124,58,237,0.06)',
-            border: '1px solid rgba(124,58,237,0.15)',
-          }}>
-            <div className="flex items-start gap-4 flex-wrap">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,215,0,0.12)' }}>
-                <GraduationCap size={24} style={{ color: 'var(--gold)' }} />
+          {/* Stat cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
+            {[
+              { icon: <Users size={18} />, label: 'ბავშვი', value: children.length, color: '#7c3aed' },
+              { icon: <CheckCircle size={18} />, label: 'აქტიური', value: activeCount, color: '#22c55e' },
+              { icon: <Zap size={18} />, label: 'სულ XP', value: totalXP, color: '#f59e0b' },
+            ].map(s => (
+              <div key={s.label} style={{
+                background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.07)',
+                borderRadius: 16, padding: '16px 20px',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 7, marginBottom: 6 }}>
+                  <span style={{ color: s.color }}>{s.icon}</span>
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>{s.label}</span>
+                </div>
+                <div style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--text-primary)' }}>{s.value}</div>
               </div>
-              <div className="flex-1 min-w-[200px]">
-                <h2 className="font-bold text-base mb-1" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-georgian)' }}>
+            ))}
+          </div>
+
+          {/* Pricing banner */}
+          <div style={{ background: 'rgba(124,58,237,0.06)', border: '1px solid rgba(124,58,237,0.15)', borderRadius: 16, padding: '20px 24px', marginBottom: 24 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(245,158,11,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <GraduationCap size={22} style={{ color: 'var(--gold)' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: 4, fontFamily: 'var(--font-georgian)' }}>
                   CodeZero Kids — ერთჯერადი გადახდა
                 </h2>
-                <p className="text-sm mb-3" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
-                  შექმენით ბავშვის ანგარიში და გაააქტიურეთ სამუდამო წვდომა 280+ გაკვეთილზე, პაზლებზე და პრაქტიკულ გამოწვევებზე.
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)', lineHeight: 1.5, marginBottom: 8 }}>
+                  შექმენით ბავშვის ანგარიში და გაააქტიურეთ სამუდამო წვდომა {TOTAL_LESSONS}+ გაკვეთილზე, პაზლებზე და პრაქტიკულ გამოწვევებზე.
                 </p>
-                <div className="flex items-center gap-3 flex-wrap">
-                  <span className="text-2xl font-black" style={{ color: 'var(--gold)' }}>
-                    {KIDS_ACCOUNT_PRICE}₾
-                  </span>
-                  <span className="text-xs px-3 py-1 rounded-full font-semibold" style={{
-                    background: 'rgba(34,197,94,0.12)',
-                    color: '#22c55e',
-                    fontFamily: 'var(--font-georgian)',
-                  }}>
-                    ერთჯერადი • სამუდამო
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 900, color: 'var(--gold)' }}>{KIDS_ACCOUNT_PRICE}₾</span>
+                  <span style={{ fontSize: '0.72rem', padding: '3px 10px', borderRadius: 20, background: 'rgba(34,197,94,0.12)', color: '#22c55e', fontWeight: 700, fontFamily: 'var(--font-georgian)' }}>
+                    ერთჯერადი
                   </span>
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-5">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
               {[
-                { icon: '📚', text: '280+ გაკვეთილი' },
+                { icon: '📚', text: `${TOTAL_LESSONS}+ გაკვეთილი` },
                 { icon: '🧩', text: 'პაზლები' },
-                { icon: '💻', text: 'კოდ რედაქტორი' },
-                { icon: '🏆', text: 'XP სისტემა' },
+                { icon: '💻', text: 'რედაქტირი' },
+                { icon: '🏆', text: 'XP სისტება' },
               ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2 text-xs font-medium rounded-lg px-3 py-2" style={{
-                  background: 'var(--bg-card)',
-                  border: '1px solid var(--border-light)',
-                  color: 'var(--text-secondary)',
-                  fontFamily: 'var(--font-georgian)',
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem',
+                  fontWeight: 600, padding: '8px 10px', borderRadius: 10,
+                  background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.07)',
+                  color: 'var(--text-secondary)', fontFamily: 'var(--font-georgian)',
                 }}>
                   <span>{item.icon}</span> {item.text}
                 </div>
@@ -218,293 +244,162 @@ const ParentDashboard = () => {
             </div>
           </div>
 
-          {/* Create child button */}
-          <div className="mb-8">
+          {/* Create child button / form */}
+          <div style={{ marginBottom: 28 }}>
             {!showCreate ? (
-              <button
-                onClick={() => setShowCreate(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-90"
-                style={{
-                  background: '#7c3aed',
-                  border: 'none',
-                  color: '#fff',
-                  cursor: 'pointer',
-                  fontFamily: 'var(--font-georgian)',
-                }}
-              >
+              <button onClick={() => setShowCreate(true)} style={{
+                display: 'flex', alignItems: 'center', gap: 8, padding: '12px 24px',
+                borderRadius: 12, background: '#7c3aed', border: 'none', color: '#fff',
+                cursor: 'pointer', fontSize: '0.9rem', fontWeight: 700, fontFamily: 'var(--font-georgian)',
+              }}>
                 <Plus size={18} /> ბავშვის ანგარიშის შექმნა
               </button>
             ) : (
-              <div className="rounded-2xl p-6" style={{
-                background: 'var(--bg-card)',
-                border: '1px solid var(--border-light)',
-              }}>
-                <h2 className="font-bold text-base mb-5" style={{ 
-                  color: 'var(--text-primary)', 
-                  fontFamily: 'var(--font-georgian)',
-                  display: 'flex', alignItems: 'center', gap: 8,
-                }}>
-                  <Plus size={18} style={{ color: '#7c3aed' }} />
-                  ახალი ბავშვის ანგარიში
+              <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: 24 }}>
+                <h2 style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-georgian)' }}>
+                  <Plus size={16} style={{ color: '#7c3aed' }} /> ახალი ბავშვის ანგარიში
                 </h2>
-                <div className="grid gap-4">
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                  {[
+                    { label: 'მომხმარებლის სახელი (ლათინური)', value: newUsername, onChange: (v: string) => setNewUsername(v.replace(/[^a-zA-Z0-9_]/g, '')), placeholder: 'magalitad: nini2015', maxLength: 20 },
+                    { label: 'სახელი (ქართული)', value: newDisplayName, onChange: (v: string) => setNewDisplayName(v), placeholder: 'მაგ: ნინი' },
+                  ].map(f => (
+                    <div key={f.label}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-georgian)' }}>{f.label}</label>
+                      <input value={f.value} onChange={e => f.onChange(e.target.value)} placeholder={f.placeholder} maxLength={f.maxLength}
+                        style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'var(--bg-elevated)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }} />
+                    </div>
+                  ))}
                   <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
-                      მომხმარებლის სახელი (ლათინური)
-                    </label>
-                    <input
-                      value={newUsername}
-                      onChange={e => setNewUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))}
-                      placeholder="magalitad: nini2015"
-                      maxLength={20}
-                      className="w-full px-4 py-3 rounded-xl text-sm"
-                      style={{
-                        border: '1px solid var(--border-light)',
-                        background: 'var(--bg-elevated)',
-                        color: 'var(--text-primary)',
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
-                      სახელი (ქართული)
-                    </label>
-                    <input
-                      value={newDisplayName}
-                      onChange={e => setNewDisplayName(e.target.value)}
-                      placeholder="მაგ: ნინი"
-                      className="w-full px-4 py-3 rounded-xl text-sm"
-                      style={{
-                        border: '1px solid var(--border-light)',
-                        background: 'var(--bg-elevated)',
-                        color: 'var(--text-primary)',
-                        outline: 'none',
-                      }}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold mb-1.5" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
-                      პაროლი (მინ. 4 სიმბოლო)
-                    </label>
-                    <input
-                      type="password"
-                      value={newPassword}
-                      onChange={e => setNewPassword(e.target.value)}
-                      placeholder="••••"
-                      className="w-full px-4 py-3 rounded-xl text-sm"
-                      style={{
-                        border: '1px solid var(--border-light)',
-                        background: 'var(--bg-elevated)',
-                        color: 'var(--text-primary)',
-                        outline: 'none',
-                      }}
-                    />
+                    <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: 6, fontFamily: 'var(--font-georgian)' }}>პაროლი (მინ. 4 სიმბოლო)</label>
+                    <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="••••"
+                      style={{ width: '100%', padding: '10px 14px', borderRadius: 10, background: 'var(--bg-elevated)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-primary)', fontSize: '0.88rem', outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 </div>
-
-                <div className="mt-4 p-3 rounded-xl text-xs" style={{
-                  background: 'rgba(255,215,0,0.06)',
-                  border: '1px solid rgba(255,215,0,0.12)',
-                  color: 'var(--text-muted)',
-                  fontFamily: 'var(--font-georgian)',
-                }}>
-                  <div className="flex items-center gap-2 mb-1">
-                    <AlertCircle size={14} style={{ color: 'var(--gold)' }} />
-                    <span className="font-semibold" style={{ color: 'var(--gold)' }}>მნიშვნელოვანი</span>
-                  </div>
-                  ანგარიშის შექმნის შემდეგ საჭიროა გააქტიურება ({KIDS_ACCOUNT_PRICE}₾ ერთჯერადი გადახდა) სრულ კონტენტზე წვდომისთვის.
+                <div style={{ marginTop: 12, padding: '10px 14px', borderRadius: 10, background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.15)', fontSize: '0.78rem', color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)', display: 'flex', gap: 8 }}>
+                  <AlertCircle size={13} style={{ color: 'var(--gold)', flexShrink: 0, marginTop: 1 }} />
+                  ანგარიშის შექმნის შემდეგ საჭიროა გააქტიურება ({KIDS_ACCOUNT_PRICE}₾) სრულ კონტენტზე წვდომისთვის.
                 </div>
-
-                <div className="flex gap-3 mt-5">
-                  <button
-                    onClick={handleCreate}
-                    disabled={creating}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
-                    style={{
-                      background: '#7c3aed',
-                      border: 'none',
-                      color: '#fff',
-                      cursor: creating ? 'wait' : 'pointer',
-                      opacity: creating ? 0.6 : 1,
-                      fontFamily: 'var(--font-georgian)',
-                    }}
-                  >
-                    {creating ? 'იქმნება...' : 'შექმნა'}
-                  </button>
-                  <button
-                    onClick={() => setShowCreate(false)}
-                    className="px-5 py-2.5 rounded-xl text-sm transition-all"
-                    style={{
-                      background: 'transparent',
-                      border: '1px solid var(--border-light)',
-                      color: 'var(--text-muted)',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-georgian)',
-                    }}
-                  >
-                    გაუქმება
-                  </button>
+                <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
+                  <button onClick={handleCreate} disabled={creating} style={{
+                    padding: '10px 22px', borderRadius: 10, background: '#7c3aed', border: 'none',
+                    color: '#fff', fontWeight: 700, cursor: creating ? 'wait' : 'pointer', opacity: creating ? 0.6 : 1, fontSize: '0.88rem', fontFamily: 'var(--font-georgian)',
+                  }}>{creating ? 'იქმნება...' : 'შექმნა'}</button>
+                  <button onClick={() => setShowCreate(false)} style={{
+                    padding: '10px 18px', borderRadius: 10, background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.88rem', fontFamily: 'var(--font-georgian)',
+                  }}>გაუქმება</button>
                 </div>
               </div>
             )}
           </div>
 
           {/* Children list */}
-          <div className="flex items-center gap-2 mb-5">
-            <Users size={20} style={{ color: '#7c3aed' }} />
-            <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)', fontFamily: 'var(--font-georgian)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+            <Users size={18} style={{ color: '#7c3aed' }} />
+            <h2 style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--text-primary)', fontFamily: 'var(--font-georgian)' }}>
               ბავშვების ანგარიშები
             </h2>
-            <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{
-              background: 'rgba(124,58,237,0.1)',
-              color: '#7c3aed',
-            }}>
+            <span style={{ fontSize: '0.72rem', padding: '2px 9px', borderRadius: 20, background: 'rgba(124,58,237,0.12)', color: '#7c3aed', fontWeight: 700 }}>
               {children.length}/20
             </span>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="w-8 h-8 border-3 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#7c3aed', borderTopColor: 'transparent' }} />
-            </div>
+            <div style={{ textAlign: 'center', padding: '48px 0', color: 'rgba(255,255,255,0.3)' }}>იტვირთება...</div>
           ) : children.length === 0 ? (
-            <div className="rounded-2xl p-12 text-center" style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border-light)',
-            }}>
-              <span className="text-5xl block mb-4">👶</span>
-              <p className="text-sm font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
-                ჯერ ბავშვის ანგარიში არ შეგიქმნიათ
-              </p>
-              <p className="text-xs mt-2" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-georgian)' }}>
-                დააჭირეთ ზემოთ "ბავშვის ანგარიშის შექმნა" ღილაკს
-              </p>
+            <div style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 16, padding: '48px 24px', textAlign: 'center' }}>
+              <span style={{ fontSize: '3rem', display: 'block', marginBottom: 12 }}>👶</span>
+              <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>ჯერ ბავშვის ანგარიში არ შეგიქმნიათ</p>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
               {children.map(child => {
                 const sub = getChildSub(child.child_id);
                 const isActive = sub && new Date(sub.expires_at) > new Date();
+                const xp = child.xp || 0;
+                const lessonsCompleted = child.lessons_completed || 0;
+                const progressPct = Math.round((lessonsCompleted / TOTAL_LESSONS) * 100);
+                const initial = (child.child_display_name || child.child_username || 'U')[0].toUpperCase();
+
                 return (
-                  <div key={child.id} className="rounded-2xl p-5" style={{
-                    background: 'var(--bg-card)',
-                    border: `1px solid ${isActive ? 'rgba(34,197,94,0.2)' : 'var(--border-light)'}`,
+                  <div key={child.id} style={{
+                    background: 'var(--bg-card)', border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 16, padding: '18px 20px',
                   }}>
-                    <div className="flex items-center justify-between gap-4 flex-wrap">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-lg" style={{
-                          background: isActive ? 'rgba(34,197,94,0.1)' : 'rgba(124,58,237,0.1)',
-                        }}>
-                          {isActive ? '✅' : '👤'}
-                        </div>
-                        <div>
-                          <div className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-                            {child.child_display_name}
-                          </div>
-                          <div className="text-xs" style={{ color: 'var(--text-dim)' }}>
-                            @{child.child_username}
-                          </div>
-                        </div>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14 }}>
+                      {/* Avatar */}
+                      <div style={{
+                        width: 44, height: 44, borderRadius: 14, flexShrink: 0,
+                        background: 'linear-gradient(135deg, #7c3aed, #a78bfa)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '1.1rem', fontWeight: 900, color: '#fff',
+                      }}>
+                        {initial}
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        {isActive ? (
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg" style={{
-                              background: 'rgba(34,197,94,0.1)',
-                              color: '#22c55e',
-                            }}>
-                              <CheckCircle size={14} />
-                              აქტიური · {daysRemaining(sub!.expires_at)} დღე
-                            </span>
-                            <span className="text-[10px]" style={{ color: 'var(--text-dim)' }}>
-                              <Clock size={10} className="inline mr-1" />
-                              {formatExpiryDate(sub!.expires_at)}
-                            </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+                          <div>
+                            <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>{child.child_display_name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>@{child.child_username}</div>
                           </div>
-                        ) : (
-                          <button
-                            onClick={() => handleActivate(child.child_id)}
-                            className="flex items-center gap-1.5 text-xs font-bold px-4 py-2 rounded-lg transition-all hover:opacity-90"
-                            style={{
-                              background: 'var(--gold)',
-                              border: 'none',
-                              color: '#fff',
-                              cursor: 'pointer',
-                              fontFamily: 'var(--font-georgian)',
-                            }}
-                          >
-                            <CreditCard size={14} />
-                            გააქტიურება ({KIDS_ACCOUNT_PRICE}₾)
+                          <button onClick={() => handleDelete(child.child_id, child.child_username)} style={{
+                            background: 'rgba(244,63,94,0.08)', border: 'none', color: '#f43f5e',
+                            cursor: 'pointer', padding: '6px', borderRadius: 8,
+                          }}>
+                            <Trash2 size={14} />
                           </button>
+                        </div>
+
+                        {/* Badges */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 10 }}>
+                          <span style={{ fontSize: '0.7rem', padding: '3px 9px', borderRadius: 7, background: 'rgba(124,58,237,0.12)', color: '#a78bfa', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Star size={11} /> {getLevelLabel(xp)}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', padding: '3px 9px', borderRadius: 7, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <Zap size={11} /> {xp} XP
+                          </span>
+                          {isActive ? (
+                            <span style={{ fontSize: '0.7rem', padding: '3px 9px', borderRadius: 7, background: 'rgba(34,197,94,0.1)', color: '#22c55e', fontWeight: 700, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <CheckCircle size={11} /> აქტიური
+                            </span>
+                          ) : (
+                            <button onClick={() => handleActivate(child.child_id)} style={{
+                              fontSize: '0.7rem', padding: '3px 11px', borderRadius: 7,
+                              background: 'var(--gold)', border: 'none', color: '#fff',
+                              fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4,
+                            }}>
+                              <CreditCard size={11} /> გААქტიურება ({KIDS_ACCOUNT_PRICE}₾)
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Progress */}
+                        <div style={{ marginBottom: 6 }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.72rem', color: 'var(--text-dim)', marginBottom: 4 }}>
+                            <span>{lessonsCompleted}/{TOTAL_LESSONS} გაკვეთილი</span>
+                            <span>{progressPct}%</span>
+                          </div>
+                          <div style={{ height: 5, borderRadius: 4, background: 'rgba(255,255,255,0.07)', overflow: 'hidden' }}>
+                            <div style={{ height: '100%', width: `${progressPct}%`, background: 'linear-gradient(90deg, #7c3aed, #a78bfa)', borderRadius: 4, minWidth: progressPct > 0 ? 4 : 0 }} />
+                          </div>
+                        </div>
+
+                        {/* Date info */}
+                        {isActive && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-dim)', fontFamily: 'var(--font-georgian)' }}>
+                            <span>{formatExpiryDate(sub!.expires_at)}</span>
+                            <span>{daysRemaining(sub!.expires_at)} დღე დარჩა</span>
+                          </div>
                         )}
-                        <button
-                          onClick={() => handleDelete(child.child_id, child.child_username)}
-                          className="p-2 rounded-lg transition-all hover:opacity-80"
-                          style={{
-                            background: 'rgba(244,63,94,0.08)',
-                            border: 'none',
-                            color: '#f43f5e',
-                            cursor: 'pointer',
-                          }}
-                          title="ანგარიშის წაშლა"
-                        >
-                          <Trash2 size={14} />
-                        </button>
                       </div>
                     </div>
-
-                    {!isActive && (
-                      <div className="mt-3 pt-3 text-xs flex items-center gap-2" style={{
-                        borderTop: '1px solid var(--border-light)',
-                        color: 'var(--text-dim)',
-                        fontFamily: 'var(--font-georgian)',
-                      }}>
-                        <AlertCircle size={12} />
-                        ანგარიში შექმნილია, მაგრამ კონტენტზე წვდომისთვის საჭიროა გააქტიურება
-                      </div>
-                    )}
                   </div>
                 );
               })}
             </div>
           )}
-
-          {/* How it works */}
-          <div className="mt-10 rounded-2xl p-6" style={{
-            background: 'var(--bg-card)',
-            border: '1px solid var(--border-light)',
-          }}>
-            <h3 className="font-bold text-sm mb-4" style={{ 
-              color: 'var(--text-primary)', 
-              fontFamily: 'var(--font-georgian)',
-              display: 'flex', alignItems: 'center', gap: 8,
-            }}>
-              <Sparkles size={16} style={{ color: 'var(--gold)' }} />
-              როგორ მუშაობს?
-            </h3>
-            <div className="grid gap-3">
-              {[
-                { step: '1', text: 'შექმენით ბავშვის ანგარიში (სახელი + პაროლი)' },
-                { step: '2', text: `გაააქტიურეთ ერთჯერადი ${KIDS_ACCOUNT_PRICE}₾ გადახდით` },
-                { step: '3', text: 'ბავშვი შედის Kids Login-ის გვერდიდან' },
-                { step: '4', text: 'სწავლობს HTML/CSS-ს 280+ ინტერაქტიული გაკვეთილით' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold shrink-0" style={{
-                    background: 'rgba(124,58,237,0.1)',
-                    color: '#7c3aed',
-                  }}>
-                    {item.step}
-                  </div>
-                  <span className="text-xs" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-georgian)' }}>
-                    {item.text}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       </main>
     </>

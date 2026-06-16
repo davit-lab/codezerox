@@ -1,4 +1,4 @@
-export type LessonType = 'puzzle' | 'editor' | 'challenge';
+export type LessonType = 'puzzle' | 'editor' | 'challenge' | 'quiz' | 'fillblanks' | 'memory';
 export type DifficultyLevel = 'easy' | 'medium' | 'hard';
 
 export interface PuzzlePiece {
@@ -11,6 +11,20 @@ export interface EditorStep {
   instruction: string;
   expectedCode: string;
   hint: string;
+}
+
+export interface QuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface FillBlank {
+  instruction: string;
+  template: string;  // e.g. "<__1__>Hello</__1__>"
+  blanks: { id: string; answer: string; hints: string[] }[];
+  xpReward: number;
 }
 
 export interface KidsLesson {
@@ -35,6 +49,8 @@ export interface KidsLesson {
   starterCss?: string;
   challengeHtml?: string;
   hints?: string[];
+  quizQuestions?: QuizQuestion[];
+  fillBlanks?: FillBlank[];
 }
 
 export const kidsLessons: KidsLesson[] = [
@@ -2137,6 +2153,112 @@ export const kidsLessons: KidsLesson[] = [
   {"id": "editor-294", "title": "CSS gap shorthand", "description": "gap row-gap column-gap.", "type": "editor", "difficulty": "easy", "emoji": "↔", "color": "#f59e0b", "xpReward": 10, "module": "Grid Shortcuts", "moduleNumber": 77, "theory": "↔ gap\n\n`gap: 16px;` — ყველა მხარეს\n`gap: 16px 24px;` — row column\n`row-gap: 16px;`\n`column-gap: 24px;`", "steps": [{"instruction": "gap shorthand", "hint": "gap: 16px 24px", "expectedCode": "<style>body{background:#0d0d14;padding:20px;}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px 24px;}.item{background:#1a1a2e;padding:20px;border-radius:8px;color:white;text-align:center;}</style>\n<div class=\"grid\"><div class=\"item\">1</div><div class=\"item\">2</div><div class=\"item\">3</div><div class=\"item\">4</div><div class=\"item\">5</div><div class=\"item\">6</div></div>"}]},
   {"id": "editor-295", "title": "CSS inset shorthand", "description": "inset = top right bottom left.", "type": "editor", "difficulty": "easy", "emoji": "📐", "color": "#8b5cf6", "xpReward": 10, "module": "CSS Shortcuts", "moduleNumber": 78, "theory": "📐 inset\n\n`inset: 0;` = top:0; right:0; bottom:0; left:0;\n`inset: 10px 20px;` = top/bottom left/right\n\nposition: absolute/fixed-თან.", "steps": [{"instruction": "inset shorthand", "hint": "inset: 0", "expectedCode": "<style>.parent{position:relative;width:300px;height:200px;background:#1a1a2e;border-radius:12px;}.overlay{position:absolute;inset:0;background:rgba(124,58,237,0.3);border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;}</style>\n<div class=\"parent\"><div class=\"overlay\">inset: 0</div></div>"}]},
   {"id": "editor-296", "title": "CSS text-wrap: balance", "description": "ტექსტის ბალანსირება.", "type": "editor", "difficulty": "easy", "emoji": "⚖", "color": "#6366f1", "xpReward": 10, "module": "CSS Text", "moduleNumber": 79, "theory": "⚖ text-wrap: balance\n\nსათაურის ხაზებს თანაბრად ანაწილებს.\n\n`text-wrap: balance;`\n\nსათაურებისთვის იდეალური.", "steps": [{"instruction": "text-wrap: balance", "hint": "text-wrap: balance", "expectedCode": "<style>body{background:#0d0d14;padding:40px;}h1{color:white;max-width:400px;text-wrap:balance;font-family:sans-serif;line-height:1.3;}p{color:#94a3b8;max-width:400px;}</style>\n<h1>ეს არის გრძელი სათაური რომელიც ბალანსირებულად ნაწილდება ხაზებზე</h1>\n<p>text-wrap: balance ტექსტს თანაბრად ანაწილებს.</p>"}]},
+
+  // === QUIZ LESSONS ===
+  {"id": "quiz-html-1", "title": "HTML სტრუქტურის ქვიზი", "description": "შეამოწმე შენი ცოდნა HTML სტრუქტურის შესახებ.", "type": "quiz", "difficulty": "easy", "emoji": "🧠", "color": "#38bdf8", "xpReward": 15, "module": "რა არის ვებ-გვერდი?", "moduleNumber": 1, "theory": "🧠 HTML სტრუქტურა\n\nHTML დოკუმენტი შედგება სამი მთავარი ნაწილისგან:\n• <html> — მთელი დოკუმენტის კონტეინერი\n• <head> — ინფორმაცია ბრაუზერისთვის\n• <body> — ყველაფერი რაც ეკრანზე ჩანს", "quizQuestions": [
+    {"question": "რომელი თეგი არის HTML დოკუმენტის ყველაზე გარე კონტეინერი?", "options": ["<html>", "<head>", "<body>", "<div>"], "correctIndex": 0, "explanation": "<html> თეგი ფარავს მთელ დოკუმენტს და ყველა სხვა თეგი მის შიგნითაა."},
+    {"question": "სად იწერება გვერდის სათაური, რომელიც ბრაუზერის ჩანართზე ჩანს?", "options": ["<body>-ში", "<head>-ში", "<html>-ში", "<footer>-ში"], "correctIndex": 1, "explanation": "<title> თეგი ყოველთვის <head> სექციაში იწერება."},
+    {"question": "რომელი თეგი შეიცავს ყველაფერს რასაც მომხმარებელი ეკრანზე ხედავს?", "options": ["<head>", "<meta>", "<body>", "<script>"], "correctIndex": 2, "explanation": "<body> თეგის შიგნითაა ტექსტი, სურათები, ღილაკები და სხვა ვიზუალური ელემენტები."}
+  ]},
+  {"id": "quiz-html-2", "title": "სათაურების ქვიზი", "description": "შეამოწმე შენი ცოდნა HTML სათაურების შესახებ.", "type": "quiz", "difficulty": "easy", "emoji": "📋", "color": "#38bdf8", "xpReward": 15, "module": "სათაურები და ტექსტი", "moduleNumber": 2, "theory": "📋 სათაურები\n\nHTML-ში 6 სათაური არსებობს: <h1> - <h6>\n\n• <h1> — ყველაზე დიდი, მთავარი სათაური\n• <h6> — ყველაზე პატარა\n\nთითო გვერდზე მხოლოდ ერთი <h1> უნდა იყოს!", "quizQuestions": [
+    {"question": "რამდენი სათაურის თეგი არსებობს HTML-ში?", "options": ["3", "5", "6", "10"], "correctIndex": 2, "explanation": "HTML-ში 6 სათაურის თეგია: h1, h2, h3, h4, h5, h6."},
+    {"question": "რომელია ყველაზე დიდი სათაური?", "options": ["<h6>", "<h3>", "<h1>", "<h2>"], "correctIndex": 2, "explanation": "<h1> არის ყველაზე დიდი და მნიშვნელოვანი სათაური."},
+    {"question": "თითო გვერდზე რამდენი <h1> უნდა იყოს?", "options": ["რამდენიც გინდა", "1", "2", "3"], "correctIndex": 1, "explanation": "SEO-სა და წვდომადობისთვის თითო გვერდზე ერთი <h1> საუკეთესო პრაქტიკაა."}
+  ]},
+  {"id": "quiz-css-1", "title": "ფერების ქვიზი", "description": "შეამოწმე შენი ცოდნა CSS ფერების შესახებ.", "type": "quiz", "difficulty": "easy", "emoji": "🎨", "color": "#38bdf8", "xpReward": 15, "module": "ფერები", "moduleNumber": 6, "theory": "🎨 CSS ფერები\n\n• color — ტექსტის ფერი\n• background-color — ფონის ფერი\n\nფერის მითითება შესაძლებელია:\n• სახელით: red, blue, green\n• hex-ით: #7c3aed\n• rgb-ით: rgb(124, 58, 237)", "quizQuestions": [
+    {"question": "რომელი თვისება ცვლის ტექსტის ფერს?", "options": ["background-color", "color", "font-color", "text-color"], "correctIndex": 1, "explanation": "color თვისება ცვლის ტექსტის ფერს."},
+    {"question": "როგორ ვუთითებთ ფერის hex ფორმატში?", "options": ["red", "#7c3aed", "rgb(255,0,0)", "hsl(0,100%,50%)"], "correctIndex": 1, "explanation": "Hex ფორმატი იწყება # სიმბოლოთ და შეიცავს 6 ციფრს/ასოს."},
+    {"question": "რომელი თვისება ცვლის ელემენტის ფონს?", "options": ["color", "background-color", "border-color", "fill"], "correctIndex": 1, "explanation": "background-color თვისება ცვლის ელემენტის ფონის ფერს."}
+  ]},
+  {"id": "quiz-css-2", "title": "სელექტორების ქვიზი", "description": "შეამოწმე შენი ცოდნა CSS სელექტორების შესახებ.", "type": "quiz", "difficulty": "medium", "emoji": "🎯", "color": "#38bdf8", "xpReward": 20, "module": "CSS-ის შესავალი", "moduleNumber": 7, "theory": "🎯 CSS სელექტორები\n\n• ელემენტის სელექტორი: p { }\n• კლასის სელექტორი: .name { }\n• ID სელექტორი: #name { }\n• ფსევდო-კლასი: :hover, :nth-child()\n• ფსევდო-ელემენტი: ::before, ::after", "quizQuestions": [
+    {"question": "როგორ ვუთითებთ კლასის სელექტორს?", "options": ["p { }", ".menu { }", "#menu { }", "menu { }"], "correctIndex": 1, "explanation": "კლასის სელექტორი იწყება წერტილით (.) — მაგალითად .menu"},
+    {"question": "როგორ ვუთითებთ ID სელექტორს?", "options": [".name { }", "#name { }", "name { }", "*name { }"], "correctIndex": 1, "explanation": "ID სელექტორი იწყება დიეზით (#) — მაგალითად #name"},
+    {"question": "რომელი სელექტორი ეხება ყველა ელემენტს გვერდზე?", "options": ["all { }", "* { }", "body { }", "html { }"], "correctIndex": 1, "explanation": "* სელექტორი ეხება ყველა HTML ელემენტს გვერდზე."}
+  ]},
+
+  // === FILL-IN-THE-BLANKS LESSONS ===
+  {"id": "fill-html-1", "title": "HTML თეგების დასრულება", "description": "ჩააწერე დაკარგული HTML თეგები.", "type": "fillblanks", "difficulty": "easy", "emoji": "✏️", "color": "#fb7185", "xpReward": 15, "module": "რა არის ვებ-გვერდი?", "moduleNumber": 1, "theory": "✏️ HTML თეგები\n\nHTML თეგები იწყება < ნიშნით და მთავრდება > ნიშნით.\n\nმაგალითები:\n• <html> — დასაწყისი\n• </html> — დასასრული\n• <body> — სხეული\n• </body> — სხეულის დასასრული", "fillBlanks": [
+    {"instruction": "დასრულე HTML დოკუმენტის სტრუქტურა.", "template": "<__1__>\n  <__2__>\n    <title>ჩემი გვერდი</title>\n  </__2__>\n  <__3__>\n    <h1>სალამი!</h1>\n  </__3__>\n</__1__>", "blanks": [
+      {"id": "1", "answer": "html", "hints": ["ეს არის დოკუმენტის ყველაზე გარე თეგი", "იწყება h-ით და მთავრდება l-ით"]},
+      {"id": "2", "answer": "head", "hints": ["აქ იწერება სათაური და სტილები", "იწყება h-ით და მთავრდება d-ით"]},
+      {"id": "3", "answer": "body", "hints": ["აქ ჩანს ყველაფერი რასაც მომხმარებელი ხედავს", "იწყება b-ით და მთავრდება y-ით"]}
+    ], "xpReward": 10},
+    {"instruction": "დასრულე სათაურების თეგები.", "template": "<__1__>პირველი სათაური</__1__>\n<__2__>მეორე სათაური</__2__>\n<__3__>პარაგრაფი</__3__>", "blanks": [
+      {"id": "1", "answer": "h1", "hints": ["ყველაზე დიდი სათაური", "h1"]},
+      {"id": "2", "answer": "h2", "hints": ["მეორე დონის სათაური", "h2"]},
+      {"id": "3", "answer": "p", "hints": ["პარაგრაფის თეგი", "p"]}
+    ], "xpReward": 10}
+  ]},
+  {"id": "fill-css-1", "title": "CSS თვისებების დასრულება", "description": "ჩააწერე დაკარგული CSS თვისებები.", "type": "fillblanks", "difficulty": "easy", "emoji": "🖌️", "color": "#fb7185", "xpReward": 15, "module": "CSS-ის შესავალი", "moduleNumber": 7, "theory": "🖌️ CSS თვისებები\n\n• color: red; — ტექსტის ფერი\n• background-color: blue; — ფონის ფერი\n• font-size: 16px; — ტექსტის ზომა\n• text-align: center; — ტექსტის განლაგება", "fillBlanks": [
+    {"instruction": "დასრულე CSS სტილები.", "template": "p {\n  __1__: blue;\n  __2__: 20px;\n  __3__: center;\n}", "blanks": [
+      {"id": "1", "answer": "color", "hints": ["ეს თვისება ცვლის ტექსტის ფერს", "color"]},
+      {"id": "2", "answer": "font-size", "hints": ["ეს თვისება ცვლის ტექსტის ზომას", "font-size"]},
+      {"id": "3", "answer": "text-align", "hints": ["ეს თვისება ცვლის ტექსტის განლაგებას", "text-align"]}
+    ], "xpReward": 10},
+    {"instruction": "დასრულე კლასის სელექტორი.", "template": ".__1__ {\n  __2__: red;\n  __3__: yellow;\n}", "blanks": [
+      {"id": "1", "answer": "highlight", "hints": ["კლასის სახელი", "highlight"]},
+      {"id": "2", "answer": "color", "hints": ["ტექსტის ფერი", "color"]},
+      {"id": "3", "answer": "background-color", "hints": ["ფონის ფერი", "background-color"]}
+    ], "xpReward": 10}
+  ]},
+  {"id": "fill-links-1", "title": "ბმულების თეგები", "description": "დასრულე ბმულების HTML თეგები.", "type": "fillblanks", "difficulty": "medium", "emoji": "🔗", "color": "#fb7185", "xpReward": 20, "module": "სიები და ბმულები", "moduleNumber": 3, "theory": "🔗 ბმულები\n\nბმული იქმნება <a> თეგით:\n\n<a href='https://example.com'>ტექსტი</a>\n\nhref ატრიბუტში იწერება მისამართი.", "fillBlanks": [
+    {"instruction": "დასრულე ბმულის თეგი.", "template": "<__1__ __2__='https://google.com'>Google-ზე გადასვლა</__1__>", "blanks": [
+      {"id": "1", "answer": "a", "hints": ["ბმულის თეგი", "a"]},
+      {"id": "2", "answer": "href", "hints": ["ბმულის მისამართი", "href"]}
+    ], "xpReward": 10},
+    {"instruction": "დასრულე სურათის თეგი.", "template": "<__1__ __2__='photo.jpg' __3__='ჩემი სურათი'>", "blanks": [
+      {"id": "1", "answer": "img", "hints": ["სურათის თეგი", "img"]},
+      {"id": "2", "answer": "src", "hints": ["სურათის მისამართი", "src"]},
+      {"id": "3", "answer": "alt", "hints": ["ალტერნატიული ტექსტი", "alt"]}
+    ], "xpReward": 10}
+  ]},
+
+  // === MEMORY GAME LESSONS ===
+  {"id": "memory-html-1", "title": "HTML თეგები — შეაწყვილე", "description": "შეაწყვილე HTML თეგები მათი აღწერებით.", "type": "memory", "difficulty": "easy", "emoji": "🧠", "color": "#ec4899", "xpReward": 15, "module": "რა არის ვებ-გვერდი?", "moduleNumber": 1, "theory": "🧠 HTML თეგები\n\nშეაწყვილე თეგები მათი აღწერებით!", "puzzlePieces": [
+    {"id": "pair-html", "content": "<html>", "order": 1},
+    {"id": "pair-head", "content": "<head>", "order": 2},
+    {"id": "pair-body", "content": "<body>", "order": 3},
+    {"id": "pair-title", "content": "<title>", "order": 4},
+    {"id": "pair-h1", "content": "<h1>", "order": 5},
+    {"id": "pair-p", "content": "<p>", "order": 6}
+  ], "correctOrder": [
+    "დოკუმენტის ყველაზე გარე თეგი",
+    "ბრაუზერისთვის ინფორმაცია",
+    "ყველაფერი რაც ეკრანზე ჩანს",
+    "გვერდის სათაური",
+    "ყველაზე დიდი სათაური",
+    "პარაგრაფი"
+  ]},
+  {"id": "memory-css-1", "title": "CSS თვისებები — შეაწყვილე", "description": "შეაწყვილე CSS თვისებები მათი მნიშვნელობებით.", "type": "memory", "difficulty": "easy", "emoji": "🎨", "color": "#ec4899", "xpReward": 15, "module": "CSS-ის შესავალი", "moduleNumber": 7, "theory": "🎨 CSS თვისებები\n\nშეაწყვილე თვისებები მათი აღწერებით!", "puzzlePieces": [
+    {"id": "pair-color", "content": "color", "order": 1},
+    {"id": "pair-bg", "content": "background-color", "order": 2},
+    {"id": "pair-font", "content": "font-size", "order": 3},
+    {"id": "pair-align", "content": "text-align", "order": 4},
+    {"id": "pair-margin", "content": "margin", "order": 5},
+    {"id": "pair-padding", "content": "padding", "order": 6}
+  ], "correctOrder": [
+    "ტექსტის ფერი",
+    "ფონის ფერი",
+    "ტექსტის ზომა",
+    "ტექსტის განლაგება",
+    "გარე დაშორება",
+    "შიდა დაშორება"
+  ]},
+  {"id": "memory-flex-1", "title": "Flexbox ცნებები — შეაწყვილე", "description": "შეაწყვილე Flexbox ცნებები მათი აღწერებით.", "type": "memory", "difficulty": "medium", "emoji": "📦", "color": "#ec4899", "xpReward": 20, "module": "Flexbox და Grid", "moduleNumber": 12, "theory": "📦 Flexbox\n\nშეაწყვილე Flexbox ცნებები მათი აღწერებით!", "puzzlePieces": [
+    {"id": "pair-flex", "content": "display: flex", "order": 1},
+    {"id": "pair-row", "content": "flex-direction: row", "order": 2},
+    {"id": "pair-column", "content": "flex-direction: column", "order": 3},
+    {"id": "pair-center", "content": "justify-content: center", "order": 4},
+    {"id": "pair-between", "content": "justify-content: space-between", "order": 5},
+    {"id": "pair-align", "content": "align-items: center", "order": 6}
+  ], "correctOrder": [
+    "Flex კონტეინერი",
+    "ჰორიზონტალური მიმართულება",
+    "ვერტიკალური მიმართულება",
+    "ცენტრში განლაგება",
+    "გვერდებზე განაწილება",
+    "ცენტრში ალინება"
+  ]},
 
 ];
 

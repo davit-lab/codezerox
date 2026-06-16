@@ -91,6 +91,9 @@ import Kids from "./pages/Kids";
 import KidsPuzzle from "./pages/KidsPuzzle";
 import KidsEditor from "./pages/KidsEditor";
 import KidsChallenge from "./pages/KidsChallenge";
+import KidsQuiz from "./components/kids/KidsQuiz";
+import KidsFillBlanks from "./components/kids/KidsFillBlanks";
+import KidsMemory from "./components/kids/KidsMemory";
 import KidsLogin from "./pages/KidsLogin";
 import ParentDashboard from "./pages/ParentDashboard";
 import NotFound from "./pages/NotFound";
@@ -102,6 +105,9 @@ import CyberLabCategory from "./pages/CyberLabCategory";
 import CyberLabChallenge from "./pages/CyberLabChallenge";
 import CyberLabLeaderboard from "./pages/CyberLabLeaderboard";
 import AdminCyberLab from "./pages/AdminCyberLab";
+import EthicalHackingLab from "./pages/EthicalHackingLab";
+import EthicalHackingLessonDetail from "./pages/EthicalHackingLessonDetail";
+import AdminHackLab from "./pages/AdminHackLab";
 
 const queryClient = new QueryClient();
 
@@ -205,6 +211,9 @@ const App = () => {
             <Route path="/kids/puzzle/:id" element={<KidsPuzzle />} />
             <Route path="/kids/editor/:id" element={<KidsEditor />} />
             <Route path="/kids/challenge/:id" element={<KidsChallenge />} />
+            <Route path="/kids/quiz/:id" element={<KidsQuiz />} />
+            <Route path="/kids/fillblanks/:id" element={<KidsFillBlanks />} />
+            <Route path="/kids/memory/:id" element={<KidsMemory />} />
             <Route path="/parent" element={<ParentDashboard />} />
             <Route path="/admin/pricing" element={<AdminPricing />} />
             <Route path="/admin/credits" element={<AdminCredits />} />
@@ -215,6 +224,9 @@ const App = () => {
             <Route path="/cyber-lab/:categorySlug" element={<CyberLabCategory />} />
             <Route path="/cyber-lab/challenge/:slug" element={<CyberLabChallenge />} />
             <Route path="/admin/cyber-lab" element={<AdminCyberLab />} />
+            <Route path="/hack-lab" element={<EthicalHackingLab />} />
+            <Route path="/hack-lab/lesson/:id" element={<EthicalHackingLessonDetail />} />
+            <Route path="/admin/hack-lab" element={<AdminHackLab />} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

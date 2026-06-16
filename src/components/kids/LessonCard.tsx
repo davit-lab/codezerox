@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Check, Puzzle, Code, Eye, Lock, Zap } from "lucide-react";
+import { Check, Puzzle, Code, Eye, Lock, Zap, HelpCircle, PenTool, Brain } from "lucide-react";
 import type { KidsLesson } from "@/data/kidsLessons";
 
 interface LessonCardProps {
@@ -13,6 +13,9 @@ const typeConfig: Record<string, { label: string; bg: string; text: string; icon
   puzzle: { label: 'პაზლი', bg: 'bg-violet-500', text: 'text-violet-400', icon: Puzzle },
   editor: { label: 'რედაქტორი', bg: 'bg-emerald-500', text: 'text-emerald-400', icon: Code },
   challenge: { label: 'გამოწვევა', bg: 'bg-amber-500', text: 'text-amber-400', icon: Eye },
+  quiz: { label: 'ქვიზი', bg: 'bg-sky-500', text: 'text-sky-400', icon: HelpCircle },
+  fillblanks: { label: 'ჩასაწერი', bg: 'bg-rose-500', text: 'text-rose-400', icon: PenTool },
+  memory: { label: 'მეხსიერება', bg: 'bg-pink-500', text: 'text-pink-400', icon: Brain },
 };
 
 const difficultyConfig: Record<string, { label: string; bg: string; text: string }> = {
@@ -26,7 +29,13 @@ const LessonCard = ({ lesson, completed, locked = false }: LessonCardProps) => {
     ? `/kids/puzzle/${lesson.id}`
     : lesson.type === 'editor'
     ? `/kids/editor/${lesson.id}`
-    : `/kids/challenge/${lesson.id}`;
+    : lesson.type === 'challenge'
+    ? `/kids/challenge/${lesson.id}`
+    : lesson.type === 'quiz'
+    ? `/kids/quiz/${lesson.id}`
+    : lesson.type === 'fillblanks'
+    ? `/kids/fillblanks/${lesson.id}`
+    : `/kids/memory/${lesson.id}`;
 
   const config = typeConfig[lesson.type] || typeConfig.editor;
   const difficulty = difficultyConfig[lesson.difficulty] || difficultyConfig.easy;

@@ -4,13 +4,17 @@ import { useAuth } from "@/hooks/useAuth";
 import LessonCard from "@/components/kids/LessonCard";
 import { kidsLessons, type LessonType, getKidsLevel, getModules } from "@/data/kidsLessons";
 import { useKidsProgress, useKidsSubscription } from "@/hooks/useKidsProgress";
-import { Puzzle, Code, Eye, Trophy, Zap, BookOpen, LogOut, GraduationCap, Search, X, Star, Lock, ShieldCheck } from "lucide-react";
+import { useKidsBadges } from "@/hooks/useKidsBadges";
+import { Puzzle, Code, Eye, Trophy, Zap, BookOpen, LogOut, GraduationCap, Search, X, Star, Lock, ShieldCheck, HelpCircle, PenTool, Brain, Award } from "lucide-react";
 
 const typeFilters: { key: LessonType | 'all'; label: string; icon: any; color: string }[] = [
   { key: 'all', label: 'ყველა', icon: BookOpen, color: '#7c3aed' },
   { key: 'puzzle', label: 'პაზლები', icon: Puzzle, color: '#a78bfa' },
   { key: 'editor', label: 'რედაქტორი', icon: Code, color: '#34d399' },
   { key: 'challenge', label: 'გამოწვევები', icon: Eye, color: '#f59e0b' },
+  { key: 'quiz', label: 'ქვიზები', icon: HelpCircle, color: '#38bdf8' },
+  { key: 'fillblanks', label: 'ჩასაწერი', icon: PenTool, color: '#fb7185' },
+  { key: 'memory', label: 'მეხსიერება', icon: Brain, color: '#ec4899' },
 ];
 
 const Kids = () => {
@@ -36,6 +40,7 @@ const Kids = () => {
   const xp = progressData.reduce((sum, p) => sum + (p.xp_earned || 0), 0);
   const level = getKidsLevel(xp);
   const modules = getModules();
+  const { earned: badges } = useKidsBadges(completed, xp);
 
 
   const filtered = useMemo(() => {
@@ -62,6 +67,9 @@ const Kids = () => {
   const puzzleCount = kidsLessons.filter(l => l.type === 'puzzle').length;
   const editorCount = kidsLessons.filter(l => l.type === 'editor').length;
   const challengeCount = kidsLessons.filter(l => l.type === 'challenge').length;
+  const quizCount = kidsLessons.filter(l => l.type === 'quiz').length;
+  const fillblanksCount = kidsLessons.filter(l => l.type === 'fillblanks').length;
+  const memoryCount = kidsLessons.filter(l => l.type === 'memory').length;
 
   return (
     <main className="min-h-screen bg-[#0c0a09]">
@@ -112,6 +120,9 @@ const Kids = () => {
                     { icon: Puzzle, count: puzzleCount, label: 'პაზლი', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
                     { icon: Code, count: editorCount, label: 'რედაქტორი', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
                     { icon: Eye, count: challengeCount, label: 'გამოწვევა', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
+                    { icon: HelpCircle, count: quizCount, label: 'ქვიზი', color: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/20' },
+                    { icon: PenTool, count: fillblanksCount, label: 'ჩასაწერი', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+                    { icon: Brain, count: memoryCount, label: 'მეხსიერება', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
                   ].map((stat, i) => (
                     <div key={i} className={`flex items-center gap-1.5 text-[0.7rem] font-semibold px-2.5 py-1 rounded-md ${stat.bg} ${stat.border} border ${stat.color}`}>
                       <stat.icon size={11} />
@@ -139,6 +150,35 @@ const Kids = () => {
             </div>
           </div>
         </div>
+
+        {/* Badges */}
+        {badges.length > 0 && (
+          <div className="px-5 pt-3">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Award size={13} className="text-amber-400" />
+                <span className="text-[0.7rem] font-bold text-stone-400 shrink-0">მედლები:</span>
+              </div>
+              {badges.slice(0, 6).map(badge => (
+                <div key={badge.id}
+                  className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.68rem] font-bold"
+                  style={{
+                    background: `${badge.color}15`,
+                    border: `1px solid ${badge.color}30`,
+                    color: badge.color,
+                  }}
+                  title={badge.description}
+                >
+                  <span>{badge.emoji}</span>
+                  {badge.name}
+                </div>
+              ))}
+              {badges.length > 6 && (
+                <span className="text-[0.65rem] text-stone-500 shrink-0">+{badges.length - 6}</span>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Search + Filters */}
         <div className="px-5 pt-4">
