@@ -4,6 +4,7 @@ import KidsHeader from "@/components/kids/KidsHeader";
 import TheoryRenderer from "@/components/kids/TheoryRenderer";
 import { getLesson, markLessonComplete, getKidsLevel } from "@/data/kidsLessons";
 import { useKidsProgress, useMarkLessonComplete, useKidsSubscription } from "@/hooks/useKidsProgress";
+import { usePartialProgress } from "@/hooks/usePartialProgress";
 import { ArrowRight, CheckCircle, Zap, RotateCcw, Lightbulb, ChevronRight, ChevronLeft } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -26,6 +27,7 @@ const KidsFillBlanks = () => {
   const { data: subscription, isLoading: subLoading } = useKidsSubscription();
   const xp = progressData.reduce((sum, p) => sum + (p.xp_earned || 0), 0);
   const markComplete = useMarkLessonComplete();
+  const { updateProgress, clearProgress } = usePartialProgress();
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/kids/login', { replace: true });
@@ -104,6 +106,10 @@ const KidsFillBlanks = () => {
     setChecked(true);
     setIsCorrect(allRight);
     if (allRight) {
+      const tasksDone = currentTask + 1;
+      if (lesson?.id) {
+        updateProgress(lesson.id, tasksDone, tasks.length);
+      }
       setTimeout(() => {
         if (isLastTask) {
           finishLesson();
@@ -121,6 +127,7 @@ const KidsFillBlanks = () => {
   const finishLesson = () => {
     setCompleted(true);
     setShowConfetti(true);
+    if (lesson?.id) clearProgress(lesson.id);
     const alreadyDone = progressData.some(p => p.lesson_id === lesson.id);
     if (!alreadyDone) {
       markComplete.mutate({ lessonId: lesson.id, xpReward: lesson.xpReward || 0 });
@@ -143,6 +150,7 @@ const KidsFillBlanks = () => {
     setHintIdx(0);
     setCompleted(false);
     setXpEarned(0);
+    if (lesson?.id) clearProgress(lesson.id);
   };
 
   return (

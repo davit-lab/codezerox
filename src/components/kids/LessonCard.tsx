@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Check, Puzzle, Code, Eye, Lock, Zap, HelpCircle, PenTool, Brain } from "lucide-react";
+import { Check, Puzzle, Code, Eye, Lock, Zap, HelpCircle, PenTool, Brain, Loader2 } from "lucide-react";
 import type { KidsLesson } from "@/data/kidsLessons";
 
 interface LessonCardProps {
@@ -7,6 +7,7 @@ interface LessonCardProps {
   completed: boolean;
   locked?: boolean;
   key?: string;
+  partialProgress?: { stepsCompleted: number; totalSteps: number } | null;
 }
 
 const typeConfig: Record<string, { label: string; bg: string; text: string; icon: any }> = {
@@ -24,7 +25,7 @@ const difficultyConfig: Record<string, { label: string; bg: string; text: string
   hard: { label: 'რთული', bg: 'bg-red-500/10', text: 'text-red-400' },
 };
 
-const LessonCard = ({ lesson, completed, locked = false }: LessonCardProps) => {
+const LessonCard = ({ lesson, completed, locked = false, partialProgress = null }: LessonCardProps) => {
   const path = lesson.type === 'puzzle'
     ? `/kids/puzzle/${lesson.id}`
     : lesson.type === 'editor'
@@ -88,6 +89,11 @@ const LessonCard = ({ lesson, completed, locked = false }: LessonCardProps) => {
             <div className="w-6 h-6 rounded-full flex items-center justify-center bg-emerald-600 shadow-emerald-500/30 shadow-lg">
               <Check size={12} className="text-white" strokeWidth={3} />
             </div>
+          ) : partialProgress ? (
+            <div className="flex items-center gap-1 text-[0.6rem] font-bold text-sky-400">
+              <Loader2 size={12} className="animate-spin" />
+              {partialProgress.stepsCompleted}/{partialProgress.totalSteps}
+            </div>
           ) : null}
         </div>
 
@@ -100,6 +106,18 @@ const LessonCard = ({ lesson, completed, locked = false }: LessonCardProps) => {
         <p className="text-[0.73rem] leading-relaxed mb-3 text-stone-400 line-clamp-2">
           {lesson.description}
         </p>
+
+        {/* Partial progress bar */}
+        {partialProgress && !completed && (
+          <div className="mb-2.5">
+            <div className="h-1.5 rounded-full overflow-hidden bg-stone-800">
+              <div
+                className="h-full rounded-full bg-sky-500 transition-all duration-500"
+                style={{ width: `${(partialProgress.stepsCompleted / partialProgress.totalSteps) * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="flex items-center justify-between pt-2.5 border-t border-white/5">

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import KidsHeader from "@/components/kids/KidsHeader";
 import { getLesson, markLessonComplete, getKidsLevel } from "@/data/kidsLessons";
 import { useKidsProgress, useMarkLessonComplete, useKidsSubscription } from "@/hooks/useKidsProgress";
+import { usePartialProgress } from "@/hooks/usePartialProgress";
 import { ArrowRight, CheckCircle, Zap, RotateCcw, Clock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -32,6 +33,7 @@ const KidsMemory = () => {
   const { data: subscription, isLoading: subLoading } = useKidsSubscription();
   const xp = progressData.reduce((sum, p) => sum + (p.xp_earned || 0), 0);
   const markComplete = useMarkLessonComplete();
+  const { updateProgress, clearProgress } = usePartialProgress();
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/kids/login', { replace: true });
@@ -115,6 +117,9 @@ const KidsMemory = () => {
           setFlippedIds([]);
           setMatchedCount(m => {
             const newCount = m + 1;
+            if (lesson?.id) {
+              updateProgress(lesson.id, newCount, totalPairs);
+            }
             if (newCount === totalPairs) {
               finishGame(newCount);
             }
@@ -136,6 +141,7 @@ const KidsMemory = () => {
   const finishGame = (finalMatched: number) => {
     setCompleted(true);
     setShowConfetti(true);
+    if (lesson?.id) clearProgress(lesson.id);
     const alreadyDone = progressData.some(p => p.lesson_id === lesson.id);
     const timeBonus = timer < 60 ? 10 : timer < 120 ? 5 : 0;
     const moveBonus = moves <= totalPairs * 2 ? 5 : 0;
@@ -157,6 +163,7 @@ const KidsMemory = () => {
     setStarted(false);
     setCompleted(false);
     setXpEarned(0);
+    if (lesson?.id) clearProgress(lesson.id);
   };
 
   const formatTime = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;

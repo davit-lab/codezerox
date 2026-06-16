@@ -5,6 +5,7 @@ import LessonCard from "@/components/kids/LessonCard";
 import { kidsLessons, type LessonType, getKidsLevel, getModules } from "@/data/kidsLessons";
 import { useKidsProgress, useKidsSubscription } from "@/hooks/useKidsProgress";
 import { useKidsBadges } from "@/hooks/useKidsBadges";
+import { usePartialProgress, calculateOverallProgress } from "@/hooks/usePartialProgress";
 import { Puzzle, Code, Eye, Trophy, Zap, BookOpen, LogOut, GraduationCap, Search, X, Star, Lock, ShieldCheck, HelpCircle, PenTool, Brain, Award } from "lucide-react";
 
 const typeFilters: { key: LessonType | 'all'; label: string; icon: any; color: string }[] = [
@@ -25,6 +26,7 @@ const Kids = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { data: progressData = [] } = useKidsProgress();
   const { data: subscription, isLoading: subLoading } = useKidsSubscription();
+  const { allPartial } = usePartialProgress();
 
   // Require login before showing any kids content
   useEffect(() => {
@@ -56,8 +58,7 @@ const Kids = () => {
   }, [typeFilter, moduleFilter, searchQuery]);
 
   const totalLessons = kidsLessons.length;
-  const completedCount = completed.length;
-  const progressPct = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
+  const { completed: completedCount, inProgress: inProgressCount, overallPct: progressPct } = calculateOverallProgress(completed, allPartial, totalLessons);
 
   const handleSignOut = async () => {
     await signOut();
@@ -137,6 +138,9 @@ const Kids = () => {
                   <span className="flex items-center gap-1 font-semibold text-stone-500">
                     <Trophy size={11} className="text-amber-400" />
                     {completedCount}/{totalLessons}
+                    {inProgressCount > 0 && (
+                      <span className="text-emerald-400"> +{inProgressCount} მიმდინარე</span>
+                    )}
                   </span>
                   <span className="font-bold text-amber-400">{xp} XP</span>
                 </div>
@@ -324,13 +328,17 @@ const Kids = () => {
             {/* Grid */}
             <div className="px-5 pb-10">
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>
-                {filtered.map((lesson) => (
-                  <LessonCard
-                    key={lesson.id}
-                    lesson={lesson}
-                    completed={completed.includes(lesson.id)}
-                  />
-                ))}
+                {filtered.map((lesson) => {
+                  const partial = allPartial.find(p => p.lessonId === lesson.id);
+                  return (
+                    <LessonCard
+                      key={lesson.id}
+                      lesson={lesson}
+                      completed={completed.includes(lesson.id)}
+                      partialProgress={partial ? { stepsCompleted: partial.stepsCompleted, totalSteps: partial.totalSteps } : null}
+                    />
+                  );
+                })}
               </div>
               {filtered.length === 0 && (
                 <div className="text-center py-14">

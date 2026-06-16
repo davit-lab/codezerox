@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import KidsHeader from "@/components/kids/KidsHeader";
 import { getLesson, markLessonComplete, getKidsLevel } from "@/data/kidsLessons";
 import { useKidsProgress, useMarkLessonComplete, useKidsSubscription } from "@/hooks/useKidsProgress";
+import { usePartialProgress } from "@/hooks/usePartialProgress";
 import { ArrowRight, CheckCircle, XCircle, Zap, RotateCcw, Lightbulb } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -24,6 +25,7 @@ const KidsQuiz = () => {
   const { data: subscription, isLoading: subLoading } = useKidsSubscription();
   const xp = progressData.reduce((sum, p) => sum + (p.xp_earned || 0), 0);
   const markComplete = useMarkLessonComplete();
+  const { updateProgress, clearProgress } = usePartialProgress();
 
   useEffect(() => {
     if (!authLoading && !user) navigate('/kids/login', { replace: true });
@@ -72,6 +74,12 @@ const KidsQuiz = () => {
       setStreak(0);
     }
 
+    // Save partial progress
+    const answeredCount = currentQ + 1;
+    if (lesson?.id) {
+      updateProgress(lesson.id, answeredCount, questions.length);
+    }
+
     setTimeout(() => {
       if (isLastQ) {
         setMaxStreak(s => Math.max(s, streak + (correct ? 1 : 0)));
@@ -87,6 +95,7 @@ const KidsQuiz = () => {
   const finishQuiz = (finalCorrect: number) => {
     setCompleted(true);
     setShowConfetti(true);
+    if (lesson?.id) clearProgress(lesson.id);
     const alreadyDone = progressData.some(p => p.lesson_id === lesson.id);
     const pct = finalCorrect / questions.length;
     const bonusXP = pct === 1 ? 10 : pct >= 0.7 ? 5 : 0;
