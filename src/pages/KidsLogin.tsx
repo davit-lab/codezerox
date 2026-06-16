@@ -18,7 +18,7 @@ const KidsLogin = () => {
       return;
     }
     setLoading(true);
-    const email = `${username.trim().toLowerCase()}@kids.codezero.internal`;
+    const email = `${username.trim().toLowerCase()}@kids.codezero.georgia`;
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
@@ -104,7 +104,6 @@ const KidsLogin = () => {
           color: 'rgba(255,255,255,0.45)', fontSize: '0.9rem', textAlign: 'center',
           maxWidth: 320, lineHeight: 1.6, marginBottom: 28,
         }}>
-          ისწავლე HTML და CSS საბალისოდ — პაზლები, რედაქტირი და გამონვეევები ჭრი სოვრდები
         </p>
 
         {/* Feature badges */}
