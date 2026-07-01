@@ -64,34 +64,42 @@ export const useAdminSupportTickets = () => {
       return (data ?? []) as SupportTicket[];
     },
     enabled: isAdmin,
+    // Support tickets are not broadcast via realtime (for privacy).
+    // Poll every 20s so the admin panel stays up to date and notifies on new tickets.
+    refetchInterval: isAdmin ? 20_000 : false,
+    refetchIntervalInBackground: false,
   });
 
+  // Notify admin on newly-arrived tickets (detected via polling diff)
   useEffect(() => {
     if (!isAdmin) return;
-    const channel = supabase
-      .channel('admin-support-tickets')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'support_tickets' },
-        (payload) => {
-          queryClient.invalidateQueries({ queryKey: ['admin-support-tickets'] });
-          if (payload.eventType === 'INSERT') {
-            const t = payload.new as SupportTicket;
-            try { playSound('notification'); } catch { /* noop */ }
-            showBrowserNotification({
-              title: '📩 ახალი მხარდაჭერის ფორმა',
-              body: `${t.name} – ${t.topic}`,
-              tag: `ticket-${t.id}`,
-              onlyWhenHidden: false,
-            });
-          }
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isAdmin, queryClient]);
+    const data = query.data;
+    if (!data || data.length === 0) return;
+    const seenKey = 'admin-support-tickets-seen-ids';
+    let seen: Set<string>;
+    try {
+      seen = new Set<string>(JSON.parse(sessionStorage.getItem(seenKey) || '[]'));
+    } catch {
+      seen = new Set<string>();
+    }
+    const fresh = data.filter((t) => !seen.has(t.id));
+    if (seen.size > 0) {
+      for (const t of fresh) {
+        try { playSound('notification'); } catch { /* noop */ }
+        showBrowserNotification({
+          title: '📩 ახალი მხარდაჭერის ფორმა',
+          body: `${t.name} – ${t.topic}`,
+          tag: `ticket-${t.id}`,
+          onlyWhenHidden: false,
+        });
+      }
+    }
+    const nextSeen = new Set<string>(seen);
+    for (const t of data) nextSeen.add(t.id);
+    try {
+      sessionStorage.setItem(seenKey, JSON.stringify(Array.from(nextSeen)));
+    } catch { /* noop */ }
+  }, [isAdmin, query.data]);
 
   return query;
 };
