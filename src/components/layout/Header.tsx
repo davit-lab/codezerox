@@ -82,13 +82,9 @@ const Header = () => {
                     <span className="material-symbols-rounded">code_blocks</span>
                     კოდის ედიტორი
                   </Link>
-                  <Link to="/certifications" className={`nav-dropdown-item ${isActive('/certifications') || location.pathname.startsWith('/exam/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">workspace_premium</span>
-                    სერტიფიკატები
-                  </Link>
-                  <Link to="/cyber-lab" className={`nav-dropdown-item ${isActive('/cyber-lab') || location.pathname.startsWith('/cyber-lab/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">security</span>
-                    Cyber Lab
+                  <Link to="/video-courses" className={`nav-dropdown-item ${isActive('/video-courses') || location.pathname.startsWith('/video-courses/') ? 'active' : ''}`}>
+                    <span className="material-symbols-rounded">smart_display</span>
+                    ვიდეო კურსები
                   </Link>
                   <Link to="/video-courses" className={`nav-dropdown-item ${isActive('/video-courses') || location.pathname.startsWith('/video-courses/') ? 'active' : ''}`}>
                     <span className="material-symbols-rounded">smart_display</span>
