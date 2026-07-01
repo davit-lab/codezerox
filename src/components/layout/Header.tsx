@@ -86,10 +86,6 @@ const Header = () => {
                     <span className="material-symbols-rounded">smart_display</span>
                     ვიდეო კურსები
                   </Link>
-                  <Link to="/video-courses" className={`nav-dropdown-item ${isActive('/video-courses') || location.pathname.startsWith('/video-courses/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">smart_display</span>
-                    ვიდეო კურსები
-                  </Link>
                   {(isAdmin || isMentor) && (
                     <Link to="/mentoring" className={`nav-dropdown-item ${isActive('/mentoring') || location.pathname.startsWith('/mentoring/') ? 'active' : ''}`}>
                       <span className="material-symbols-rounded">psychology</span>
