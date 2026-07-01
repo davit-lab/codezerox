@@ -302,10 +302,6 @@ const Header = () => {
               <span className="material-symbols-rounded">leaderboard</span>
               ლიდერბორდი
             </Link>
-            <Link to="/certifications" className={`mobile-nav-link ${isActive('/certifications') || location.pathname.startsWith('/exam/') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">workspace_premium</span>
-              სერტიფიკატები
-            </Link>
             <Link to="/video-courses" className={`mobile-nav-link ${isActive('/video-courses') || location.pathname.startsWith('/video-courses/') ? 'active' : ''}`}>
               <span className="material-symbols-rounded">smart_display</span>
               ვიდეო კურსები
