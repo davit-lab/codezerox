@@ -96,11 +96,22 @@ const CourseCard = ({ course, index }: { course: VideoCourse; index: number }) =
           </h3>
 
           {course.short_description && (
-            <p className="text-sm leading-relaxed line-clamp-2 mb-4"
+            <p className="text-sm leading-relaxed line-clamp-2 mb-3"
               style={{ color: 'var(--text-secondary)' }}>
               {course.short_description}
             </p>
           )}
+
+          {/* Mono meta line */}
+          <div className="flex items-center gap-2 mb-4 font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            <span>// video</span>
+            <span className="opacity-40">·</span>
+            <span style={{ color: diff.color }}>{diff.label}</span>
+            {course.category && (<>
+              <span className="opacity-40">·</span>
+              <span>{course.category}</span>
+            </>)}
+          </div>
 
           <div className="flex items-center justify-between pt-3"
             style={{ borderTop: '1px solid var(--border-subtle)' }}>

@@ -114,10 +114,19 @@ const CourseCard = ({ course, index }: { course: Course; index: number }) => {
           </h3>
 
           {course.description && (
-            <p className="text-[0.8rem] leading-relaxed line-clamp-2 mb-5" style={{ color: 'var(--text-secondary)' }}>
+            <p className="text-[0.8rem] leading-relaxed line-clamp-2 mb-3" style={{ color: 'var(--text-secondary)' }}>
               {course.description}
             </p>
           )}
+
+          {/* Mono meta line */}
+          <div className="flex items-center gap-2 mb-4 font-mono text-[11px]" style={{ color: 'var(--text-muted)' }}>
+            <span>// {course.total_chapters || 0} chapters</span>
+            <span className="opacity-40">·</span>
+            <span>{course.duration_hours || 0}h</span>
+            <span className="opacity-40">·</span>
+            <span style={{ color: diff.color }}>{diff.label}</span>
+          </div>
 
           {/* Price + Action row */}
           <div className="flex items-center justify-between gap-3 pt-4" style={{ borderTop: '1px solid var(--border-subtle)' }}>
