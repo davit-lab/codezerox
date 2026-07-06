@@ -130,20 +130,18 @@ const BookCard = ({ book, showOwnedBadge, readingProgress }: BookCardProps) => {
 
       {/* Info Section */}
       <div className="relative flex flex-col flex-1 p-4 z-10">
-        {/* Meta line: file tag + category */}
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
-          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-mono text-purple-300 bg-purple-500/10 border border-purple-500/20">
-            <span>[</span>
-            {book.category?.name?.slice(0, 12) || 'book'}
-            <span>]</span>
+        {/* Category Tag */}
+        {book.category && (
+          <span className="inline-flex items-center gap-1 self-start px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wider text-muted-foreground bg-muted/50 mb-2">
+            <span className="material-symbols-rounded text-xs">{book.category.icon || 'folder'}</span>
+            {book.category.name}
           </span>
-          <span className="font-mono text-[10px] text-muted-foreground/70">.pdf</span>
-        </div>
-
+        )}
+        
         <h3 className="text-base font-semibold text-foreground mb-1 line-clamp-2 group-hover:text-purple-600 transition-colors duration-300">
           {book.title}
         </h3>
-
+        
         <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1.5">
           <span className="material-symbols-rounded text-sm">person</span>
           {book.author}
