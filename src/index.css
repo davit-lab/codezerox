@@ -12743,3 +12743,184 @@ select.cv-input {
   padding: 28px 44px;
   animation: bounceIn 0.5s ease;
 }
+
+/* ============================================================
+   EDITORIAL POLISH — human-crafted refinement (v3 direction)
+   Removes glow noise, adds hairline structure, serif hierarchy.
+   Kept as final override block so it wins the cascade.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap');
+
+:root {
+  --shadow-glow: none;
+  --hairline: 1px solid rgba(255,255,255,0.08);
+  --hairline-strong: 1px solid rgba(255,255,255,0.14);
+  --gold-hair: 1px solid rgba(213,185,124,0.35);
+  --font-editorial: 'Playfair Display', 'Noto Serif Georgian', Georgia, serif;
+}
+
+/* Kill residual purple glows across common surfaces */
+.btn-gold,
+.btn-gold:hover,
+.hero-card,
+.hero-card:hover,
+.book-card,
+.book-card:hover,
+.logo-mark,
+.nav-link,
+.nav-link.active {
+  box-shadow: none !important;
+}
+
+/* Refined primary button — solid, quiet, confident */
+.btn-gold {
+  background: #5F13CA;
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: transform .25s ease, background-color .25s ease, border-color .25s ease;
+}
+.btn-gold:hover {
+  background: #4d0fa5;
+  transform: translateY(-1px);
+  border-color: rgba(213,185,124,0.4);
+}
+.btn-ghost {
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.12);
+  transition: border-color .25s ease, color .25s ease;
+}
+.btn-ghost:hover { border-color: rgba(213,185,124,0.45); }
+
+/* Hero — editorial serif italic accent, tighter rhythm */
+.hero { padding-top: 160px; padding-bottom: 120px; }
+.hero::before, .hero::after { display: none !important; }
+.hero-title {
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  font-weight: 600;
+}
+.hero-title .gold {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 500;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+  color: #D5B97C !important;
+  letter-spacing: -0.02em;
+}
+.hero-subtitle {
+  max-width: 46ch;
+  color: rgba(255,255,255,0.6);
+  font-weight: 300;
+  line-height: 1.65;
+}
+
+/* Hero stats — hairline divided, editorial-mono label */
+.hero-stats {
+  border-top: var(--hairline);
+  border-bottom: var(--hairline);
+  padding: 28px 0;
+  gap: 0 !important;
+  margin-top: 56px;
+}
+.hero-stat {
+  padding: 4px 40px 4px 0;
+  margin-right: 40px;
+  border-right: var(--hairline);
+}
+.hero-stat:last-child { border-right: none; }
+.hero-stat::before { display: none !important; }
+.hero-stat-value {
+  font-family: var(--font-editorial);
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+.hero-stat-label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.42);
+  margin-top: 6px;
+}
+
+/* Hero card stack — quieter, no purple glow */
+.hero-card {
+  border: var(--hairline-strong);
+  background: linear-gradient(180deg, #131318 0%, #0d0d12 100%);
+}
+.hero-card::before { display: none !important; }
+.hero-card:hover {
+  border-color: rgba(213,185,124,0.35);
+  transform: translateY(-4px) rotate(0deg);
+}
+
+/* Book cards — editorial hairline treatment */
+.book-card {
+  border: var(--hairline);
+  border-radius: 6px;
+  background: #0e0e12;
+  transition: border-color .4s ease, transform .4s ease;
+}
+.book-card::before { display: none !important; }
+.book-card:hover {
+  border-color: rgba(95,19,202,0.55);
+  transform: translateY(-3px);
+}
+
+/* Section headings — mix serif italic accent */
+.section-title, h2.section-title {
+  letter-spacing: -0.03em;
+}
+.section-title .highlight,
+.section-title em,
+h2 .gold {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 500;
+  color: #D5B97C;
+  background: none !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+/* Section label pill — thinner, editorial */
+.section-badge, .section-label {
+  border: var(--gold-hair) !important;
+  background: transparent !important;
+  color: #D5B97C !important;
+  letter-spacing: 0.22em !important;
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+  font-size: 0.7rem !important;
+  border-radius: 2px !important;
+  padding: 6px 14px !important;
+  box-shadow: none !important;
+}
+
+/* Logo mark — kill halo */
+.logo-mark {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+
+/* Header — refined hairline base */
+.header, .header.scrolled {
+  border-bottom: var(--hairline);
+  backdrop-filter: saturate(160%) blur(14px);
+}
+
+/* Global: strip any lingering purple radial ambient backgrounds */
+.atmosphere, .atmosphere::before, .atmosphere::after { filter: saturate(0.85) brightness(0.9); }
+.noise { opacity: 0.35 !important; }
+
+/* Reduce all text-shadow glow */
+h1, h2, h3, .hero-title, .section-title { text-shadow: none !important; }
+
+@media (max-width: 768px) {
+  .hero { padding-top: 120px; padding-bottom: 80px; }
+  .hero-stat { padding-right: 20px; margin-right: 20px; }
+}
+
