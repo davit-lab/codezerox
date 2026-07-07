@@ -4659,6 +4659,7 @@ export type Database = {
         Args: { _amount: number; _reason?: string; _user_id: string }
         Returns: undefined
       }
+      admin_get_user_email: { Args: { _user_id: string }; Returns: string }
       admin_grant_site_credits: {
         Args: {
           _amount: number
