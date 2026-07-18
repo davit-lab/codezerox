@@ -116,8 +116,8 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
       "@/integrations/supabase/client": path.resolve(__dirname, "./src/lib/lovable-cloud-client.ts"),
+      "@": path.resolve(__dirname, "./src"),
     },
   },
 }));
