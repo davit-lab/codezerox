@@ -4669,6 +4669,17 @@ export type Database = {
         }
         Returns: number
       }
+      admin_list_users: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          created_at: string
+          email: string
+          full_name: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
+      }
       answer_call: { Args: { _call_id: string }; Returns: boolean }
       award_xp: {
         Args: {
@@ -4680,6 +4691,10 @@ export type Database = {
         Returns: undefined
       }
       block_user: { Args: { _target_user_id: string }; Returns: string }
+      book_pdf_matches_storage_object: {
+        Args: { _object_name: string; _pdf_url: string }
+        Returns: boolean
+      }
       can_access_mentoring_hub: {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean
