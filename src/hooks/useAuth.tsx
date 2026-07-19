@@ -48,15 +48,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isMentor, setIsMentor] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, authEmail?: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, user_id, full_name, avatar_url, cover_url, bio, experience, github_url, website_url, location, skills, created_at, updated_at')
       .eq('user_id', userId)
       .single();
     
     if (!error && data) {
-      setProfile(data);
+      setProfile({
+        ...data,
+        email: authEmail || '',
+        linkedin_url: null,
+        facebook_url: null,
+        cv_url: null,
+      });
     }
   };
 
@@ -94,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             createProfileFromOAuth(session.user);
           }
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfile(session.user.id, session.user.email);
             checkRoles(session.user.id);
           }, 0);
         } else {
@@ -116,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session.user.app_metadata?.provider === 'google') {
           createProfileFromOAuth(session.user);
         }
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id, session.user.email);
         checkRoles(session.user.id);
       }
       setIsLoading(false);
@@ -224,7 +230,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(data.user);
 
       setTimeout(() => {
-        fetchProfile(data.user.id);
+        fetchProfile(data.user.id, data.user.email);
         checkRoles(data.user.id);
       }, 0);
     }
