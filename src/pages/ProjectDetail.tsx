@@ -522,7 +522,7 @@ const ProjectDetail = () => {
 
                 {/* CTA Buttons */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 18 }}>
-                  {isFree && project.zip_path && !hasAccess && (
+                  {isFree && hasZip && !hasAccess && (
                     <button onClick={handleDownload} className="btn btn-gold" style={{ width: '100%' }}>
                       <span className="material-symbols-rounded">download</span>
                       კოდის ჩამოტვირთვა
