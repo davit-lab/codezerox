@@ -20,30 +20,17 @@ export const useUsers = () => {
   return useQuery({
     queryKey: ['admin-users'],
     queryFn: async (): Promise<UserWithRole[]> => {
-      // Fetch profiles
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('user_id, email, full_name, avatar_url, created_at')
-        .order('created_at', { ascending: false });
-      
-      if (profilesError) throw profilesError;
-      
-      // Fetch roles
-      const { data: roles, error: rolesError } = await supabase
-        .from('user_roles')
-        .select('user_id, role');
-      
-      if (rolesError) throw rolesError;
-      
-      const roleMap = new Map((roles || []).map(r => [r.user_id, r.role]));
-      
-      return (profiles || []).map((p) => ({
+      const { data, error } = await (supabase.rpc as any)('admin_list_users');
+
+      if (error) throw error;
+
+      return (data || []).map((p: any) => ({
         user_id: p.user_id,
-        email: p.email,
+        email: p.email || '',
         full_name: p.full_name,
         avatar_url: p.avatar_url,
         created_at: p.created_at,
-        role: (roleMap.get(p.user_id) || 'user') as AppRole,
+        role: (p.role || 'user') as AppRole,
       }));
     },
     enabled: isAdmin,

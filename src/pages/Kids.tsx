@@ -4,18 +4,13 @@ import { useAuth } from "@/hooks/useAuth";
 import LessonCard from "@/components/kids/LessonCard";
 import { kidsLessons, type LessonType, getKidsLevel, getModules } from "@/data/kidsLessons";
 import { useKidsProgress, useKidsSubscription } from "@/hooks/useKidsProgress";
-import { useKidsBadges } from "@/hooks/useKidsBadges";
-import { usePartialProgress, calculateOverallProgress } from "@/hooks/usePartialProgress";
-import { Puzzle, Code, Eye, Trophy, Zap, BookOpen, LogOut, GraduationCap, Search, X, Star, Lock, ShieldCheck, HelpCircle, PenTool, Brain, Award } from "lucide-react";
+import { Puzzle, Code, Eye, Trophy, Zap, BookOpen, LogOut, GraduationCap, Search, X, Star, Lock, ShieldCheck } from "lucide-react";
 
 const typeFilters: { key: LessonType | 'all'; label: string; icon: any; color: string }[] = [
   { key: 'all', label: 'ყველა', icon: BookOpen, color: '#7c3aed' },
   { key: 'puzzle', label: 'პაზლები', icon: Puzzle, color: '#a78bfa' },
   { key: 'editor', label: 'რედაქტორი', icon: Code, color: '#34d399' },
   { key: 'challenge', label: 'გამოწვევები', icon: Eye, color: '#f59e0b' },
-  { key: 'quiz', label: 'ქვიზები', icon: HelpCircle, color: '#38bdf8' },
-  { key: 'fillblanks', label: 'ჩასაწერი', icon: PenTool, color: '#fb7185' },
-  { key: 'memory', label: 'მეხსიერება', icon: Brain, color: '#ec4899' },
 ];
 
 const Kids = () => {
@@ -26,7 +21,6 @@ const Kids = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { data: progressData = [] } = useKidsProgress();
   const { data: subscription, isLoading: subLoading } = useKidsSubscription();
-  const { allPartial } = usePartialProgress();
 
   // Require login before showing any kids content
   useEffect(() => {
@@ -42,7 +36,6 @@ const Kids = () => {
   const xp = progressData.reduce((sum, p) => sum + (p.xp_earned || 0), 0);
   const level = getKidsLevel(xp);
   const modules = getModules();
-  const { earned: badges } = useKidsBadges(completed, xp);
 
 
   const filtered = useMemo(() => {
@@ -58,7 +51,8 @@ const Kids = () => {
   }, [typeFilter, moduleFilter, searchQuery]);
 
   const totalLessons = kidsLessons.length;
-  const { completed: completedCount, inProgress: inProgressCount, overallPct: progressPct } = calculateOverallProgress(completed, allPartial, totalLessons);
+  const completedCount = completed.length;
+  const progressPct = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
 
   const handleSignOut = async () => {
     await signOut();
@@ -68,37 +62,57 @@ const Kids = () => {
   const puzzleCount = kidsLessons.filter(l => l.type === 'puzzle').length;
   const editorCount = kidsLessons.filter(l => l.type === 'editor').length;
   const challengeCount = kidsLessons.filter(l => l.type === 'challenge').length;
-  const quizCount = kidsLessons.filter(l => l.type === 'quiz').length;
-  const fillblanksCount = kidsLessons.filter(l => l.type === 'fillblanks').length;
-  const memoryCount = kidsLessons.filter(l => l.type === 'memory').length;
 
   return (
-    <main className="min-h-screen bg-[#0c0a09]">
+    <main className="min-h-screen" style={{ background: 'var(--bg-void)' }}>
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-[#0c0a09]/92 backdrop-blur-xl border-b border-[#5F13CA]/10">
-        <div className="flex items-center justify-between px-5 py-3 max-w-[1200px] mx-auto">
+      <div style={{
+        position: 'sticky', top: 0, zIndex: 50,
+        background: 'rgba(13,13,20,0.92)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(124,58,237,0.1)',
+      }}>
+        <div className="flex items-center justify-between px-5 py-3" style={{ maxWidth: 1200, margin: '0 auto' }}>
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-violet-600">
-              <GraduationCap size={20} className="text-white" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: '#7c3aed' }}>
+              <GraduationCap size={20} color="#fff" />
             </div>
             <div>
-              <h1 className="text-sm font-black leading-tight text-white">CodeZero Kids</h1>
-              <p className="text-[0.62rem] text-stone-500">HTML & CSS</p>
+              <h1 className="text-sm font-black leading-tight" style={{ color: 'var(--text-primary)' }}>
+                CodeZero Kids
+              </h1>
+              <p className="text-[0.62rem]" style={{ color: 'var(--text-dim)' }}>
+                HTML & CSS
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {level && (
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem] bg-violet-500/10 border border-violet-500/20">
-                <Star size={12} className="text-amber-400" />
-                <span className="font-black text-amber-400">Lv.{level.level}</span>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.7rem]" style={{
+                background: 'rgba(124,58,237,0.06)',
+                border: '1px solid rgba(124,58,237,0.12)',
+              }}>
+                <Star size={12} style={{ color: 'var(--gold)' }} />
+                <span className="font-black" style={{ color: 'var(--gold)' }}>
+                  Lv.{level.level}
+                </span>
               </div>
             )}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem] bg-amber-500/5 border border-amber-500/10">
-              <Zap size={12} className="text-amber-400" />
-              <span className="font-bold text-amber-400">{xp} XP</span>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem]" style={{
+              background: 'rgba(255,215,0,0.05)',
+              border: '1px solid rgba(255,215,0,0.1)',
+            }}>
+              <Zap size={12} style={{ color: 'var(--gold)' }} />
+              <span className="font-bold" style={{ color: 'var(--gold)' }}>{xp} XP</span>
             </div>
             {user && (
-              <button onClick={handleSignOut} className="p-2 rounded-lg bg-violet-500/5 border border-violet-500/10 text-stone-400 hover:text-white transition-colors cursor-pointer">
+              <button onClick={handleSignOut} className="p-2 rounded-lg" style={{
+                background: 'rgba(124,58,237,0.05)',
+                border: '1px solid rgba(124,58,237,0.1)',
+                color: 'var(--text-muted)',
+                cursor: 'pointer',
+              }}>
                 <LogOut size={14} />
               </button>
             )}
@@ -106,26 +120,39 @@ const Kids = () => {
         </div>
       </div>
 
-      <div className="max-w-[1200px] mx-auto">
+      <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         {/* Hero */}
         <div className="px-5 pt-6">
-          <div className="rounded-2xl p-6 bg-[#5F13CA]/5 border border-[#5F13CA]/15">
+          <div className="rounded-2xl p-6" style={{
+            background: 'rgba(124,58,237,0.04)',
+            border: '1px solid rgba(124,58,237,0.1)',
+          }}>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
               <div>
-                <h2 className="text-lg sm:text-xl font-black mb-1.5 text-white">ისწავლე HTML & CSS</h2>
-                <p className="text-sm mb-3 text-stone-400">
+                <h2 className="text-lg sm:text-xl font-black mb-1.5" style={{
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-georgian)',
+                }}>
+                  ისწავლე HTML & CSS
+                </h2>
+                <p className="text-sm mb-3" style={{
+                  color: 'var(--text-secondary)',
+                  fontFamily: 'var(--font-georgian)',
+                }}>
                   {totalLessons} გაკვეთილი · {modules.length} მოდული
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { icon: Puzzle, count: puzzleCount, label: 'პაზლი', color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
-                    { icon: Code, count: editorCount, label: 'რედაქტორი', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
-                    { icon: Eye, count: challengeCount, label: 'გამოწვევა', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
-                    { icon: HelpCircle, count: quizCount, label: 'ქვიზი', color: 'text-sky-400', bg: 'bg-sky-500/10', border: 'border-sky-500/20' },
-                    { icon: PenTool, count: fillblanksCount, label: 'ჩასაწერი', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
-                    { icon: Brain, count: memoryCount, label: 'მეხსიერება', color: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
+                    { icon: Puzzle, count: puzzleCount, label: 'პაზლი', color: '#a78bfa' },
+                    { icon: Code, count: editorCount, label: 'რედაქტორი', color: '#34d399' },
+                    { icon: Eye, count: challengeCount, label: 'გამოწვევა', color: '#f59e0b' },
                   ].map((stat, i) => (
-                    <div key={i} className={`flex items-center gap-1.5 text-[0.7rem] font-semibold px-2.5 py-1 rounded-md ${stat.bg} ${stat.border} border ${stat.color}`}>
+                    <div key={i} className="flex items-center gap-1.5 text-[0.7rem] font-semibold px-2.5 py-1 rounded-md" style={{
+                      background: 'var(--bg-card)',
+                      border: '1px solid var(--border-light)',
+                      color: stat.color,
+                      fontFamily: 'var(--font-georgian)',
+                    }}>
                       <stat.icon size={11} />
                       {stat.count} {stat.label}
                     </div>
@@ -135,54 +162,27 @@ const Kids = () => {
 
               <div className="sm:w-[200px] shrink-0">
                 <div className="flex justify-between text-[0.7rem] mb-1.5">
-                  <span className="flex items-center gap-1 font-semibold text-stone-500">
-                    <Trophy size={11} className="text-amber-400" />
+                  <span className="flex items-center gap-1 font-semibold" style={{ color: 'var(--text-muted)' }}>
+                    <Trophy size={11} style={{ color: 'var(--gold)' }} />
                     {completedCount}/{totalLessons}
-                    {inProgressCount > 0 && (
-                      <span className="text-emerald-400"> +{inProgressCount} მიმდინარე</span>
-                    )}
                   </span>
-                  <span className="font-bold text-amber-400">{xp} XP</span>
+                  <span className="font-bold" style={{ color: 'var(--gold)' }}>
+                    {xp} XP
+                  </span>
                 </div>
-                <div className="h-2 rounded-full overflow-hidden bg-violet-500/10">
-                  <div className="h-full rounded-full transition-all duration-1000 bg-amber-400" style={{ width: `${progressPct}%` }} />
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: 'rgba(124,58,237,0.08)' }}>
+                  <div className="h-full rounded-full transition-all duration-1000" style={{
+                    width: `${progressPct}%`,
+                    background: 'var(--gold)',
+                  }} />
                 </div>
-                <p className="text-[0.65rem] mt-1 text-stone-500">
+                <p className="text-[0.65rem] mt-1" style={{ color: 'var(--text-dim)', fontFamily: 'var(--font-georgian)' }}>
                   {progressPct > 0 ? `${Math.round(progressPct)}% დასრულებული` : 'დაიწყე სწავლა'}
                 </p>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Badges */}
-        {badges.length > 0 && (
-          <div className="px-5 pt-3">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Award size={13} className="text-amber-400" />
-                <span className="text-[0.7rem] font-bold text-stone-400 shrink-0">მედლები:</span>
-              </div>
-              {badges.slice(0, 6).map(badge => (
-                <div key={badge.id}
-                  className="shrink-0 flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[0.68rem] font-bold"
-                  style={{
-                    background: `${badge.color}15`,
-                    border: `1px solid ${badge.color}30`,
-                    color: badge.color,
-                  }}
-                  title={badge.description}
-                >
-                  <span>{badge.emoji}</span>
-                  {badge.name}
-                </div>
-              ))}
-              {badges.length > 6 && (
-                <span className="text-[0.65rem] text-stone-500 shrink-0">+{badges.length - 6}</span>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Search + Filters */}
         <div className="px-5 pt-4">
@@ -328,17 +328,14 @@ const Kids = () => {
             {/* Grid */}
             <div className="px-5 pb-10">
               <div className="grid gap-3" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))' }}>
-                {filtered.map((lesson) => {
-                  const partial = allPartial.find(p => p.lessonId === lesson.id);
-                  return (
-                    <LessonCard
-                      key={lesson.id}
-                      lesson={lesson}
-                      completed={completed.includes(lesson.id)}
-                      partialProgress={partial ? { stepsCompleted: partial.stepsCompleted, totalSteps: partial.totalSteps } : null}
-                    />
-                  );
-                })}
+                {filtered.map((lesson, i) => (
+                  <LessonCard
+                    key={lesson.id}
+                    lesson={lesson}
+                    completed={completed.includes(lesson.id)}
+                    index={i}
+                  />
+                ))}
               </div>
               {filtered.length === 0 && (
                 <div className="text-center py-14">

@@ -48,15 +48,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isMentor, setIsMentor] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, authEmail?: string) => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, user_id, full_name, avatar_url, cover_url, bio, experience, github_url, website_url, location, skills, created_at, updated_at')
       .eq('user_id', userId)
       .single();
     
     if (!error && data) {
-      setProfile(data);
+      setProfile({
+        ...data,
+        email: authEmail || '',
+        linkedin_url: null,
+        facebook_url: null,
+        cv_url: null,
+      });
     }
   };
 
@@ -94,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             createProfileFromOAuth(session.user);
           }
           setTimeout(() => {
-            fetchProfile(session.user.id);
+            fetchProfile(session.user.id, session.user.email);
             checkRoles(session.user.id);
           }, 0);
         } else {
@@ -116,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session.user.app_metadata?.provider === 'google') {
           createProfileFromOAuth(session.user);
         }
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id, session.user.email);
         checkRoles(session.user.id);
       }
       setIsLoading(false);
@@ -139,40 +145,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       },
     });
 
-    if (!error && data.user) {
-      // Manually create profile since trigger is disabled
+    if (!error) {
       try {
-        const { error: profileError } = await supabase.from('profiles').insert({
-          user_id: data.user.id,
-          email: data.user.email || email,
-          full_name: fullName || '',
-          cover_url: null,
-          bio: null,
-          experience: null,
-          github_url: null,
-          website_url: null,
-          linkedin_url: null,
-          facebook_url: null,
-          cv_url: null,
-          location: null,
-          skills: [],
-        });
-        if (profileError && !profileError.message.includes('duplicate')) {
-          console.error('Profile insert error:', profileError);
-        }
+        await supabase.functions.invoke('sync-missing-profiles');
       } catch {
-        // Ignore profile creation errors
+        // Ignore sync failures here; DB trigger is the primary path
       }
-
-      try {
-        await supabase.from('user_roles').insert({
-          user_id: data.user.id,
-          role: 'user',
-        });
-      } catch {
-        // Ignore role insert errors
-      }
-
     }
     
     return {
@@ -243,11 +221,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (!error && data.session) {
+      try {
+        await supabase.functions.invoke('sync-missing-profiles');
+      } catch {
+        // Ignore sync failures here; DB trigger is the primary path
+      }
       setSession(data.session);
       setUser(data.user);
 
       setTimeout(() => {
-        fetchProfile(data.user.id);
+        fetchProfile(data.user.id, data.user.email);
         checkRoles(data.user.id);
       }, 0);
     }

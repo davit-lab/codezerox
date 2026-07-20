@@ -591,7 +591,7 @@ const Auth = () => {
                       </div>
                       <span className="text-xs text-stone-500">დამიმახსოვრე</span>
                     </div>
-                    <button type="button" onClick={() => { setMode("forgot"); setResetEmail(email); }} className="text-xs text-[#8B5CF6] hover:underline">დაგავიწყდა პაროლი?</button>
+                    {/* <button type="button" onClick={() => { setMode("forgot"); setResetEmail(email); }} className="text-xs text-[#8B5CF6] hover:underline">დაგავიწყდა პაროლი?</button> */}
                   </div>
 
                   <button
