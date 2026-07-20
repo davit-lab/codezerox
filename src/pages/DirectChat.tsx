@@ -582,7 +582,6 @@ const DirectChat = () => {
                                           <span className="text-xs opacity-70">
                                             {m.voice_duration ? `${Math.floor(m.voice_duration / 60)}:${(m.voice_duration % 60).toString().padStart(2, '0')}` : ''}
                                           </span>
-                                          </span>
                                         </div>
                                       ) : (
                                         <p className="whitespace-pre-wrap break-words m-0">{m.content}</p>
