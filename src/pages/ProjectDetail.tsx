@@ -352,7 +352,7 @@ const ProjectDetail = () => {
               )}
 
               {/* Admin: download any ZIP */}
-              {isAdmin && !isOwner && project.zip_path && (
+              {isAdmin && !isOwner && hasZip && (
                 <div style={{ marginBottom: 20, padding: '14px 18px', background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 14 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'rgba(139,92,246,0.9)', fontWeight: 700, fontSize: '0.88rem' }}>
