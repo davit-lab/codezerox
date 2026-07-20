@@ -578,11 +578,10 @@ const DirectChat = () => {
                                           <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
                                             <Mic className="w-4 h-4" />
                                           </button>
-                                          <audio controls className="flex-1 h-8" src={m.voice_url}>
-                                            Your browser does not support audio.
-                                          </audio>
+                                          <VoiceAudio value={m.voice_url} />
                                           <span className="text-xs opacity-70">
                                             {m.voice_duration ? `${Math.floor(m.voice_duration / 60)}:${(m.voice_duration % 60).toString().padStart(2, '0')}` : ''}
+                                          </span>
                                           </span>
                                         </div>
                                       ) : (
