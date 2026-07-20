@@ -51,7 +51,18 @@ const CreateProject = () => {
   const [customTech, setCustomTech] = useState('');
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [zipFile, setZipFile] = useState<File | null>(null);
+  const [existingZipPath, setExistingZipPath] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isEdit || !editId) return;
+    (async () => {
+      try {
+        const { data } = await supabase.rpc('get_marketplace_zip_path', { _project_id: editId } as any);
+        setExistingZipPath((data as string | null) || null);
+      } catch { setExistingZipPath(null); }
+    })();
+  }, [isEdit, editId]);
 
   if (authLoading) return null;
   if (!user) { navigate('/auth'); return null; }
