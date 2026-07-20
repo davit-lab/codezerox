@@ -34,6 +34,7 @@ const ProjectDetail = () => {
   const sendWarning = useSendWarning();
   const [showWarnPanel, setShowWarnPanel] = useState(false);
   const [warnMsg, setWarnMsg] = useState('');
+  const [hasZip, setHasZip] = useState(false);
 
   const { data: sales = [] } = useSalesByProject(id!);
   const { data: myAccess } = useMyAccessForProject(id!);
@@ -52,12 +53,20 @@ const ProjectDetail = () => {
   useEffect(() => {
     if (id) {
       (async () => { try { await supabase.rpc('increment_project_views', { project_id: id } as any); } catch {} })();
+      (async () => {
+        try {
+          const { data } = await supabase.rpc('marketplace_project_has_zip', { _project_id: id } as any);
+          setHasZip(!!data);
+        } catch { setHasZip(false); }
+      })();
     }
   }, [id]);
 
   const handleDownload = async () => {
-    if (!project?.zip_path) { toast.error('ფაილი არ არის'); return; }
-    const { data, error } = await supabase.storage.from('project-images').createSignedUrl(project.zip_path, 3600);
+    if (!id) return;
+    const { data: zipPath, error: rpcErr } = await supabase.rpc('get_marketplace_zip_path', { _project_id: id } as any);
+    if (rpcErr || !zipPath) { toast.error('ფაილი მიუწვდომელია'); return; }
+    const { data, error } = await supabase.storage.from('project-images').createSignedUrl(zipPath as string, 3600);
     if (error) { toast.error('ჩამოტვირთვა ვერ მოხდა'); return; }
     window.open(data.signedUrl, '_blank');
   };
