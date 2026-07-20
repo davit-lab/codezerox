@@ -11,7 +11,7 @@ export interface MarketplaceProject {
   price: number | null;
   price_negotiable: boolean;
   preview_url: string;
-  zip_path: string | null;
+  zip_path?: string | null;
   photos: string[];
   status: string;
   is_multi_sale: boolean;
