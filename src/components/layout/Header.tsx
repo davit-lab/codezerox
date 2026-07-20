@@ -74,10 +74,6 @@ const Header = () => {
                     <span className="material-symbols-rounded">menu_book</span>
                     წიგნები
                   </Link>
-                  <Link to="/categories" className={`nav-dropdown-item ${isActive('/categories') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">category</span>
-                    კატეგორიები
-                  </Link>
                   <Link to="/playground" className={`nav-dropdown-item ${isActive('/playground') ? 'active' : ''}`}>
                     <span className="material-symbols-rounded">code_blocks</span>
                     კოდის ედიტორი
@@ -277,10 +273,6 @@ const Header = () => {
             <Link to="/books" className={`mobile-nav-link ${isActive('/books') ? 'active' : ''}`}>
               <span className="material-symbols-rounded">menu_book</span>
               წიგნები
-            </Link>
-            <Link to="/categories" className={`mobile-nav-link ${isActive('/categories') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">category</span>
-              კატეგორიები
             </Link>
             <Link to="/playground" className={`mobile-nav-link ${isActive('/playground') ? 'active' : ''}`}>
               <span className="material-symbols-rounded">code_blocks</span>

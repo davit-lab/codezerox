@@ -14,6 +14,29 @@ import { toast } from "sonner";
 
 const AVATAR_BG = ["#5b6abf","#bf5b7a","#5bab8f","#a67bbf","#bf8c5b","#6b8fbf","#8fbf5b","#bf5b5b"];
 
+const extractVoicePath = (v: string) => {
+  const marker = '/voice-messages/';
+  const i = v.indexOf(marker);
+  return i >= 0 ? v.slice(i + marker.length) : v;
+};
+
+const VoiceAudio = ({ value }: { value: string }) => {
+  const [src, setSrc] = useState<string>('');
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const path = extractVoicePath(value);
+        const { data, error } = await supabase.storage.from('voice-messages').createSignedUrl(path, 3600);
+        if (alive && !error && data?.signedUrl) setSrc(data.signedUrl);
+      } catch {}
+    })();
+    return () => { alive = false; };
+  }, [value]);
+  if (!src) return <div className="flex-1 h-8 opacity-60 text-xs flex items-center">იტვირთება…</div>;
+  return <audio controls className="flex-1 h-8" src={src}>Your browser does not support audio.</audio>;
+};
+
 const pickColor = (s: string) => {
   let h = 0;
   for (let i = 0; i < (s||'').length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
@@ -202,23 +225,19 @@ const DirectChat = () => {
     try {
       const messageId = crypto.randomUUID();
       const fileName = `${user.id}/${messageId}.webm`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('voice-messages')
         .upload(fileName, audioBlob);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('voice-messages')
-        .getPublicUrl(fileName);
-
-      // Send voice message
+      // Store storage path (not a public URL); playback resolves it via a signed URL.
       await sendMessage.mutateAsync({
         conversation_id: activeConvoId,
         content: '[Voice Message]',
         is_voice_message: true,
-        voice_url: publicUrl,
+        voice_url: fileName,
         voice_duration: recordingTime
       });
 
@@ -559,9 +578,7 @@ const DirectChat = () => {
                                           <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
                                             <Mic className="w-4 h-4" />
                                           </button>
-                                          <audio controls className="flex-1 h-8" src={m.voice_url}>
-                                            Your browser does not support audio.
-                                          </audio>
+                                          <VoiceAudio value={m.voice_url} />
                                           <span className="text-xs opacity-70">
                                             {m.voice_duration ? `${Math.floor(m.voice_duration / 60)}:${(m.voice_duration % 60).toString().padStart(2, '0')}` : ''}
                                           </span>

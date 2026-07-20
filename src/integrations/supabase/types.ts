@@ -4758,6 +4758,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_marketplace_zip_path: {
+        Args: { _project_id: string }
+        Returns: string
+      }
       get_pending_requests: {
         Args: { _user_id: string }
         Returns: {
@@ -4818,6 +4822,10 @@ export type Database = {
       }
       is_mentoring_hub_member: {
         Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
+      marketplace_project_has_zip: {
+        Args: { _project_id: string }
         Returns: boolean
       }
       move_to_dlq: {
