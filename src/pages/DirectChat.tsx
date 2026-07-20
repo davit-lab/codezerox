@@ -14,6 +14,29 @@ import { toast } from "sonner";
 
 const AVATAR_BG = ["#5b6abf","#bf5b7a","#5bab8f","#a67bbf","#bf8c5b","#6b8fbf","#8fbf5b","#bf5b5b"];
 
+const extractVoicePath = (v: string) => {
+  const marker = '/voice-messages/';
+  const i = v.indexOf(marker);
+  return i >= 0 ? v.slice(i + marker.length) : v;
+};
+
+const VoiceAudio = ({ value }: { value: string }) => {
+  const [src, setSrc] = useState<string>('');
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const path = extractVoicePath(value);
+        const { data, error } = await supabase.storage.from('voice-messages').createSignedUrl(path, 3600);
+        if (alive && !error && data?.signedUrl) setSrc(data.signedUrl);
+      } catch {}
+    })();
+    return () => { alive = false; };
+  }, [value]);
+  if (!src) return <div className="flex-1 h-8 opacity-60 text-xs flex items-center">იტვირთება…</div>;
+  return <audio controls className="flex-1 h-8" src={src}>Your browser does not support audio.</audio>;
+};
+
 const pickColor = (s: string) => {
   let h = 0;
   for (let i = 0; i < (s||'').length; i++) h = s.charCodeAt(i) + ((h << 5) - h);
