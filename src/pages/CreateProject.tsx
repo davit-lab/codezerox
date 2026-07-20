@@ -51,7 +51,18 @@ const CreateProject = () => {
   const [customTech, setCustomTech] = useState('');
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
   const [zipFile, setZipFile] = useState<File | null>(null);
+  const [existingZipPath, setExistingZipPath] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!isEdit || !editId) return;
+    (async () => {
+      try {
+        const { data } = await supabase.rpc('get_marketplace_zip_path', { _project_id: editId } as any);
+        setExistingZipPath((data as string | null) || null);
+      } catch { setExistingZipPath(null); }
+    })();
+  }, [isEdit, editId]);
 
   if (authLoading) return null;
   if (!user) { navigate('/auth'); return null; }
@@ -111,7 +122,7 @@ const CreateProject = () => {
         }
       }
 
-      let zipPath = isEdit ? (existing?.zip_path || null) : null;
+      let zipPath = isEdit ? (existingZipPath || null) : null;
       if (zipFile) {
         const ext = zipFile.name.split('.').pop();
         const path = `${user.id}/marketplace-code/${Date.now()}.${ext}`;
@@ -341,7 +352,7 @@ const CreateProject = () => {
                   onChange={e => setZipFile(e.target.files?.[0] || null)}
                   className="cv-input"
                 />
-                {isEdit && existing?.zip_path && !zipFile && (
+                {isEdit && existingZipPath && !zipFile && (
                   <p style={{ color: 'rgba(52,211,153,0.8)', fontSize: '0.78rem', marginTop: 5 }}>
                     ✓ სორს კოდი უკვე ატვირთულია — ახლის ატვირთვა გამოანაცვლებს
                   </p>

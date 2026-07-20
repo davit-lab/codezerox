@@ -11,7 +11,7 @@ export interface MarketplaceProject {
   price: number | null;
   price_negotiable: boolean;
   preview_url: string;
-  zip_path: string | null;
+  zip_path?: string | null;
   photos: string[];
   status: string;
   is_multi_sale: boolean;
@@ -46,13 +46,15 @@ export interface MarketplaceFilter {
   sortBy?: 'newest' | 'views';
 }
 
+const PROJECT_COLUMNS = 'id, user_id, title, description, tech_stack, price, price_negotiable, preview_url, photos, status, is_multi_sale, views, created_at, updated_at';
+
 export const useMarketplaceProjects = (filter?: MarketplaceFilter) => {
   return useQuery({
     queryKey: ['marketplace', filter],
     queryFn: async () => {
       let query = supabase
         .from('marketplace_projects')
-        .select('*')
+        .select(PROJECT_COLUMNS)
         .eq('status', 'active');
 
       if (filter?.search) {
@@ -76,7 +78,7 @@ export const useMarketplaceProjects = (filter?: MarketplaceFilter) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as MarketplaceProject[];
+      return (data || []) as unknown as MarketplaceProject[];
     },
   });
 };
@@ -87,11 +89,11 @@ export const useMarketplaceProject = (id: string) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('marketplace_projects')
-        .select('*')
+        .select(PROJECT_COLUMNS)
         .eq('id', id)
         .single();
       if (error) throw error;
-      return data as MarketplaceProject;
+      return data as unknown as MarketplaceProject;
     },
     enabled: !!id,
   });
@@ -105,11 +107,11 @@ export const useMyMarketplaceProjects = () => {
       if (!user) return [];
       const { data, error } = await supabase
         .from('marketplace_projects')
-        .select('*')
+        .select(PROJECT_COLUMNS)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return (data || []) as MarketplaceProject[];
+      return (data || []) as unknown as MarketplaceProject[];
     },
     enabled: !!user,
   });
