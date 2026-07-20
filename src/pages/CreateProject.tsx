@@ -122,7 +122,7 @@ const CreateProject = () => {
         }
       }
 
-      let zipPath = isEdit ? (existing?.zip_path || null) : null;
+      let zipPath = isEdit ? (existingZipPath || null) : null;
       if (zipFile) {
         const ext = zipFile.name.split('.').pop();
         const path = `${user.id}/marketplace-code/${Date.now()}.${ext}`;
