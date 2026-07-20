@@ -202,23 +202,19 @@ const DirectChat = () => {
     try {
       const messageId = crypto.randomUUID();
       const fileName = `${user.id}/${messageId}.webm`;
-      
+
       const { error: uploadError } = await supabase.storage
         .from('voice-messages')
         .upload(fileName, audioBlob);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('voice-messages')
-        .getPublicUrl(fileName);
-
-      // Send voice message
+      // Store storage path (not a public URL); playback resolves it via a signed URL.
       await sendMessage.mutateAsync({
         conversation_id: activeConvoId,
         content: '[Voice Message]',
         is_voice_message: true,
-        voice_url: publicUrl,
+        voice_url: fileName,
         voice_duration: recordingTime
       });
 
