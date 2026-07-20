@@ -352,7 +352,7 @@ const CreateProject = () => {
                   onChange={e => setZipFile(e.target.files?.[0] || null)}
                   className="cv-input"
                 />
-                {isEdit && existing?.zip_path && !zipFile && (
+                {isEdit && existingZipPath && !zipFile && (
                   <p style={{ color: 'rgba(52,211,153,0.8)', fontSize: '0.78rem', marginTop: 5 }}>
                     ✓ სორს კოდი უკვე ატვირთულია — ახლის ატვირთვა გამოანაცვლებს
                   </p>
