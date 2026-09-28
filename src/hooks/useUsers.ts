@@ -22,15 +22,41 @@ export const useUsers = () => {
     queryFn: async (): Promise<UserWithRole[]> => {
       const { data, error } = await (supabase.rpc as any)('admin_list_users');
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST202') throw error;
 
-      return (data || []).map((p: any) => ({
+      if (!error) {
+        return (data || []).map((p: any) => ({
+          user_id: p.user_id,
+          email: p.email || '',
+          full_name: p.full_name,
+          avatar_url: p.avatar_url,
+          created_at: p.created_at,
+          role: (p.role || 'user') as AppRole,
+        }));
+      }
+
+      const [{ data: profiles, error: profilesError }, { data: roles, error: rolesError }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('user_id, email, full_name, avatar_url, created_at')
+          .order('created_at', { ascending: false }),
+        supabase
+          .from('user_roles')
+          .select('user_id, role'),
+      ]);
+
+      if (profilesError) throw profilesError;
+      if (rolesError) throw rolesError;
+
+      const roleByUserId = new Map((roles || []).map((role) => [role.user_id, role.role as AppRole]));
+
+      return (profiles || []).map((p) => ({
         user_id: p.user_id,
         email: p.email || '',
         full_name: p.full_name,
         avatar_url: p.avatar_url,
         created_at: p.created_at,
-        role: (p.role || 'user') as AppRole,
+        role: roleByUserId.get(p.user_id) || 'user',
       }));
     },
     enabled: isAdmin,
