@@ -53,7 +53,7 @@ const Cart = () => {
           </div>
 
           {totalItems === 0 ? (
-            <div className="bg-card border border-border rounded-2xl p-16 text-center">
+            <div className="cart-empty-glass bg-card border border-border rounded-2xl p-16 text-center">
               <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-muted/30 flex items-center justify-center">
                 <ShoppingCart className="w-10 h-10 text-muted-foreground/50" />
               </div>

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import SEOHead from "@/components/SEOHead";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import MarkdownRenderer from "@/components/ai/MarkdownRenderer";
+import { getBlogCoverImageUrl } from "@/lib/blog-images";
 
 const getReadingTime = (content: string) => {
   const words = content.split(/\s+/).length;
@@ -79,6 +80,7 @@ const BlogPost = () => {
   }
 
   const readingTime = getReadingTime(post.content);
+  const coverImageUrl = getBlogCoverImageUrl(post.cover_url);
 
   return (
     <>
@@ -104,7 +106,7 @@ const BlogPost = () => {
               "url": "https://codezero.ge/favicon.png"
             }
           },
-          "image": post.cover_url || "https://codezero.ge/favicon.png",
+          "image": coverImageUrl || "https://codezero.ge/favicon.png",
           "url": `https://codezero.ge/blog/${post.id}`
         }}
       />
@@ -150,9 +152,9 @@ const BlogPost = () => {
             </header>
 
             {/* Cover */}
-            {post.cover_url && (
+            {coverImageUrl && (
               <div className="blog-article-cover">
-                <img src={post.cover_url} alt={post.title} />
+                <img src={coverImageUrl} alt={post.title} />
               </div>
             )}
 

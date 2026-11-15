@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/rcralnajyjodfdbnuvdq\.supabase\.co\/rest\/v1\/.*/i,
+            urlPattern: /^https:\/\/cnkhdwcqfxkdmluvikzv\.supabase\.co\/rest\/v1\/.*/i,
             handler: "NetworkFirst",
             options: {
               cacheName: "supabase-api-cache",
@@ -40,7 +40,7 @@ export default defineConfig(({ mode }) => ({
             },
           },
           {
-            urlPattern: /^https:\/\/rcralnajyjodfdbnuvdq\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
+            urlPattern: /^https:\/\/cnkhdwcqfxkdmluvikzv\.supabase\.co\/storage\/v1\/object\/public\/.*/i,
             handler: "CacheFirst",
             options: {
               cacheName: "supabase-storage-cache",
@@ -116,7 +116,6 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@/integrations/supabase/client": path.resolve(__dirname, "./src/lib/lovable-cloud-client.ts"),
       "@": path.resolve(__dirname, "./src"),
     },
   },

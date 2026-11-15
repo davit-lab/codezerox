@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/hooks/useCart";
-import { useTotalUnreadCount } from "@/hooks/useDirectChat";
 import { useSiteCreditsBalance } from "@/hooks/useSiteCredits";
 import Logo from "./Logo";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -13,9 +12,8 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, profile, isAdmin, isMentor, signOut } = useAuth();
+  const { user, profile, isAdmin, signOut } = useAuth();
   const cartItemCount = useCart((state) => state.getItemCount());
-  const { data: unreadCount = 0 } = useTotalUnreadCount();
   const { data: walletBalance = 0 } = useSiteCreditsBalance();
 
 
@@ -74,64 +72,9 @@ const Header = () => {
                     <span className="material-symbols-rounded">menu_book</span>
                     წიგნები
                   </Link>
-                  <Link to="/categories" className={`nav-dropdown-item ${isActive('/categories') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">category</span>
-                    კატეგორიები
-                  </Link>
                   <Link to="/playground" className={`nav-dropdown-item ${isActive('/playground') ? 'active' : ''}`}>
                     <span className="material-symbols-rounded">code_blocks</span>
                     კოდის ედიტორი
-                  </Link>
-                  <Link to="/certifications" className={`nav-dropdown-item ${isActive('/certifications') || location.pathname.startsWith('/exam/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">workspace_premium</span>
-                    სერტიფიკატები
-                  </Link>
-                  <Link to="/cyber-lab" className={`nav-dropdown-item ${isActive('/cyber-lab') || location.pathname.startsWith('/cyber-lab/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">security</span>
-                    Cyber Lab
-                  </Link>
-                  <Link to="/video-courses" className={`nav-dropdown-item ${isActive('/video-courses') || location.pathname.startsWith('/video-courses/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">smart_display</span>
-                    ვიდეო კურსები
-                  </Link>
-                  {(isAdmin || isMentor) && (
-                    <Link to="/mentoring" className={`nav-dropdown-item ${isActive('/mentoring') || location.pathname.startsWith('/mentoring/') ? 'active' : ''}`}>
-                      <span className="material-symbols-rounded">psychology</span>
-                      მენტორინგი
-                    </Link>
-                  )}
-                  <Link to="/kids/login" className={`nav-dropdown-item ${isActive('/kids') || location.pathname.startsWith('/kids/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">child_care</span>
-                    საბავშვო სწავლა 🎮
-                  </Link>
-                  {user && (
-                    <Link to="/parent" className={`nav-dropdown-item ${isActive('/parent') ? 'active' : ''}`}>
-                      <span className="material-symbols-rounded">family_restroom</span>
-                      მშობლის პანელი
-                    </Link>
-                  )}
-                </div>
-              </li>
-
-              {/* დასაქმება dropdown */}
-              <li className="nav-dropdown-wrapper">
-                <button className="nav-link nav-dropdown-trigger">
-                  <span className="material-symbols-rounded">work</span>
-                  დასაქმება
-                  <span className="material-symbols-rounded nav-chevron">expand_more</span>
-                </button>
-                <div className="nav-dropdown-menu">
-                  <Link to="/vacancies" className={`nav-dropdown-item ${isActive('/vacancies') || location.pathname.startsWith('/vacancies/') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">work</span>
-                    ვაკანსიები
-                  </Link>
-                  <Link to="/freelancers" className={`nav-dropdown-item ${isActive('/freelancers') || location.pathname.startsWith('/freelancer') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">person_search</span>
-                    ფრილანსერები
-                  </Link>
-                  <Link to="/projects" className={`nav-dropdown-item ${isActive('/projects') || location.pathname.startsWith('/projects') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">storefront</span>
-                    პროექტების მარკეტი
                   </Link>
                 </div>
               </li>
@@ -144,10 +87,6 @@ const Header = () => {
                   <span className="material-symbols-rounded nav-chevron">expand_more</span>
                 </button>
                 <div className="nav-dropdown-menu">
-                  <Link to="/hub" className={`nav-dropdown-item ${isActive('/hub') || isActive('/community') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">hub</span>
-                    ჰაბი
-                  </Link>
                   <Link to="/gallery" className={`nav-dropdown-item ${isActive('/gallery') ? 'active' : ''}`}>
                     <span className="material-symbols-rounded">public</span>
                     გალერეა
@@ -155,10 +94,6 @@ const Header = () => {
                   <Link to="/blog" className={`nav-dropdown-item ${isActive('/blog') || location.pathname.startsWith('/blog/') ? 'active' : ''}`}>
                     <span className="material-symbols-rounded">article</span>
                     ბლოგი
-                  </Link>
-                  <Link to="/leaderboard" className={`nav-dropdown-item ${isActive('/leaderboard') ? 'active' : ''}`}>
-                    <span className="material-symbols-rounded">leaderboard</span>
-                    ლიდერბორდი
                   </Link>
                 </div>
               </li>
@@ -203,17 +138,6 @@ const Header = () => {
                   */}
                   <NotificationBell />
 
-                  <Link to="/chat" className="icon-btn desktop-only" title="ჩატი" style={{ position: 'relative' }}>
-                    <span className="material-symbols-rounded">chat</span>
-                    {unreadCount > 0 &&
-                  <span style={{
-                    position: 'absolute', top: '-4px', right: '-4px',
-                    background: 'var(--gold)', color: 'var(--bg-void)',
-                    fontSize: '0.7rem', fontWeight: 700, width: '18px', height: '18px',
-                    borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center'
-                  }}>{unreadCount}</span>
-                  }
-                  </Link>
                   <Link to="/my-books" className="desktop-only" title="ჩემი წიგნები" style={{
                     display: 'inline-flex', alignItems: 'center', gap: '6px',
                     padding: '7px 14px', borderRadius: '10px', fontSize: '0.8rem', fontWeight: 600,
@@ -278,10 +202,6 @@ const Header = () => {
               <span className="material-symbols-rounded">menu_book</span>
               წიგნები
             </Link>
-            <Link to="/categories" className={`mobile-nav-link ${isActive('/categories') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">category</span>
-              კატეგორიები
-            </Link>
             <Link to="/playground" className={`mobile-nav-link ${isActive('/playground') ? 'active' : ''}`}>
               <span className="material-symbols-rounded">code_blocks</span>
               კოდის ედიტორი
@@ -290,42 +210,14 @@ const Header = () => {
               <span className="material-symbols-rounded">public</span>
               გალერეა
             </Link>
-            <Link to="/hub" className={`mobile-nav-link ${isActive('/hub') || isActive('/community') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">hub</span>
-              ჰაბი
-            </Link>
-            <Link to="/freelancers" className={`mobile-nav-link ${isActive('/freelancers') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">person_search</span>
-              ფრილანსერები
-            </Link>
-            <Link to="/projects" className={`mobile-nav-link ${isActive('/projects') || location.pathname.startsWith('/projects') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">storefront</span>
-              პროექტების მარკეტი
-            </Link>
             <Link to="/blog" className={`mobile-nav-link ${isActive('/blog') || location.pathname.startsWith('/blog/') ? 'active' : ''}`}>
               <span className="material-symbols-rounded">article</span>
               ბლოგი
-            </Link>
-            <Link to="/leaderboard" className={`mobile-nav-link ${isActive('/leaderboard') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">leaderboard</span>
-              ლიდერბორდი
-            </Link>
-            <Link to="/certifications" className={`mobile-nav-link ${isActive('/certifications') || location.pathname.startsWith('/exam/') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">workspace_premium</span>
-              სერტიფიკატები
-            </Link>
-            <Link to="/video-courses" className={`mobile-nav-link ${isActive('/video-courses') || location.pathname.startsWith('/video-courses/') ? 'active' : ''}`}>
-              <span className="material-symbols-rounded">smart_display</span>
-              ვიდეო კურსები
             </Link>
             
             {user &&
             <>
                 <div className="mobile-nav-divider" />
-                <Link to="/chat" className={`mobile-nav-link ${isActive('/chat') ? 'active' : ''}`}>
-                  <span className="material-symbols-rounded">chat</span>
-                  ჩატი {unreadCount > 0 && `(${unreadCount})`}
-                </Link>
                 <Link to="/my-books" className={`mobile-nav-link ${isActive('/my-books') ? 'active' : ''}`}>
                   <span className="material-symbols-rounded">library_books</span>
                   ჩემი წიგნები
@@ -344,14 +236,6 @@ const Header = () => {
                     ადმინი
                   </Link>
                 )}
-                <Link to="/kids/login" className={`mobile-nav-link ${isActive('/kids') || location.pathname.startsWith('/kids/') ? 'active' : ''}`}>
-                  <span className="material-symbols-rounded">child_care</span>
-                  საბავშვო სწავლა 🎮
-                </Link>
-                <Link to="/parent" className={`mobile-nav-link ${isActive('/parent') ? 'active' : ''}`}>
-                  <span className="material-symbols-rounded">family_restroom</span>
-                  მშობლის პანელი
-                </Link>
             </>
             }
           </nav>

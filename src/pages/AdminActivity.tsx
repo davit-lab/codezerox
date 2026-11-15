@@ -40,7 +40,6 @@ const PAGE_LABELS: Record<string, string> = {
   "/my-books": "ჩემი წიგნები",
   "/cart": "კალათა",
   "/credits": "კრედიტები",
-  "/leaderboard": "ლიდერბორდი",
   "/certifications": "სერტიფიკაციები",
   "/blog": "ბლოგი",
   "/vacancies": "ვაკანსიები",

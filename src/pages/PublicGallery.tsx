@@ -8,8 +8,6 @@ import ChatWidget from '@/components/chat/ChatWidget';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import heroBgDefault from '@/assets/gallery-hero-bg.jpg';
-import { useHeroBanner } from "@/hooks/useHeroBanners";
 
 interface CodeSnippet {
   id: string;
@@ -53,18 +51,19 @@ const PublicGallery = () => {
   const [projects, setProjects] = useState<CodeSnippet[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<'newest' | 'popular'>('newest');
-  const { data: bannerData } = useHeroBanner("gallery");
-  const heroBg = bannerData?.image_url || heroBgDefault;
 
   useEffect(() => {
     fetchPublicProjects();
   }, []);
 
   const fetchPublicProjects = async () => {
+    setIsLoading(true);
+    setLoadError(false);
     try {
       const { data, error } = await supabase
         .from('code_snippets')
@@ -78,10 +77,11 @@ const PublicGallery = () => {
 
       const userIds = [...new Set(snippets.map(s => s.user_id).filter(Boolean))] as string[];
       if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
+        const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select('user_id, full_name, avatar_url')
           .in('user_id', userIds);
+        if (profilesError) throw profilesError;
         if (profilesData) {
           const profilesMap: Record<string, Profile> = {};
           profilesData.forEach((p: Profile) => { profilesMap[p.user_id] = p; });
@@ -90,6 +90,7 @@ const PublicGallery = () => {
       }
     } catch (error) {
       console.error('Error fetching public projects:', error);
+      setLoadError(true);
     } finally {
       setIsLoading(false);
     }
@@ -97,7 +98,7 @@ const PublicGallery = () => {
 
   const getPreviewContent = (project: CodeSnippet) => {
     if (project.language !== 'web') return '';
-    return `<!DOCTYPE html><html><head><style>${project.css_code}</style></head><body>${project.html_code.replace(/<\/?html>|<\/?head>|<\/?body>|<!DOCTYPE html>/gi, '')}<script>${project.js_code}<\/script></body></html>`;
+    return `<!DOCTYPE html><html><head><style>${project.css_code}</style></head><body>${project.html_code.replace(/<\/?html>|<\/?head>|<\/?body>|<!DOCTYPE html>/gi, '')}<script>${project.js_code}</script></body></html>`;
   };
 
   const getCodePreview = (project: CodeSnippet) => {
@@ -138,75 +139,75 @@ const PublicGallery = () => {
     }, {} as Record<string, number>);
   }, [projects]);
 
-  const totalViews = useMemo(() => projects.reduce((s, p) => s + p.views, 0), [projects]);
-
   return (
     <>
       <Atmosphere />
       <Header />
       {user && <ChatWidget />}
 
-      <main className="page-content">
+      <main className="page-content gallery-page">
         <div className="container">
-
-          {/* Hero — same as leaderboard */}
-          <section className="lb2-hero" style={{ backgroundImage: `url(${heroBg})` }}>
-            <div className="lb2-hero-overlay" />
-            <div className="lb2-hero-content">
-              <span className="section-badge">
-                <span className="material-symbols-rounded">public</span>
-                Gallery
-              </span>
-              <h1 className="lb2-hero-title">დეველოპერთა პროექტები</h1>
-              <p className="lb2-hero-subtitle">იხილეთ სხვა დეველოპერების ნამუშევრები ან დაამატეთ თქვენი შედევრები</p>
-              <div className="lb2-hero-stats">
-                <div className="lb2-hero-stat">
-                  <span className="lb2-hero-stat-num">{projects.length}</span>
-                  <span className="lb2-hero-stat-label">პროექტი</span>
+          <section className="gallery-intro">
+            <div className="gallery-intro-copy">
+              <span className="gallery-kicker">CODEZERO COMMUNITY / ნამუშევრები</span>
+              <h1>იდეები, რომლებსაც კოდი აცოცხლებს.</h1>
+              <p>დაათვალიერე საზოგადოების პროექტები, გახსენი კოდი და აიღე შთაგონება შემდეგი ნამუშევრისთვის.</p>
+              <Link to="/playground" className="gallery-create-link">
+                <span className="material-symbols-rounded">add</span>
+                შექმენი პროექტი
+              </Link>
+            </div>
+            <div className="gallery-intro-art">
+              {projects[0] ? (
+                projects[0].language === 'web' ? (
+                  <iframe
+                    srcDoc={getPreviewContent(projects[0])}
+                    title={`${projects[0].title} — პროექტის გადახედვა`}
+                    sandbox="allow-scripts"
+                  />
+                ) : (
+                  <div className="gallery-art-code">
+                    <span>01&nbsp;&nbsp; {projects[0].language.toUpperCase()}</span>
+                    <pre>{getCodePreview(projects[0])}</pre>
+                  </div>
+                )
+              ) : (
+                <div className="gallery-art-empty">
+                  <span className="material-symbols-rounded">code</span>
+                  <strong>შენი ნამუშევარი შეიძლება პირველი იყოს.</strong>
                 </div>
-                <div className="lb2-hero-stat-divider" />
-                <div className="lb2-hero-stat">
-                  <span className="lb2-hero-stat-num">{totalViews.toLocaleString()}</span>
-                  <span className="lb2-hero-stat-label">ნახვა</span>
-                </div>
-                <div className="lb2-hero-stat-divider" />
-                <div className="lb2-hero-stat">
-                  <span className="lb2-hero-stat-num">{Object.keys(profiles).length}</span>
-                  <span className="lb2-hero-stat-label">ავტორი</span>
-                </div>
-              </div>
+              )}
             </div>
           </section>
 
-          {/* Tabs — sort */}
-          <div className="lb2-tabs">
-            <button className={`lb2-tab ${sortBy === 'newest' ? 'lb2-tab-active' : ''}`} onClick={() => setSortBy('newest')}>
-              <span className="material-symbols-rounded">schedule</span>
-              ახალი
-            </button>
-            <button className={`lb2-tab ${sortBy === 'popular' ? 'lb2-tab-active' : ''}`} onClick={() => setSortBy('popular')}>
-              <span className="material-symbols-rounded">trending_up</span>
-              პოპულარული
-            </button>
-          </div>
+          <section className="gallery-workspace" aria-label="პროექტების დათვალიერება">
+            <div className="gallery-toolbar">
+              <div>
+                <span className="gallery-kicker">THE COLLECTION</span>
+                <h2>საზოგადოების ნამუშევრები</h2>
+              </div>
+              <div className="gallery-controls">
+                <label className="gallery-search">
+                  <span className="material-symbols-rounded">search</span>
+                  <input
+                    type="search"
+                    placeholder="მოძებნე პროექტი"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                  {searchQuery && (
+                    <button type="button" onClick={() => setSearchQuery('')} aria-label="ძიების გასუფთავება">
+                      <span className="material-symbols-rounded">close</span>
+                    </button>
+                  )}
+                </label>
+                <div className="gallery-sort" aria-label="პროექტების დალაგება">
+                  <button className={sortBy === 'newest' ? 'active' : ''} onClick={() => setSortBy('newest')}>უახლესი</button>
+                  <button className={sortBy === 'popular' ? 'active' : ''} onClick={() => setSortBy('popular')}>პოპულარული</button>
+                </div>
+              </div>
+            </div>
 
-          {/* Search */}
-          <div className="lb2-search" style={{ marginBottom: 20 }}>
-            <span className="material-symbols-rounded">search</span>
-            <input
-              type="text"
-              placeholder="პროექტის ძებნა..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="lb2-search-clear">
-                <span className="material-symbols-rounded">close</span>
-              </button>
-            )}
-          </div>
-
-          {/* Language Filters */}
           <div className="gal-filters">
             <button
               className={cn("gal-filter-btn", filter === 'all' && "gal-filter-active")}
@@ -230,17 +231,23 @@ const PublicGallery = () => {
             })}
           </div>
 
-          {/* Content */}
           {isLoading ? (
             <div className="lb2-loading">
               <div className="lb2-spinner" />
               <p>იტვირთება...</p>
             </div>
+          ) : loadError ? (
+            <div className="gallery-empty" role="alert">
+              <span className="material-symbols-rounded" style={{ fontSize: 56 }}>cloud_off</span>
+              <p>პროექტების ჩატვირთვა ვერ მოხერხდა.</p>
+              <span>შეამოწმე კავშირი და სცადე თავიდან.</span>
+              <button className="gal-btn-primary" onClick={fetchPublicProjects}>თავიდან ცდა</button>
+            </div>
           ) : filteredProjects.length === 0 ? (
-            <div className="lb2-empty">
+            <div className="gallery-empty">
               <span className="material-symbols-rounded" style={{ fontSize: 56 }}>search_off</span>
-              <p>პროექტები არ მოიძებნა</p>
-              <p className="lb2-empty-sub">სცადე სხვა ფილტრი ან საძიებო სიტყვა</p>
+              <p>ამ ძიებით პროექტი ვერ ვიპოვეთ.</p>
+              <span>სცადე სხვა ენა ან საძიებო სიტყვა.</span>
             </div>
           ) : (
             <div className="gal-grid">
@@ -335,6 +342,7 @@ const PublicGallery = () => {
               })}
             </div>
           )}
+          </section>
         </div>
       </main>
     </>

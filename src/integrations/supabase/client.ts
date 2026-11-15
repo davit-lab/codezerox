@@ -4,7 +4,34 @@ const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL || 'https://cnkhdwcqfxkdmluvikzv.supabase.co';
 const supabaseAnonKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY ||
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNua2hkd2NxZnhrZG1sdXZpa3p2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MTc1NDgsImV4cCI6MjA5MDE5MzU0OH0.IB7XhBjJlckK0N0NF2tXeWrbqYjoyWtFk5vxiGGh-L0';
+  import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseAnonKey) {
+  throw new Error(
+    'Supabase is not configured. Set VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY.',
+  );
+}
+
+const fetchWithTimeout: typeof fetch = async (input, init = {}) => {
+  const controller = new AbortController();
+  const requestSignal = init.signal ?? (input instanceof Request ? input.signal : undefined);
+  const forwardAbort = () => controller.abort();
+
+  if (requestSignal?.aborted) {
+    forwardAbort();
+  } else {
+    requestSignal?.addEventListener('abort', forwardAbort, { once: true });
+  }
+
+  const timeoutId = setTimeout(() => controller.abort(), 20_000);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeoutId);
+    requestSignal?.removeEventListener('abort', forwardAbort);
+  }
+};
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: fetchWithTimeout },
+});

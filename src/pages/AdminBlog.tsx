@@ -133,7 +133,8 @@ const AdminBlog = () => {
                   </div>
                   <div className="form-group">
                     <label className="form-label">ყდის სურათი (URL)</label>
-                    <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://..." />
+                    <input className="form-input" value={coverUrl} onChange={e => setCoverUrl(e.target.value)} placeholder="https://.../image.jpg" />
+                    <small className="text-muted-foreground">გამოიყენეთ პირდაპირი სურათის ბმული და არა ჰოსტინგის გაზიარების გვერდი.</small>
                   </div>
                   <div className="form-group">
                     <label className="form-label">ტეგები (მძიმით გამოყოფილი)</label>

@@ -4,9 +4,10 @@ import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
 import { useBlogPosts } from "@/hooks/useBlog";
 import SEOHead from "@/components/SEOHead";
+import { getBlogCoverImageUrl } from "@/lib/blog-images";
 
 const Blog = () => {
-  const { data: posts = [], isLoading } = useBlogPosts();
+  const { data: posts = [], isLoading, isError, refetch } = useBlogPosts();
   const [activeTag, setActiveTag] = useState<string | null>(null);
 
   const allTags = useMemo(() => {
@@ -22,6 +23,7 @@ const Blog = () => {
 
   const featured = filteredPosts[0];
   const rest = filteredPosts.slice(1);
+  const featuredCoverUrl = getBlogCoverImageUrl(featured?.cover_url);
 
   const formatDate = (date: string) =>
     new Date(date).toLocaleDateString("ka-GE", {
@@ -38,21 +40,23 @@ const Blog = () => {
       <SEOHead title="ბლოგი — სტატიები და სიახლეები" description="წაიკითხეთ საინტერესო სტატიები პროგრამირების, ტექნოლოგიებისა და კარიერის შესახებ" />
       <Atmosphere />
       <Header />
-      <main className="page-content">
-        <div className="container">
-          {/* Hero */}
-          <section className="blog-hero">
-            <span className="section-badge">
-              <span className="material-symbols-rounded">article</span>
-              ბლოგი
-            </span>
-            <h1 className="blog-hero-title">სტატიები & სიახლეები</h1>
-            <p className="blog-hero-subtitle">საინტერესო სტატიები პროგრამირების, ტექნოლოგიებისა და კარიერის შესახებ</p>
+      <main className="page-content editorial-blog">
+        <div className="container editorial-container">
+          <section className="editorial-heading">
+            <div className="editorial-heading-rule">
+              <span>CODEZERO / JOURNAL</span>
+            </div>
+            <h1>ცოდნა იზრდება,<br /><em>როცა მას აზიარებ.</em></h1>
+            <p>ისტორიები კოდზე, სწავლაზე და იმ ადამიანებზე, რომლებიც ტექნოლოგიას ქმნიან.</p>
+            <div className="editorial-heading-foot">
+              <span>საზოგადოების ჟურნალი</span>
+              <span>{posts.length} სტატია</span>
+            </div>
           </section>
 
           {/* Tag Filter */}
           {allTags.length > 0 && (
-            <div className="blog-tags-filter">
+            <div className="blog-tags-filter editorial-tags">
               <button
                 className={`blog-filter-tag ${!activeTag ? 'active' : ''}`}
                 onClick={() => setActiveTag(null)}
@@ -87,6 +91,14 @@ const Blog = () => {
                 </div>
               ))}
             </div>
+          ) : isError ? (
+            <div className="blog-empty" role="alert">
+              <span className="material-symbols-rounded" style={{ fontSize: 56, color: "var(--text-muted)" }}>cloud_off</span>
+              <p>სტატიების ჩატვირთვა ვერ მოხერხდა.</p>
+              <button className="blog-filter-tag active" onClick={() => void refetch()} style={{ marginTop: 16 }}>
+                თავიდან ცდა
+              </button>
+            </div>
           ) : filteredPosts.length === 0 ? (
             <div className="blog-empty">
               <span className="material-symbols-rounded" style={{ fontSize: 64, color: "var(--text-muted)" }}>article</span>
@@ -101,10 +113,15 @@ const Blog = () => {
             <>
               {/* Featured Post */}
               {featured && (
-                <Link to={`/blog/${featured.slug}`} className="blog-featured-card">
+                <>
+                <div className="editorial-section-label">
+                  <span>EDITOR'S PICK</span>
+                  <span>01 / {String(filteredPosts.length).padStart(2, "0")}</span>
+                </div>
+                <Link to={`/blog/${featured.slug}`} className="blog-featured-card editorial-featured">
                   <div className="blog-featured-image">
-                    {featured.cover_url ? (
-                      <img src={featured.cover_url} alt={featured.title} loading="lazy" />
+                    {featuredCoverUrl ? (
+                      <img src={featuredCoverUrl} alt={featured.title} loading="lazy" />
                     ) : (
                       <div className="blog-featured-placeholder">
                         <span className="material-symbols-rounded">article</span>
@@ -113,6 +130,7 @@ const Blog = () => {
                     <div className="blog-featured-overlay" />
                   </div>
                   <div className="blog-featured-content">
+                    <span className="editorial-featured-kicker">რჩეული სტატია</span>
                     {featured.tags && featured.tags.length > 0 && (
                       <div className="blog-card-tags">
                         {featured.tags.slice(0, 4).map(tag => (
@@ -129,20 +147,32 @@ const Blog = () => {
                       <span>·</span>
                       <span>{featured.views} ნახვა</span>
                     </div>
+                    <span className="editorial-read-link">
+                      წაიკითხე სტატია
+                      <span className="material-symbols-rounded">arrow_forward</span>
+                    </span>
                   </div>
                 </Link>
+                </>
               )}
 
               {/* Rest of Posts */}
               {rest.length > 0 && (
-                <div className="blog-grid">
+                <>
+                <div className="editorial-section-label editorial-latest-label">
+                  <span>ბოლო პუბლიკაციები</span>
+                  <span>{String(rest.length).padStart(2, "0")} ARTICLES</span>
+                </div>
+                <div className="blog-grid editorial-grid">
                   {rest.map(post => (
-                    <Link to={`/blog/${post.slug}`} key={post.id} className="blog-card">
-                      {post.cover_url && (
-                        <div className="blog-card-cover">
-                          <img src={post.cover_url} alt={post.title} loading="lazy" />
-                        </div>
-                      )}
+                    <Link to={`/blog/${post.slug}`} key={post.id} className="blog-card editorial-card">
+                      <div className="blog-card-cover">
+                        {getBlogCoverImageUrl(post.cover_url) ? (
+                          <img src={getBlogCoverImageUrl(post.cover_url)!} alt={post.title} loading="lazy" />
+                        ) : (
+                          <span className="material-symbols-rounded" aria-hidden="true">auto_stories</span>
+                        )}
+                      </div>
                       <div className="blog-card-body">
                         {post.tags && post.tags.length > 0 && (
                           <div className="blog-card-tags">
@@ -164,6 +194,7 @@ const Blog = () => {
                     </Link>
                   ))}
                 </div>
+                </>
               )}
             </>
           )}
