@@ -306,7 +306,6 @@ const Auth = () => {
             <ul className="nav-pills flex gap-2">
               <li><a href="/books" className="text-xs text-stone-500 hover:text-stone-300 hover:border-stone-700 hover:bg-white/5 px-4 py-2 rounded-full border border-transparent transition-all font-medium">წიგნები</a></li>
               <li><a href="/courses" className="text-xs text-stone-500 hover:text-stone-300 hover:border-stone-700 hover:bg-white/5 px-4 py-2 rounded-full border border-transparent transition-all font-medium">კურსები</a></li>
-              <li><a href="/hub" className="text-xs text-stone-500 hover:text-stone-300 hover:border-stone-700 hover:bg-white/5 px-4 py-2 rounded-full border border-transparent transition-all font-medium">ჰაბი</a></li>
             </ul>
           </nav>
 

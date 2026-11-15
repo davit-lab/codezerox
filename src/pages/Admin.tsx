@@ -6,9 +6,15 @@ import { useBooks, useCategories } from "@/hooks/useBooks";
 import { useUsers, usePurchasesCount, useTotalUsersCount } from "@/hooks/useUsers";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, AreaChart, Area, CartesianGrid } from "recharts";
 
-const CHART_COLORS = ['#d4a853', '#c49a47', '#b48d3b', '#a47f2f', '#947223', '#846517'];
+// Single-series charts: one brand hue (validated ≥3:1 against the card surface)
+const SERIES = '#8B5CF6';
+const AXIS_TICK = { fill: '#8a8a99', fontSize: 11 };
+const GRID = 'rgba(255,255,255,0.06)';
+
+const gel = (n: number) => `${n.toLocaleString('en-US', { maximumFractionDigits: 2 })} ₾`;
+const num = (n: number) => n.toLocaleString('en-US');
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -212,275 +218,210 @@ const Admin = () => {
     };
   }, [users, purchases, payments, creditPurchases, giftCards, courseSubscriptions, promoCodes]);
 
+  // Redirect non-admins (kept above any early return so hook order is stable)
+  useEffect(() => {
+    if (!isLoading && (!user || !isAdmin)) navigate("/");
+  }, [isLoading, user, isAdmin, navigate]);
+
   if (isLoading) {
     return (
-      <AdminLayout title="📊 ანალიტიკა">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '80px 0' }}>
-          <span className="material-symbols-rounded spinning" style={{ fontSize: '48px', color: 'var(--gold)' }}>progress_activity</span>
+      <AdminLayout title="დეშბორდი" titleIcon="space_dashboard">
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '80px 0' }}>
+          <span className="material-symbols-rounded spinning" style={{ fontSize: '40px', color: 'var(--text-muted)' }}>progress_activity</span>
         </div>
       </AdminLayout>
     );
   }
 
-  // Handle navigation in useEffect instead of during render
-  useEffect(() => {
-    if (!user || !isAdmin) {
-      navigate("/");
-    }
-  }, [user, isAdmin, navigate]);
+  if (!user || !isAdmin) return null;
 
-  if (!user || !isAdmin) {
-    return null;
-  }
-
-  const cardStyle: React.CSSProperties = {
-    background: 'var(--bg-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: '16px',
-    padding: '24px',
-    marginBottom: '24px',
-  };
-
-  const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', borderRadius: '8px', padding: '10px 14px', color: 'var(--text-white)', fontSize: '0.85rem' }}>
-          <p style={{ margin: 0, fontWeight: 600 }}>{label}</p>
-          {payload.map((p: any, i: number) => (
-            <p key={i} style={{ margin: '4px 0 0', color: 'var(--gold)' }}>
-              {p.name === 'revenue' ? `${p.value} ₾` : p.value}
-            </p>
-          ))}
+  const ChartTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload?.length) return null;
+    const p = payload[0];
+    return (
+      <div style={{ background: '#18181f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: '8px 12px', fontSize: '0.82rem' }}>
+        <div style={{ color: 'var(--text-muted)', marginBottom: 2 }}>{label}</div>
+        <div style={{ color: 'var(--text-white)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span style={{ width: 8, height: 8, borderRadius: 2, background: SERIES }} />
+          {p.name === 'revenue' ? gel(p.value) : `${num(p.value)} რეგისტრაცია`}
         </div>
-      );
-    }
-    return null;
+      </div>
+    );
   };
+
+  const maxBook = Math.max(1, ...analytics.popularBooks.map((b) => b.count));
 
   return (
-    <AdminLayout title="📊 ანალიტიკა">
-              {/* Summary Stats */}
-              <div className="admin-stats" style={{ marginBottom: '32px' }}>
-                <div className="admin-stat">
-                  <span className="material-symbols-rounded" style={{ fontSize: '28px', color: 'var(--gold)', marginBottom: '8px' }}>menu_book</span>
-                  <div className="admin-stat-value">{books.length}</div>
-                  <div className="admin-stat-label">წიგნები</div>
-                </div>
-                <div className="admin-stat">
-                  <span className="material-symbols-rounded" style={{ fontSize: '28px', color: 'var(--gold)', marginBottom: '8px' }}>group</span>
-                  <div className="admin-stat-value">{totalUsersCount}</div>
-                  <div className="admin-stat-label">მომხმარებლები</div>
-                </div>
-                <div className="admin-stat">
-                  <span className="material-symbols-rounded" style={{ fontSize: '28px', color: 'var(--gold)', marginBottom: '8px' }}>shopping_cart</span>
-                  <div className="admin-stat-value">{purchasesCount}</div>
-                  <div className="admin-stat-label">შეძენები</div>
-                </div>
-                <div className="admin-stat">
-                  <span className="material-symbols-rounded" style={{ fontSize: '28px', color: 'var(--gold)', marginBottom: '8px' }}>payments</span>
-                  <div className="admin-stat-value">{analytics.totalRevenue}₾</div>
-                  <div className="admin-stat-label">სულ შემოსავალი</div>
-                </div>
-              </div>
+    <AdminLayout
+      title="დეშბორდი"
+      titleIcon="space_dashboard"
+      actions={
+        <>
+          <Link to="/admin/payments" className="btn btn-ghost btn-sm">გადახდები</Link>
+          <Link to="/admin/books" className="btn btn-gold btn-sm">
+            <span className="material-symbols-rounded" style={{ fontSize: 18 }}>add</span>
+            წიგნის დამატება
+          </Link>
+        </>
+      }
+    >
+      {/* Headline numbers */}
+      <section className="dash-kpis" aria-label="მთავარი მაჩვენებლები">
+        <div className="dash-kpi">
+          <div className="dash-kpi__label">სულ შემოსავალი</div>
+          <div className="dash-kpi__value">{gel(analytics.totalRevenue)}</div>
+          <div className="dash-kpi__sub">ამ თვეს {gel(analytics.thisMonthRevenue)} · დღეს {gel(analytics.todayRevenue)}</div>
+        </div>
+        <div className="dash-kpi">
+          <div className="dash-kpi__label">მომხმარებლები</div>
+          <div className="dash-kpi__value">{num(totalUsersCount)}</div>
+          <div className="dash-kpi__sub">ამ თვეს +{num(analytics.thisMonthUsers)} · დღეს +{num(analytics.todayUsers)}</div>
+        </div>
+        <div className="dash-kpi">
+          <div className="dash-kpi__label">შეძენები</div>
+          <div className="dash-kpi__value">{num(purchasesCount)}</div>
+          <div className="dash-kpi__sub">კონვერსია {analytics.conversionRate}% (შეძენა / რეგისტრაცია)</div>
+        </div>
+        <div className="dash-kpi">
+          <div className="dash-kpi__label">წიგნები</div>
+          <div className="dash-kpi__value">{num(books.length)}</div>
+          <div className="dash-kpi__sub">{num(categories.length)} კატეგორია</div>
+        </div>
+      </section>
 
-              {/* Today & This Month highlights */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>დღეს რეგისტრაცია</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.8rem', fontWeight: 700 }}>{analytics.todayUsers}</div>
-                </div>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>ამ თვეს რეგისტრაცია</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.8rem', fontWeight: 700 }}>{analytics.thisMonthUsers}</div>
-                </div>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>დღეს შემოსავალი</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.8rem', fontWeight: 700 }}>{analytics.todayRevenue}₾</div>
-                </div>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>ამ თვეს შემოსავალი</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.8rem', fontWeight: 700 }}>{analytics.thisMonthRevenue}₾</div>
-                </div>
-              </div>
+      <div className="dash-grid">
+        <section className="dash-card">
+          <div className="dash-card__head">
+            <h2 className="dash-card__title">შემოსავალი თვეების მიხედვით</h2>
+            <span className="dash-card__meta">ბოლო 6 თვე, ₾</span>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={analytics.monthlyRevenue} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke={GRID} />
+              <XAxis dataKey="month" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+              <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} />
+              <Tooltip content={<ChartTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.2)' }} />
+              <Area type="monotone" dataKey="revenue" name="revenue" stroke={SERIES} strokeWidth={2} fill={SERIES} fillOpacity={0.12} activeDot={{ r: 4, stroke: '#111116', strokeWidth: 2 }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </section>
 
-              {/* Charts Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '24px', marginBottom: '32px' }}>
-                {/* Daily Registrations */}
-                <div style={cardStyle}>
-                  <h3 style={{ color: 'var(--text-white)', fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
-                    <span className="material-symbols-rounded" style={{ fontSize: '18px', verticalAlign: 'middle', marginRight: '6px', color: 'var(--gold)' }}>person_add</span>
-                    ბოლო 14 დღის რეგისტრაციები
-                  </h3>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={analytics.dailyUsers}>
-                      <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis allowDecimals={false} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="count" name="მომხმარებლები" fill="#d4a853" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+        <section className="dash-card">
+          <div className="dash-card__head">
+            <h2 className="dash-card__title">ახალი რეგისტრაციები</h2>
+            <span className="dash-card__meta">ბოლო 14 დღე</span>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={analytics.dailyUsers} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke={GRID} />
+              <XAxis dataKey="date" tick={AXIS_TICK} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+              <YAxis allowDecimals={false} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+              <Bar dataKey="count" name="users" fill={SERIES} radius={[4, 4, 0, 0]} maxBarSize={28} />
+            </BarChart>
+          </ResponsiveContainer>
+        </section>
 
-                {/* Monthly Revenue */}
-                <div style={cardStyle}>
-                  <h3 style={{ color: 'var(--text-white)', fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
-                    <span className="material-symbols-rounded" style={{ fontSize: '18px', verticalAlign: 'middle', marginRight: '6px', color: 'var(--gold)' }}>trending_up</span>
-                    ყოველთვიური შემოსავალი
-                  </h3>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={analytics.monthlyRevenue}>
-                      <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="revenue" name="revenue" stroke="#d4a853" strokeWidth={2} fill="rgba(212,168,83,0.15)" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+        <section className="dash-card">
+          <div className="dash-card__head">
+            <h2 className="dash-card__title">რეგისტრაციები თვეების მიხედვით</h2>
+            <span className="dash-card__meta">ბოლო 6 თვე</span>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={analytics.monthlyUsers} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid vertical={false} stroke={GRID} />
+              <XAxis dataKey="month" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+              <YAxis allowDecimals={false} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+              <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(255,255,255,0.04)' }} />
+              <Bar dataKey="count" name="users" fill={SERIES} radius={[4, 4, 0, 0]} maxBarSize={40} />
+            </BarChart>
+          </ResponsiveContainer>
+        </section>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '24px', marginBottom: '32px' }}>
-                {/* Monthly Users */}
-                <div style={cardStyle}>
-                  <h3 style={{ color: 'var(--text-white)', fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
-                    <span className="material-symbols-rounded" style={{ fontSize: '18px', verticalAlign: 'middle', marginRight: '6px', color: 'var(--gold)' }}>groups</span>
-                    ყოველთვიური რეგისტრაციები
-                  </h3>
-                  <ResponsiveContainer width="100%" height={220}>
-                    <BarChart data={analytics.monthlyUsers}>
-                      <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <YAxis allowDecimals={false} tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Bar dataKey="count" name="მომხმარებლები" fill="#c49a47" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+        <section className="dash-card">
+          <div className="dash-card__head">
+            <h2 className="dash-card__title">ყველაზე გაყიდვადი წიგნები</h2>
+            <span className="dash-card__meta">შეძენების რაოდენობა</span>
+          </div>
+          {analytics.popularBooks.length > 0 ? (
+            <ol className="dash-rank">
+              {analytics.popularBooks.map((book, i) => (
+                <li key={i}>
+                  <span className="dash-rank__name">{book.title}</span>
+                  <span className="dash-rank__val">{num(book.count)}</span>
+                  <span className="dash-rank__bar"><span style={{ width: `${(book.count / maxBook) * 100}%` }} /></span>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p className="dash-empty">შეძენები ჯერ არ არის</p>
+          )}
+        </section>
+      </div>
 
-                {/* Popular Books */}
-                <div style={cardStyle}>
-                  <h3 style={{ color: 'var(--text-white)', fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
-                    <span className="material-symbols-rounded" style={{ fontSize: '18px', verticalAlign: 'middle', marginRight: '6px', color: 'var(--gold)' }}>star</span>
-                    პოპულარული წიგნები
-                  </h3>
-                  {analytics.popularBooks.length > 0 ? (
-                    <div style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                      <ResponsiveContainer width={160} height={160}>
-                        <PieChart>
-                          <Pie data={analytics.popularBooks} dataKey="count" nameKey="title" cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2}>
-                            {analytics.popularBooks.map((_, i) => (
-                              <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
-                            ))}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
-                      <div style={{ flex: 1 }}>
-                        {analytics.popularBooks.map((book, i) => (
-                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: i < analytics.popularBooks.length - 1 ? '1px solid var(--border-subtle)' : 'none' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: CHART_COLORS[i % CHART_COLORS.length] }} />
-                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{book.title}</span>
-                            </div>
-                            <span style={{ color: 'var(--gold)', fontWeight: 600, fontSize: '0.85rem' }}>{book.count}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : (
-                    <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '40px 0' }}>შეძენები ჯერ არ არის</p>
-                  )}
-                </div>
-              </div>
+      <div className="dash-grid">
+        <section className="dash-card">
+          <div className="dash-card__head">
+            <h2 className="dash-card__title">ბოლო შეძენები</h2>
+            <Link to="/admin/payments" className="dash-card__link">ყველა →</Link>
+          </div>
+          {analytics.recentPurchases.length > 0 ? (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="dash-table">
+                <thead>
+                  <tr><th>წიგნი</th><th>თარიღი</th><th className="num">ფასი</th></tr>
+                </thead>
+                <tbody>
+                  {analytics.recentPurchases.map((p: any, i: number) => (
+                    <tr key={i}>
+                      <td>{(p.books as any)?.title || 'უცნობი'}</td>
+                      <td>{new Date(p.purchased_at).toLocaleDateString('ka-GE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                      <td className="num">{gel(Number((p.books as any)?.price || 0))}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="dash-empty">შეძენები ჯერ არ არის</p>
+          )}
+        </section>
 
-              {/* Extra Stats Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>გიფთქარდები</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.6rem', fontWeight: 700 }}>{analytics.gcTotal}</div>
-                  <div style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>{analytics.gcActive} აქტიური • {analytics.gcRedeemed} გამოყენებული</div>
-                </div>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>კურსის გამოწერები</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.6rem', fontWeight: 700 }}>{analytics.totalSubs}</div>
-                  <div style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>{analytics.activeSubs} აქტიური</div>
-                </div>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>პრომო კოდები</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.6rem', fontWeight: 700 }}>{analytics.activePromos}</div>
-                  <div style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>{analytics.totalPromoUsage} ჯერ გამოყენებული</div>
-                </div>
-                <div style={{ ...cardStyle, marginBottom: 0, textAlign: 'center' }}>
-                  <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '4px' }}>კონვერსია</div>
-                  <div style={{ color: 'var(--gold)', fontSize: '1.6rem', fontWeight: 700 }}>{analytics.conversionRate}%</div>
-                  <div style={{ color: 'var(--text-dim)', fontSize: '0.75rem' }}>შეძენა / რეგისტრაცია</div>
-                </div>
-              </div>
-
-              {/* Recent Purchases */}
-              <div style={{ ...cardStyle, marginBottom: '32px' }}>
-                <h3 style={{ color: 'var(--text-white)', fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
-                  <span className="material-symbols-rounded" style={{ fontSize: '18px', verticalAlign: 'middle', marginRight: '6px', color: 'var(--gold)' }}>receipt_long</span>
-                  ბოლო შეძენები
-                </h3>
-                {analytics.recentPurchases.length > 0 ? (
-                  <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr>
-                          {['წიგნი', 'ფასი', 'თარიღი'].map(h => (
-                            <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600, borderBottom: '1px solid var(--border-subtle)' }}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {analytics.recentPurchases.map((p: any, i: number) => (
-                          <tr key={i} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                            <td style={{ padding: '8px 12px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{(p.books as any)?.title || 'უცნობი'}</td>
-                            <td style={{ padding: '8px 12px', color: 'var(--gold)', fontSize: '0.85rem', fontWeight: 600 }}>{(p.books as any)?.price || 0}₾</td>
-                            <td style={{ padding: '8px 12px', color: 'var(--text-muted)', fontSize: '0.8rem' }}>{new Date(p.purchased_at).toLocaleDateString('ka-GE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <p style={{ color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>შეძენები ჯერ არ არის</p>
-                )}
-              </div>
-
-              {/* Quick Actions */}
-              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <Link to="/admin/books" className="btn btn-gold">
-                  <span className="material-symbols-rounded">add</span>
-                  წიგნის დამატება
-                </Link>
-                <Link to="/admin/courses" className="btn btn-gold">
-                  <span className="material-symbols-rounded">school</span>
-                  კურსები
-                </Link>
-                <Link to="/admin/gift-cards" className="btn btn-gold">
-                  <span className="material-symbols-rounded">redeem</span>
-                  გიფთქარდები
-                </Link>
-                <Link to="/admin/users" className="btn btn-ghost">
-                  <span className="material-symbols-rounded">group</span>
-                  მომხმარებლები
-                </Link>
-                <Link to="/admin/payments" className="btn btn-ghost">
-                  <span className="material-symbols-rounded">account_balance</span>
-                  გადახდები
-                </Link>
-                <Link to="/admin/promo-codes" className="btn btn-ghost">
-                  <span className="material-symbols-rounded">loyalty</span>
-                  პრომო კოდები
-                </Link>
-                <Link to="/admin/chats" className="btn btn-ghost">
-                  <span className="material-symbols-rounded">chat</span>
-                  ჩატები
-                </Link>
-                <Link to="/admin/activity" className="btn btn-ghost">
-                  <span className="material-symbols-rounded">timeline</span>
-                  აქტივობა
-                </Link>
-              </div>
+        <section className="dash-card">
+          <div className="dash-card__head">
+            <h2 className="dash-card__title">სხვა მაჩვენებლები</h2>
+          </div>
+          <table className="dash-table">
+            <tbody>
+              <tr>
+                <td><Link to="/admin/courses" className="dash-card__link">კურსის გამოწერები</Link></td>
+                <td>{num(analytics.activeSubs)} აქტიური</td>
+                <td className="num">{num(analytics.totalSubs)}</td>
+              </tr>
+              <tr>
+                <td><Link to="/admin/promo-codes" className="dash-card__link">აქტიური პრომო კოდები</Link></td>
+                <td>{num(analytics.totalPromoUsage)}-ჯერ გამოყენებული</td>
+                <td className="num">{num(analytics.activePromos)}</td>
+              </tr>
+              <tr>
+                <td>გიფთქარდები</td>
+                <td>{num(analytics.gcActive)} აქტიური · {num(analytics.gcRedeemed)} გამოყენებული</td>
+                <td className="num">{num(analytics.gcTotal)}</td>
+              </tr>
+              <tr>
+                <td>გიფთქარდები ამ თვეს</td>
+                <td></td>
+                <td className="num">{num(analytics.gcThisMonth)}</td>
+              </tr>
+            </tbody>
+          </table>
+          <div className="dash-quick" style={{ marginTop: 20 }}>
+            <Link to="/admin/users" className="btn btn-ghost btn-sm">მომხმარებლები</Link>
+            <Link to="/admin/chats" className="btn btn-ghost btn-sm">ჩატები</Link>
+            <Link to="/admin/activity" className="btn btn-ghost btn-sm">აქტივობა</Link>
+          </div>
+        </section>
+      </div>
     </AdminLayout>
   );
 };

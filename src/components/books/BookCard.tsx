@@ -20,18 +20,15 @@ const BookCard = ({ book, showOwnedBadge, readingProgress }: BookCardProps) => {
   return (
     <Link 
       to={showOwnedBadge ? `/read/${book.id}` : `/books/${book.id}`} 
-      className="group relative flex flex-col rounded-2xl bg-card border border-border/50 overflow-hidden transition-all duration-500 hover:border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/5 hover:-translate-y-1 min-w-0"
+      className="group relative flex flex-col rounded-xl bg-card border border-white/[0.07] overflow-hidden transition-colors duration-200 hover:border-white/[0.16] min-w-0"
     >
-      {/* Glow Effect */}
-      <div className="absolute -inset-px bg-gradient-to-br from-purple-600/0 via-purple-600/0 to-purple-600/0 group-hover:from-purple-600/10 group-hover:via-transparent group-hover:to-purple-600/5 rounded-2xl transition-all duration-500 pointer-events-none" />
-      
       {/* Cover Section */}
       <div className="relative aspect-[3/4] overflow-hidden bg-muted/30">
         {book.cover_url ? (
           <img 
             src={book.cover_url} 
             alt={book.title} 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted/50 to-muted">
@@ -181,7 +178,7 @@ const BookCard = ({ book, showOwnedBadge, readingProgress }: BookCardProps) => {
               {isCompleted ? 'თავიდან' : readingProgress && readingProgress.last_page > 1 ? 'გაგრძელება' : 'კითხვა'}
             </span>
           ) : (
-            <span className={`text-lg font-bold ${book.is_free ? 'text-emerald-500' : 'text-foreground'}`}>
+            <span className={`text-lg font-bold whitespace-nowrap ${book.is_free ? 'text-emerald-500' : 'text-foreground'}`}>
               {book.is_free ? 'უფასო' : `${book.price.toFixed(2)} ₾`}
             </span>
           )}

@@ -8,6 +8,7 @@ import { useReadingProgress, useUpdateReadingProgress } from "@/hooks/useReading
 import { useBookmarks } from "@/hooks/useBookmarks";
 import { toast } from "sonner";
 import PdfRenderer from "@/components/reader/PdfRenderer";
+import { clampZoom } from "@/components/reader/pdfViewerEngine";
 import BookmarkPanel from "@/components/reader/BookmarkPanel";
 const PROTECTION_STYLES = `
   .reader-protected {
@@ -54,7 +55,7 @@ const PROTECTION_STYLES = `
   }
 `;
 
-const ZOOM_LEVELS = [1, 1.25, 1.5, 1.75, 2];
+const ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 2.5, 3, 4];
 
 const BookReader = () => {
   const { id } = useParams<{ id: string }>();
@@ -223,12 +224,14 @@ const BookReader = () => {
   }, [currentPage, totalPages, book?.pages]);
 
   const handleZoom = useCallback((dir: 'in' | 'out') => {
+    // Step to the next preset relative to the current (possibly pinch-set) zoom
     setZoom(prev => {
-      const idx = ZOOM_LEVELS.findIndex(z => z >= prev);
-      if (dir === 'in') return ZOOM_LEVELS[Math.min(idx + 1, ZOOM_LEVELS.length - 1)] || prev;
-      return ZOOM_LEVELS[Math.max((idx === -1 ? ZOOM_LEVELS.length : idx) - 1, 0)] || prev;
+      if (dir === 'in') return ZOOM_LEVELS.find(z => z > prev + 0.01) ?? prev;
+      return [...ZOOM_LEVELS].reverse().find(z => z < prev - 0.01) ?? prev;
     });
   }, []);
+
+  const handleZoomChange = useCallback((z: number) => setZoom(clampZoom(z)), []);
 
   const handleGoToPage = useCallback((page: number) => {
     const maxPages = totalPages || book?.pages || 9999;
@@ -392,6 +395,7 @@ const BookReader = () => {
               initialPage={isPreview ? 1 : (initialPageRef.current ?? 1)}
               onPageChange={handlePageChange}
               zoom={zoom}
+              onZoomChange={handleZoomChange}
               maxPages={isPreview ? PREVIEW_MAX_PAGES : undefined}
             />
             {/* Preview end overlay */}

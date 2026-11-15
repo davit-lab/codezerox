@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { useAuth } from "@/hooks/useAuth";
-import { useUsers, useUpdateUserRole, useDeleteUser, useAssignCourseMentor } from "@/hooks/useUsers";
+import { useUsers, useUpdateUserRole, useDeleteUser } from "@/hooks/useUsers";
 import { useBooks } from "@/hooks/useBooks";
-import { useAllMentoringCourses } from "@/hooks/useMentoring";
 import { useAdminGiveCredits, useAdminDeductCredits, useAdminGiveBookAccess, useAdminRemoveBookAccess, useAdminGetUserCredits, useAdminGetUserPurchases } from "@/hooks/useAdminActions";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,11 +28,9 @@ const AdminUsers = () => {
   const { user, isAdmin, isLoading: authLoading } = useAuth();
   const { data: users = [], isLoading: usersLoading } = useUsers();
   const { data: books = [] } = useBooks();
-  const { data: mentoringCourses = [] } = useAllMentoringCourses();
 
   const updateRole = useUpdateUserRole();
   const deleteUser = useDeleteUser();
-  const assignCourseMentor = useAssignCourseMentor();
   const giveCredits = useAdminGiveCredits();
   const deductCredits = useAdminDeductCredits();
   const giveBookAccess = useAdminGiveBookAccess();
@@ -44,7 +41,7 @@ const AdminUsers = () => {
   const [searchQuery, setSearchQuery] = useState('');
   
   const [selectedUser, setSelectedUser] = useState<UserModalData | null>(null);
-  const [modalType, setModalType] = useState<'credits' | 'books' | 'password' | 'mentoring' | null>(null);
+  const [modalType, setModalType] = useState<'credits' | 'books' | 'password' | null>(null);
   const [creditsAmount, setCreditsAmount] = useState(50);
   const [selectedBookId, setSelectedBookId] = useState('');
   const [userCredits, setUserCredits] = useState(0);
@@ -101,11 +98,6 @@ const AdminUsers = () => {
     setSelectedUser({ userId: u.user_id, email: u.email, fullName: u.full_name });
     setModalType('password');
     setResetPassword('');
-  };
-
-  const openMentoringModal = (u: typeof users[0]) => {
-    setSelectedUser({ userId: u.user_id, email: u.email, fullName: u.full_name });
-    setModalType('mentoring');
   };
 
   const closeModal = () => {
@@ -321,13 +313,6 @@ const AdminUsers = () => {
                                 title="წიგნებზე წვდომა"
                               >
                                 <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>menu_book</span>
-                              </button>
-                              <button 
-                                className="btn btn-sm btn-ghost"
-                                onClick={() => openMentoringModal(u)}
-                                title="სამენტოროს მართვა"
-                              >
-                                <span className="material-symbols-rounded" style={{ fontSize: '18px', color: u.role === 'mentor' ? '#818cf8' : undefined }}>psychology</span>
                               </button>
                               <button 
                                 className="btn btn-sm btn-ghost"
@@ -622,166 +607,6 @@ const AdminUsers = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Mentoring Assignment Modal */}
-      <Dialog open={modalType === 'mentoring' && !!selectedUser} onOpenChange={closeModal}>
-        <DialogContent style={{ maxWidth: '520px' }}>
-          <DialogHeader>
-            <DialogTitle style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="material-symbols-rounded" style={{ color: '#818cf8' }}>psychology</span>
-              სამენტოროს მართვა
-            </DialogTitle>
-          </DialogHeader>
-          <div style={{ padding: '8px 0 16px' }}>
-            <p style={{ color: 'var(--text-muted)', marginBottom: '20px', fontSize: '0.9rem' }}>
-              {selectedUser?.fullName || selectedUser?.email}
-            </p>
-
-            {(() => {
-              const currentUser = users.find(u => u.user_id === selectedUser?.userId);
-              const isCurrentlyMentor = currentUser?.role === 'mentor';
-              const assignedCourses = mentoringCourses.filter(c => (c as any).mentor_user_id === selectedUser?.userId);
-              const unassignedCourses = mentoringCourses.filter(c => (c as any).mentor_user_id !== selectedUser?.userId);
-
-              return (
-                <>
-                  {/* Role toggle */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '14px 16px',
-                    background: 'var(--bg-elevated)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: '10px',
-                    marginBottom: '20px',
-                  }}>
-                    <div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-white)', fontSize: '0.95rem' }}>მენტორის როლი</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>
-                        {isCurrentlyMentor ? 'აქვს სამენტორო ადმინის წვდომა' : 'არ აქვს მენტორის წვდომა'}
-                      </div>
-                    </div>
-                    <button
-                      className={isCurrentlyMentor ? 'btn btn-sm btn-ghost' : 'btn btn-sm btn-gold'}
-                      disabled={updateRole.isPending || selectedUser?.userId === user?.id}
-                      onClick={async () => {
-                        if (!selectedUser) return;
-                        try {
-                          await updateRole.mutateAsync({
-                            userId: selectedUser.userId,
-                            role: isCurrentlyMentor ? 'user' : 'mentor',
-                          });
-                          toast.success(isCurrentlyMentor ? 'მენტორის როლი მოხსნილია' : 'მენტორის როლი მინიჭებულია');
-                        } catch {
-                          toast.error('შეცდომა როლის შეცვლისას');
-                        }
-                      }}
-                    >
-                      {isCurrentlyMentor ? 'მოხსნა' : 'მინიჭება'}
-                    </button>
-                  </div>
-
-                  {/* Assigned courses */}
-                  <div style={{ marginBottom: '18px' }}>
-                    <div style={{
-                      fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em',
-                      color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600,
-                    }}>მინიჭებული კურსები ({assignedCourses.length})</div>
-                    {assignedCourses.length === 0 ? (
-                      <div style={{ padding: '14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem', background: 'var(--bg-surface)', borderRadius: '8px' }}>
-                        ჯერ არცერთი კურსი არ აქვს მინიჭებული
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                        {assignedCourses.map(c => (
-                          <div key={c.id} style={{
-                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
-                            padding: '10px 12px',
-                            background: 'rgba(99,102,241,0.08)',
-                            border: '1px solid rgba(99,102,241,0.25)',
-                            borderRadius: '8px',
-                          }}>
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ color: 'var(--text-white)', fontSize: '0.9rem', fontWeight: 500 }}>{c.title}</div>
-                              <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{c.language}</div>
-                            </div>
-                            <button
-                              className="btn btn-sm btn-ghost"
-                              title="გათიშვა"
-                              onClick={async () => {
-                                try {
-                                  await assignCourseMentor.mutateAsync({ courseId: c.id, mentorUserId: null });
-                                  toast.success('კურსიდან გათიშულია');
-                                } catch (e: any) {
-                                  toast.error(e?.message ?? 'შეცდომა');
-                                }
-                              }}
-                            >
-                              <span className="material-symbols-rounded" style={{ fontSize: '18px', color: 'var(--ruby)' }}>link_off</span>
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Assign new course */}
-                  <div>
-                    <div style={{
-                      fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em',
-                      color: 'var(--text-muted)', marginBottom: '8px', fontWeight: 600,
-                    }}>კურსზე ჩართვა</div>
-                    {unassignedCourses.length === 0 ? (
-                      <div style={{ padding: '14px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
-                        თავისუფალი კურსი არ არის
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '200px', overflowY: 'auto' }}>
-                        {unassignedCourses.map(c => {
-                          const occupiedBy = (c as any).mentor_user_id;
-                          return (
-                            <div key={c.id} style={{
-                              display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px',
-                              padding: '10px 12px',
-                              background: 'var(--bg-surface)',
-                              border: '1px solid var(--border-subtle)',
-                              borderRadius: '8px',
-                            }}>
-                              <div style={{ minWidth: 0 }}>
-                                <div style={{ color: 'var(--text-white)', fontSize: '0.9rem', fontWeight: 500 }}>{c.title}</div>
-                                <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                                  {c.language}{occupiedBy ? ' · დაკავებული' : ' · თავისუფალი'}
-                                </div>
-                              </div>
-                              <button
-                                className="btn btn-sm btn-gold"
-                                onClick={async () => {
-                                  if (!selectedUser) return;
-                                  if (occupiedBy && !confirm('კურსს უკვე ჰყავს მენტორი. შეცვალო?')) return;
-                                  try {
-                                    if (!isCurrentlyMentor) {
-                                      await updateRole.mutateAsync({ userId: selectedUser.userId, role: 'mentor' });
-                                    }
-                                    await assignCourseMentor.mutateAsync({ courseId: c.id, mentorUserId: selectedUser.userId });
-                                    toast.success('მინიჭებულია');
-                                  } catch (e: any) {
-                                    toast.error(e?.message ?? 'შეცდომა');
-                                  }
-                                }}
-                              >
-                                <span className="material-symbols-rounded" style={{ fontSize: '16px' }}>add_link</span>
-                                ჩართვა
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </>
-              );
-            })()}
-          </div>
-        </DialogContent>
-      </Dialog>
     </AdminLayout>
   );
 };

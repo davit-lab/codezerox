@@ -88,7 +88,7 @@ const UserProfile = () => {
       <main className="pt-32 pb-20 min-h-screen">
         <div className="container max-w-4xl mx-auto px-4">
           {/* Back */}
-          <Link to="/hub" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold transition-colors mb-6">
+          <Link to="/" className="inline-flex items-center gap-2 text-text-secondary hover:text-gold transition-colors mb-6">
             <ChevronLeft className="w-4 h-4" />
             უკან
           </Link>

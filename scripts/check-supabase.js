@@ -1,5 +1,5 @@
 // Check Supabase connection and data
-const { createClient } = require('@supabase/supabase-js');
+import { createClient } from '@supabase/supabase-js';
 
 // Current credentials
 const supabaseUrl = 'https://cnkhdwcqfxkdmluvikzv.supabase.co';

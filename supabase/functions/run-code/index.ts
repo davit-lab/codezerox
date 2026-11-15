@@ -57,6 +57,7 @@ serve(async (req) => {
     const body = await req.json();
     const language = body?.language;
     const code = body?.code;
+    const stdin = typeof body?.stdin === "string" ? body.stdin.slice(0, 10000) : "";
 
     if (!language || typeof language !== "string" || !code || typeof code !== "string") {
       return new Response(
@@ -88,7 +89,7 @@ serve(async (req) => {
         body: JSON.stringify({
           language_id: languageId,
           source_code: code,
-          stdin: "",
+          stdin,
         }),
       }
     );

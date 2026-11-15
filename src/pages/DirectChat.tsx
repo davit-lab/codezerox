@@ -371,10 +371,6 @@ const DirectChat = () => {
                     {conversations.length === 0 ? (
                       <>
                         <p className="text-white/40 text-sm mb-1">საუბრები ჯერ არ გაქვთ</p>
-                        <p className="text-white/20 text-xs mb-4">დაიწყეთ ახალი საუბარი ფრილანსერის პროფილიდან</p>
-                        <Link to="/freelancers" className="inline-block text-xs text-[#d4a853] hover:underline">
-                          ფრილანსერების ნახვა →
-                        </Link>
                       </>
                     ) : (
                       <p className="text-white/25 text-sm">ვერ მოიძებნა</p>

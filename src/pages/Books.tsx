@@ -117,27 +117,14 @@ const Books = () => {
       
       <main className="pt-36 pb-20 min-h-screen">
         <div className="container mx-auto px-4">
-          {/* Hero Section */}
-          <div className="text-center mb-12 relative">
-            <div className="absolute inset-0 -z-10 bg-gold/5 blur-3xl" />
-            
-            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 bg-accent border border-gold/20 rounded-full text-xs font-semibold tracking-widest uppercase text-gold mb-6">
-              <span className="material-symbols-rounded text-sm">library_books</span>
-              ბიბლიოთეკა
-            </div>
-            
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-display font-bold text-foreground mb-5 tracking-tight break-words">
-              ყველა <span className="text-gold">წიგნი</span>
-            </h1>
-            
-            <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed break-words">
-              აღმოაჩინე საუკეთესო პროგრამირების რესურსები დეველოპერებისთვის
-            </p>
-          </div>
+          <header className="page-head">
+            <h1 className="page-head__title">წიგნები</h1>
+            <p className="page-head__lead">პროგრამირების წიგნები ქართულ ენაზე — იყიდე ცალკე ან ნაკრებად ფასდაკლებით.</p>
+          </header>
 
           {/* Category Pills */}
           <div className="mb-8">
-            <div className="flex flex-wrap justify-center gap-3">
+            <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setCategoryFilter("")}
                 className={`group relative px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${

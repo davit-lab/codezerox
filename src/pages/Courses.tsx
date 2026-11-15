@@ -169,53 +169,15 @@ const Courses = () => {
       <main className="pt-36 pb-20 min-h-screen">
         <div className="container mx-auto px-4">
 
-          {/* Hero Section */}
-          <div className="text-center mb-16 relative">
-            {/* Background effects */}
-            <div className="absolute inset-0 -z-10">
-              <div className="absolute left-1/2 top-0 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-[120px] opacity-20" style={{ background: 'var(--gold)' }} />
-              <div className="absolute left-1/4 top-10 w-[200px] h-[200px] rounded-full blur-[80px] opacity-10" style={{ background: 'var(--amethyst)' }} />
-              <div className="absolute right-1/4 top-5 w-[150px] h-[150px] rounded-full blur-[60px] opacity-10" style={{ background: 'var(--sapphire)' }} />
-            </div>
-
-            <div className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full text-xs font-semibold tracking-widest uppercase mb-8 backdrop-blur-sm"
-              style={{ background: 'var(--gold-glow)', border: '1px solid var(--border-accent)', color: 'var(--gold-light)' }}>
-              <span className="material-symbols-rounded text-sm">school</span>
-              კიბერუსაფრთხოების კურსები
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 tracking-tight" style={{ color: 'var(--text-primary)' }}>
-              ისწავლე{' '}
-              <span className="relative inline-block">
-                <span style={{ color: 'var(--gold)' }}>კიბერუსაფრთხოება</span>
-                <svg className="absolute -bottom-2 left-0 w-full" viewBox="0 0 200 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M1 5.5C47.5 2 152.5 2 199 5.5" stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" opacity="0.4"/>
-                </svg>
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-10" style={{ color: 'var(--text-secondary)' }}>
-              თვიური გამოწერით მიიღე წვდომა პროფესიონალურ კურსებზე — თეორიული მასალა, პრაქტიკული სავარჯიშოები და სერტიფიკაცია
-            </p>
-
-            {/* Stats */}
-            <div className="flex items-center justify-center gap-8 flex-wrap">
-              <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-                <span className="material-symbols-rounded text-lg" style={{ color: 'var(--gold)' }}>school</span>
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{courses.length} კურსი</span>
-              </div>
-              <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-                <span className="material-symbols-rounded text-lg" style={{ color: 'var(--emerald)' }}>library_books</span>
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                  {courses.reduce((acc, c) => acc + c.total_chapters, 0)}+ თავი
-                </span>
-              </div>
-              <div className="flex items-center gap-2.5 px-5 py-3 rounded-2xl" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-subtle)' }}>
-                <span className="material-symbols-rounded text-lg" style={{ color: 'var(--sapphire)' }}>verified</span>
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>სერტიფიკატი</span>
-              </div>
-            </div>
-          </div>
+          <header className="page-head">
+            <h1 className="page-head__title">კიბერუსაფრთხოების კურსები</h1>
+            <p className="page-head__lead">თვიური გამოწერით მიიღე წვდომა ყველა კურსზე — თეორიული მასალა და პრაქტიკული სავარჯიშოები.</p>
+            {courses.length > 0 && (
+              <p className="page-head__meta">
+                {courses.length} კურსი · {courses.reduce((acc, c) => acc + c.total_chapters, 0)} თავი
+              </p>
+            )}
+          </header>
 
           {/* Course Grid */}
           {isLoading ? (

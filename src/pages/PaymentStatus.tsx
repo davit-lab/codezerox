@@ -59,24 +59,6 @@ const PaymentStatus = () => {
     if (txn?.status === 'completed') {
       qc.invalidateQueries({ queryKey: ['site_credits_balance'] });
       qc.invalidateQueries({ queryKey: ['site_credits_history'] });
-      qc.invalidateQueries({ queryKey: ['video-enrollment'] });
-      qc.invalidateQueries({ queryKey: ['video-enrollments-all'] });
-      // Auto-route video course purchases back to the course page
-      const videoCourseItem = ((txn.items || []) as any[]).find((i) => i?.type === 'video_course' && i?.course_id);
-      if (videoCourseItem) {
-        setTimeout(() => navigate(`/video-courses/${videoCourseItem.course_id}`, { replace: true }), 2000);
-      }
-      // Auto-route exam purchases back to the exam page for immediate start
-      const examItem = ((txn.items || []) as any[]).find((i) => i?.type === 'exam' && i?.exam_id);
-      if (examItem) {
-        (async () => {
-          const { data } = await (supabase as any)
-            .from('certification_exams').select('slug').eq('id', examItem.exam_id).maybeSingle();
-          if (data?.slug) {
-            setTimeout(() => navigate(`/exam/${data.slug}?paid=1`, { replace: true }), 1500);
-          }
-        })();
-      }
     }
   }, [txn?.status, qc, navigate]);
 
