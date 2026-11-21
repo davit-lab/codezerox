@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795293626549,
+      "tag": "0000_codelingo_progress_and_subscriptions",
+      "breakpoints": true
+    }
+  ]
+}

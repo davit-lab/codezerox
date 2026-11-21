@@ -803,6 +803,33 @@ export type Database = {
         }
         Relationships: []
       }
+      codelingo_subscriptions: {
+        Row: {
+          amount_gel: number
+          expires_at: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_gel?: number
+          expires_at: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_gel?: number
+          expires_at?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       community_messages: {
         Row: {
           channel: string
@@ -2570,6 +2597,27 @@ export type Database = {
           started_at?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      learner_state: {
+        Row: {
+          revision: number
+          state: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          revision?: number
+          state: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          revision?: number
+          state?: Json
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -4851,6 +4899,10 @@ export type Database = {
       }
       reject_call: { Args: { _call_id: string }; Returns: boolean }
       remove_friend: { Args: { _friendship_id: string }; Returns: boolean }
+      save_learner_state: {
+        Args: { expected_revision: number; new_state: Json }
+        Returns: number
+      }
       send_friend_request: {
         Args: { _target_user_id: string }
         Returns: string

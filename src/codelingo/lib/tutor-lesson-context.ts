@@ -1,0 +1,3 @@
+import {lessons} from './curriculum';
+import {skillLabs} from './skill-labs';
+export function tutorLessonContext(route:string){const match=route.match(/^(?:lesson|review)\/(\d+)$/)??route.match(/^theory\/core\/(\d+)$/);if(match){const lesson=lessons.find(l=>l.id===Number(match[1]));return lesson?{title:lesson.title,explanation:lesson.explanation,task:lesson.task}:null;}const skill=route.match(/^(?:skills|theory\/skill)\/(\d+)$/);if(skill){const lesson=skillLabs.find(l=>l.id===Number(skill[1]));return lesson?{title:lesson.title,explanation:lesson.explanation,task:lesson.task}:null;}return null;}

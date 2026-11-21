@@ -1,0 +1,8 @@
+import type {CodeFiles,Progress} from './types';
+export const isTheoryId=(key:string)=>/^(core\/(?:[1-9]|[1-3][0-9]|4[0-8])|skill\/(?:[1-9]|1[0-8])|deep\/(?:html|css|js)\/[a-z0-9-]+)$/.test(key);
+export function validTheoryDrafts(value:unknown):value is Record<string,CodeFiles>{if(!value||typeof value!=='object'||Array.isArray(value))return false;const entries=Object.entries(value);return entries.length<=88&&entries.every(([key,files])=>isTheoryId(key)&&files&&typeof files==='object'&&!Array.isArray(files)&&['html','css','js'].every(file=>typeof files[file]==='string'&&files[file].length<250000));}
+export function markTheoryMastered(p:Progress,id:string):Progress{if(!isTheoryId(id))return p;return {...p,theoryMastered:[...new Set([...(p.theoryMastered??[]),id])],updated:new Date().toISOString()};}
+export function setTheoryDraft(p:Progress,id:string,files:CodeFiles):Progress{if(!validTheoryDrafts({[id]:files}))throw new Error('თითო ფაილი 250 000 სიმბოლოზე ნაკლები უნდა იყოს.');const next={...p,theoryDrafts:{...p.theoryDrafts,[id]:{...files}}};if(JSON.stringify(next).length>3000000)throw new Error('პროგრესის ასლის ზომა 3 მბ-ს აღწევს. ჯერ კოდი ჩამოტვირთე ან სხვა საცდელი ნიმუში აღადგინე.');return next;}
+
+export function toggleTheoryBookmark(p:Progress,id:string):Progress{if(!isTheoryId(id))return p;const bookmarks=p.theoryBookmarks??[];return {...p,theoryBookmarks:bookmarks.includes(id)?bookmarks.filter(item=>item!==id):[...bookmarks,id],updated:new Date().toISOString()};}
+export function visitTheory(p:Progress,id:string):Progress{if(!isTheoryId(id)||p.theoryRecent?.[0]===id)return p;const recent=[id,...(p.theoryRecent??[]).filter(item=>item!==id)].slice(0,8);return {...p,theoryRecent:recent,updated:new Date().toISOString()};}
