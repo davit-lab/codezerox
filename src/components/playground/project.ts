@@ -494,7 +494,7 @@ export const buildZip = (files: ProjectFile[], folder: string): Blob => {
   end.setUint32(12, centralSize, true);
   end.setUint32(16, offset, true);
 
-  return new Blob([...chunks, ...central, new Uint8Array(end.buffer)], { type: "application/zip" });
+  return new Blob([...chunks, ...central, new Uint8Array(end.buffer)] as BlobPart[], { type: "application/zip" });
 };
 
 export const slugify = (s: string) =>
