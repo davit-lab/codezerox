@@ -8,6 +8,13 @@
       "when": 1795293626549,
       "tag": "0000_codelingo_progress_and_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795306109372,
+      "tag": "0001_codelingo_pro_price_row",
+      "breakpoints": true
     }
   ]
 }

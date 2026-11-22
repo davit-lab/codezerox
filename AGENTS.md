@@ -1,0 +1,2 @@
+- Codelingo (src/codelingo) is a separate Vite entry (codelingo-app.html) shown in an iframe at /codelingo — its global CSS must stay isolated from the main site; it shares the same auth client/session.
+- Codelingo Pro access comes only from codelingo_subscriptions (written by flitt-payment-callback); price is read server-side from pricing_config key codelingo_pro.

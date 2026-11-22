@@ -112,7 +112,14 @@ serve(async (req) => {
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
 
     if (action === "initiate") {
-      const { items, discount, site_credits_used, payment_type } = body;
+      const { discount, site_credits_used, payment_type } = body;
+      let items = body.items;
+      // Codelingo Pro: price always comes from the server-side pricing config
+      if (Array.isArray(items) && items.some((i: any) => i?.type === "codelingo_pro")) {
+        const { data: pc } = await admin.from("pricing_config").select("amount_gel").eq("key", "codelingo_pro").maybeSingle();
+        const price = Number(pc?.amount_gel) || 30;
+        items = [{ type: "codelingo_pro", title: "კოდელინგო Pro — 30 დღე", price }];
+      }
       let totalAmount = (items || []).reduce((s: number, i: any) => s + (i.price || 0), 0);
       const creditsUsed = Math.max(0, Number(site_credits_used) || 0);
       if (creditsUsed > 0) {

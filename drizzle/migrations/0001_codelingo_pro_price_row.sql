@@ -1,0 +1,1 @@
+INSERT INTO public.pricing_config(key,label,amount_gel,description) VALUES ('codelingo_pro','კოდელინგო Pro (თვიური)',30,'კოდელინგოს სრული წვდომა 30 დღით') ON CONFLICT (key) DO NOTHING;

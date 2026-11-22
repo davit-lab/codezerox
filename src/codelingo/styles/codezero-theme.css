@@ -1,0 +1,27 @@
+/* CodeZero brand layer: purple #5F13CA + gold, dark glass */
+:root,[data-theme=dark],[data-theme=light]{--bg:#09070f;--sidebar:#110c1c;--surface:rgba(255,255,255,.04);--surface-2:rgba(255,255,255,.07);--ink:#f1edf9;--muted:#b4aac8;--subtle:#8d82a3;--border:rgba(155,110,255,.18);--accent:#8b4dff;--accent-hover:#a06cff;--violet-soft:rgba(95,19,202,.22);--amber:#e8c26a;--amber-soft:rgba(232,194,106,.14);--code:#0f0b18;color-scheme:dark}
+body{background:radial-gradient(1200px 600px at 85% -10%,rgba(95,19,202,.28),transparent 60%),radial-gradient(800px 500px at -10% 110%,rgba(232,194,106,.08),transparent 60%),#09070f;font-family:'Noto Sans Georgian','DM Sans',system-ui,sans-serif}
+h1,h2,h3,h4{font-family:'Noto Sans Georgian','Manrope',sans-serif;line-height:1.35}
+.sidebar{background:rgba(17,12,28,.82);backdrop-filter:blur(18px);border-right:1px solid var(--border)}
+.button{background:linear-gradient(135deg,#5F13CA,#8b4dff);color:#fff;box-shadow:0 8px 24px rgba(95,19,202,.35)}
+.button:hover{color:#fff;filter:brightness(1.1)}
+.sidebar-upgrade,.pricing-big-card.featured{border:1px solid rgba(232,194,106,.45)!important;background:linear-gradient(160deg,rgba(95,19,202,.25),rgba(232,194,106,.06))!important}
+.upgrade-badge,.sidebar-upgrade strong{color:#e8c26a}
+.pricing-big-card,.settings-card,.learning-panel{background:rgba(255,255,255,.04);backdrop-filter:blur(14px);border:1px solid var(--border)}
+.codelingo-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100dvh;text-align:center;padding:24px;gap:14px}
+.codelingo-gate h1{font-size:24px;max-width:520px}.codelingo-gate p{color:var(--muted);max-width:460px}
+
+/* dark glass replacements for light card backgrounds */
+.button.light,
+.desk-address,
+.desk-file,
+.desk-file-content pre,
+.hero-pill,
+.iframe-wrap iframe,
+.next-build-icon,
+.unit-meter>i>b,
+.upgrade-plan,
+[data-theme=dark] .next-build-icon{background:rgba(22,15,36,.92)!important;color:var(--ink)}
+.upgrade-modal{background:linear-gradient(180deg,rgba(28,18,48,.97),rgba(14,9,26,.98))!important;border:1px solid rgba(232,194,106,.35)!important;box-shadow:0 30px 80px rgba(95,19,202,.45)}
+.upgrade-badge{background:rgba(232,194,106,.14)!important}
+.upgrade-plan.pro{border-color:rgba(232,194,106,.5)!important}

@@ -16,6 +16,7 @@ import Profile from "./pages/Profile";
 import MyBooks from "./pages/MyBooks";
 import BookReader from "./pages/BookReader";
 import Playground from "./pages/Playground";
+import Codelingo from "./pages/Codelingo";
 import CodePreview from "./pages/CodePreview";
 import MyProjects from "./pages/MyProjects";
 import PublicGallery from "./pages/PublicGallery";
@@ -80,6 +81,7 @@ const App = () => {
             <Route path="/my-books" element={<MyBooks />} />
             <Route path="/read/:id" element={<BookReader />} />
             <Route path="/playground" element={<Playground />} />
+            <Route path="/codelingo" element={<Codelingo />} />
             <Route path="/code/:id" element={<CodePreview />} />
             <Route path="/my-projects" element={<MyProjects />} />
             <Route path="/gallery" element={<PublicGallery />} />

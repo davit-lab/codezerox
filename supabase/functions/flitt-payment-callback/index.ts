@@ -143,6 +143,19 @@ serve(async (req) => {
           // Nothing extra to grant server-side — bank_transactions completion is the proof.
         } else if (t === "project_upload") {
           // Same — client uploads project after returning from payment.
+        } else if (t === "codelingo_pro") {
+          const now = new Date();
+          const { data: existing } = await admin.from("codelingo_subscriptions").select("expires_at").eq("user_id", txn.user_id).maybeSingle();
+          const base = existing && new Date(existing.expires_at) > now ? new Date(existing.expires_at) : now;
+          const expires = new Date(base); expires.setDate(expires.getDate() + 30);
+          await admin.from("codelingo_subscriptions").upsert({
+            user_id: txn.user_id, status: "active", started_at: now.toISOString(),
+            expires_at: expires.toISOString(), amount_gel: item.price || 0, updated_at: now.toISOString(),
+          }, { onConflict: "user_id" });
+          await admin.from("notifications").insert({
+            user_id: txn.user_id, title: "კოდელინგო Pro გააქტიურდა",
+            body: `Pro წვდომა აქტიურია ${expires.toLocaleDateString('ka-GE')}-მდე.`, type: "success", link: "/codelingo",
+          });
         } else if (t === "freelancer_subscription") {
           const now = new Date();
           const expires = new Date(now); expires.setDate(expires.getDate() + 30);
