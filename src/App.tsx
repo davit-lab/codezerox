@@ -57,6 +57,7 @@ import AdminActivity from "./pages/AdminActivity";
 
 import NotFound from "./pages/NotFound";
 import AdminPricing from "./pages/AdminPricing";
+import AdminCodelingo from "./pages/AdminCodelingo";
 import AdminCredits from "./pages/AdminCredits";
 import PaymentStatus from "./pages/PaymentStatus";
 
@@ -121,6 +122,7 @@ const App = () => {
             <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/user/:userId" element={<UserProfile />} />
             <Route path="/admin/pricing" element={<AdminPricing />} />
+            <Route path="/admin/codelingo" element={<AdminCodelingo />} />
             <Route path="/admin/credits" element={<AdminCredits />} />
             <Route path="/payment-status" element={<PaymentStatus />} />
             <Route path="/payment/status" element={<PaymentStatus />} />

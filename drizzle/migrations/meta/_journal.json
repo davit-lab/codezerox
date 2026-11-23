@@ -15,6 +15,13 @@
       "when": 1795306109372,
       "tag": "0001_codelingo_pro_price_row",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795459661517,
+      "tag": "0002_codelingo_admin",
+      "breakpoints": true
     }
   ]
 }

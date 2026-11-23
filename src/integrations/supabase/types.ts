@@ -4707,6 +4707,19 @@ export type Database = {
         Args: { _amount: number; _reason?: string; _user_id: string }
         Returns: undefined
       }
+      admin_codelingo_overview: {
+        Args: never
+        Returns: {
+          email: string
+          full_name: string
+          last_active: string
+          learner_name: string
+          lessons_done: number
+          pro_expires: string
+          pro_status: string
+          user_id: string
+        }[]
+      }
       admin_get_user_email: { Args: { _user_id: string }; Returns: string }
       admin_grant_site_credits: {
         Args: {
@@ -4727,6 +4740,10 @@ export type Database = {
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }[]
+      }
+      admin_set_codelingo_pro: {
+        Args: { _days: number; _user_id: string }
+        Returns: undefined
       }
       answer_call: { Args: { _call_id: string }; Returns: boolean }
       award_xp: {

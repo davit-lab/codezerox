@@ -40,6 +40,7 @@ const menuGroups: { title: string; items: MenuItem[] }[] = [
       { path: "/admin/payments", icon: "account_balance", label: "გადახდები" },
       { path: "/admin/manual-payments", icon: "link", label: "Manual Payment ბმულები" },
       { path: "/admin/pricing", icon: "payments", label: "ფასები" },
+      { path: "/admin/codelingo", icon: "school", label: "კოდელინგო" },
       { path: "/admin/bundles", icon: "sell", label: "ფასდაკლებები" },
       { path: "/admin/promo-codes", icon: "loyalty", label: "პრომო კოდები" },
       { path: "/admin/credits", icon: "account_balance_wallet", label: "კრედიტები" },
