@@ -12,7 +12,7 @@ if (!supabaseAnonKey) {
   );
 }
 
-const fetchWithTimeout: typeof fetch = async (input, init = {}) => {
+const fetchWithTimeout: typeof fetch = async (input, init: RequestInit = {}) => {
   const controller = new AbortController();
   const requestSignal = init.signal ?? (input instanceof Request ? input.signal : undefined);
   const forwardAbort = () => controller.abort();
