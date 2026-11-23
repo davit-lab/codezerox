@@ -28,6 +28,6 @@ const authored:Array<Omit<SkillLab,'id'|'starter'|'solution'|'review'>&{html:str
 ];
 export const skillLabs:SkillLab[]=authored.map((row,index)=>({id:index+1,...row,checks:[...row.checks,...strongerChecks(index+1)],starter:{html:row.html,css:row.css??base,js:row.js??'// აქ დაწერე შენი გადაწყვეტა.'},solution:{html:row.html,css:row.css??base,js:row.js??'',...row.answer},review:'შედეგი გადავამოწმე და შემიძლია ავხსნა: '+row.title+'. იგივე მიდგომას სხვა შინაარსზეც გამოვიყენებ.'}));
 export const labKey=(id:number)=>'lab:v1:'+id;
-export function labCanOpen(id:number,p:Progress){const seq=Number.isInteger(id)&&id>=1&&id<=skillLabs.length&&(id===1||!!p.studio?.completed.includes(labKey(id-1))||!!p.studio?.completed.includes(labKey(id))); return seq && (isPro(p)||id<=FREE_PER_SECTION||!!p.studio?.completed.includes(labKey(id)));}
-export function isLabLockedByPlan(id:number,p:Progress){return Number.isInteger(id)&&id>FREE_PER_SECTION&&!isPro(p)&&!p.studio?.completed.includes(labKey(id));}
+export function labCanOpen(id:number,p:Progress){const valid=Number.isInteger(id)&&id>=1&&id<=skillLabs.length; return valid && (isPro(p)||id<=FREE_PER_SECTION);}
+export function isLabLockedByPlan(id:number,p:Progress){return Number.isInteger(id)&&id>FREE_PER_SECTION&&!isPro(p);}
 export function finishLab(p:Progress,id:number,now=new Date()):Progress{const key=labKey(id);if(!labCanOpen(id,p)||p.studio?.completed.includes(key))return p;const studio=p.studio??emptyStudio();const day=dayKey(now,p.profile.timezone);return {...p,studio:{...studio,completed:[...studio.completed,key],activity:{...studio.activity,[day]:[...(studio.activity[day]??[]),key]}},updated:now.toISOString()};}

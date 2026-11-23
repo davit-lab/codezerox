@@ -15,8 +15,8 @@ export const emptyCyberCourse=():CyberCourseProgress=>({completed:[],attempts:[]
 export const KEY = 'codezero:progress:v1';
 export const initialProgress = ():Progress => ({version:1,curriculum:'2026.1',profile:{name:'',experience:'brand-new',goal:'personal',minutes:10,timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',theme:'light',reducedMotion:false,fontSize:16,onboarded:false,learning:{...defaultLearning},plan:defaultPlan()},studio:emptyStudio(),cyber:emptyCyber(),cyberCourse:emptyCyberCourse(),completed:[],attempts:[],daily:{},reviews:[],drafts:{},project:{},milestones:[],updated:new Date().toISOString()});
 export function dayKey(date:Date,timezone:string){return new Intl.DateTimeFormat('en-CA',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit'}).format(date);}
-export function canOpen(id:number,p:Progress){const seq=Number.isInteger(id)&&id>=1&&id<=lessons.length&&(id===1||p.completed.includes(id-1)||p.completed.includes(id)); return seq && (isPro(p)||id<=FREE_PER_SECTION||p.completed.includes(id));}
-export function isLessonLockedByPlan(id:number,p:Progress){return Number.isInteger(id)&&id>FREE_PER_SECTION&&!isPro(p)&&!p.completed.includes(id);}
+export function canOpen(id:number,p:Progress){const valid=Number.isInteger(id)&&id>=1&&id<=lessons.length; return valid && (isPro(p)||id<=FREE_PER_SECTION);}
+export function isLessonLockedByPlan(id:number,p:Progress){return Number.isInteger(id)&&id>FREE_PER_SECTION&&!isPro(p);}
 export function cyberCourseXp(p:Progress){return new Set(p.cyberCourse?.completed??[]).size*15;}
 export function xp(p:Progress){return new Set(p.completed).size*30+new Set(p.studio?.completed??[]).size*20+(p.cyber?.completed.length??0)*15+(p.cyber?.simulations.length??0)*25+(p.cyber?.terminalDone?30:0)+cyberCourseXp(p);}
 export function complete(p:Progress,id:number,now=new Date()):Progress{
