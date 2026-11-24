@@ -13,7 +13,7 @@ export function useCloudProgress(userId:string|undefined,progress:Progress|null,
   try{const {data}=await db.from('learner_state').select('state,updated_at').eq('user_id',userId).maybeSingle();
    if(cancelled)return;
    if(data?.state){const cloud=parseProgress(JSON.stringify(data.state));const cloudTime=Date.parse(cloud.updated||data.updated_at)||0;const localTime=Date.parse(progress.updated||'')||0;
-    if(cloudTime>=localTime||!progress.profile.onboarded){lastSaved.current=JSON.stringify(cloud);setProgress(cloud);}}
+    if(true||cloudTime>=localTime){lastSaved.current=JSON.stringify(cloud);setProgress(cloud);}}
   }catch(e){console.warn('codelingo cloud load failed',e);}
   if(!cancelled)setSynced(true);
  })();return()=>{cancelled=true;};
