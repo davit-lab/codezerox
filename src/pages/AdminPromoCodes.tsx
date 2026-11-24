@@ -32,6 +32,24 @@ const AdminPromoCodes = () => {
     enabled: !!isAdmin,
   });
 
+  const { data: redemptions = [] } = useQuery({
+    queryKey: ["admin-promo-redemptions"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any).from("promo_code_redemptions").select("*").order("created_at", { ascending: false }).limit(200);
+      if (error) throw error;
+      const ids = [...new Set((data || []).map((r: any) => r.user_id).filter(Boolean))];
+      const { data: users } = await (supabase as any).rpc("admin_list_users");
+      const map = new Map((users || []).map((u: any) => [u.user_id, u.email || u.full_name]));
+      return (data || []).map((r: any) => ({ ...r, who: map.get(r.user_id) || (ids.length ? "—" : "—") }));
+    },
+    enabled: !!isAdmin,
+  });
+
+  const generateCode = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    setCode("CZ" + Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join(""));
+  };
+
   const createMutation = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from("promo_codes").insert({
@@ -86,12 +104,12 @@ const AdminPromoCodes = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-sm text-muted-foreground mb-1 block">კოდი</label>
-                      <input
+                      <div className="flex gap-2"><input
                         value={code}
                         onChange={(e) => setCode(e.target.value.toUpperCase())}
                         placeholder="SALE50"
-                        className="w-full h-11 px-3 rounded-lg border border-border/50 bg-muted/20 text-foreground font-mono uppercase text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                      />
+                        className="flex-1 min-w-0 h-11 px-3 rounded-lg border border-border/50 bg-muted/20 text-foreground font-mono uppercase text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                      /><button type="button" onClick={generateCode} className="btn btn-ghost">გენერაცია</button></div>
                     </div>
                     <div>
                       <label className="text-sm text-muted-foreground mb-1 block">ფასდაკლების ტიპი</label>
@@ -101,7 +119,7 @@ const AdminPromoCodes = () => {
                         className="w-full h-11 px-3 rounded-lg border border-border/50 bg-muted/20 text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                       >
                         <option value="percentage">პროცენტული (%)</option>
-                        <option value="fixed">ფიქსირებული ($)</option>
+                        <option value="fixed">ფიქსირებული (₾)</option>
                       </select>
                     </div>
                     <div>
@@ -167,7 +185,7 @@ const AdminPromoCodes = () => {
                             </button>
                           </div>
                           <div className="text-sm text-muted-foreground flex flex-wrap gap-x-3 gap-y-1">
-                            <span>{promo.discount_type === 'percentage' ? `${promo.discount_value}%` : `$${promo.discount_value}`} ფასდაკლება</span>
+                            <span>{promo.discount_type === 'percentage' ? `${promo.discount_value}%` : `${promo.discount_value} ₾`} ფასდაკლება</span>
                             <span>გამოყენება: {promo.current_uses}{promo.max_uses ? `/${promo.max_uses}` : ''}</span>
                             {promo.expires_at && <span>ვადა: {new Date(promo.expires_at).toLocaleDateString('ka-GE')}</span>}
                           </div>
@@ -190,6 +208,30 @@ const AdminPromoCodes = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+
+              <h2 className="text-lg font-semibold mt-10 mb-3">გამოყენების ისტორია</h2>
+              {redemptions.length === 0 ? (
+                <p className="text-muted-foreground text-sm">ჯერ არცერთი კოდი არ გამოუყენებიათ</p>
+              ) : (
+                <div className="bg-card/80 border border-border/30 rounded-xl overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="text-muted-foreground text-left">
+                      <tr><th className="p-3">კოდი</th><th className="p-3">მომხმარებელი</th><th className="p-3">დაზოგა</th><th className="p-3">შეკვეთა</th><th className="p-3">თარიღი</th></tr>
+                    </thead>
+                    <tbody>
+                      {redemptions.map((r: any) => (
+                        <tr key={r.id} className="border-t border-border/20">
+                          <td className="p-3 font-mono">{r.code}</td>
+                          <td className="p-3">{r.who}</td>
+                          <td className="p-3">{Number(r.discount_amount).toFixed(2)} ₾</td>
+                          <td className="p-3">{r.order_total != null ? `${Number(r.order_total).toFixed(2)} ₾` : "—"}</td>
+                          <td className="p-3">{new Date(r.created_at).toLocaleString("ka-GE")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
     </AdminLayout>

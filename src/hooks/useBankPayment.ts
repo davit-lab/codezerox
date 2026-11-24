@@ -45,12 +45,13 @@ export function useBankPayment() {
     discount?: number,
     siteCreditsUsed?: number,
     paymentType?: string,
+    promoCode?: string,
   ) => {
     setProcessing(true);
     try {
       const fnName = provider === "flitt" ? "flitt-payment" : "bank-payment";
       const payload = provider === "flitt"
-        ? { action: "initiate", items, discount, site_credits_used: siteCreditsUsed, payment_type: paymentType }
+        ? { action: "initiate", items, discount, site_credits_used: siteCreditsUsed, payment_type: paymentType, promo_code: promoCode }
         : { action: "initiate", provider, items, discount, site_credits_used: siteCreditsUsed };
 
       const { data, error } = await supabase.functions.invoke(fnName, { body: payload });

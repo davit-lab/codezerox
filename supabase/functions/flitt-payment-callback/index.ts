@@ -82,6 +82,10 @@ serve(async (req) => {
     if (finalStatus === "completed" && !wasCompleted && txn.items) {
       for (const item of txn.items as any[]) {
         const t = item.type;
+        if (t === "promo_code" && item.code) {
+          await admin.rpc("redeem_promo_code", { _code: item.code, _user_id: txn.user_id, _discount: Number(item.amount || 0), _total: Number(item.order_total || 0), _ref: transactionId });
+          continue;
+        }
         if (t === "site_credits" && Number(item.amount || 0) > 0) {
           await admin.from("site_credits_wallet").upsert({
             user_id: txn.user_id,

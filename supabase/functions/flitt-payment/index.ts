@@ -112,7 +112,7 @@ serve(async (req) => {
     if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
 
     if (action === "initiate") {
-      const { discount, site_credits_used, payment_type } = body;
+      const { discount, site_credits_used, payment_type, promo_code } = body;
       let items = body.items;
       // Codelingo Pro: price always comes from the server-side pricing config
       if (Array.isArray(items) && items.some((i: any) => i?.type === "codelingo_pro")) {
@@ -155,18 +155,30 @@ serve(async (req) => {
       }
 
       if (discount && discount > 0) totalAmount = Math.max(0, totalAmount - discount);
+      let promoItem: any = null;
+      if (promo_code && typeof promo_code === "string") {
+        const { data: pr } = await admin.rpc("validate_promo_code", { _code: promo_code });
+        const row = Array.isArray(pr) ? pr[0] : pr;
+        if (!row) return new Response(JSON.stringify({ error: "პრომოკოდი არასწორია ან ვადაგასულია" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        const base = totalAmount;
+        const off = row.discount_type === "percentage" ? Math.round(base * Number(row.discount_value)) / 100 : Math.min(Number(row.discount_value), base);
+        totalAmount = Math.max(0, base - off);
+        promoItem = { type: "promo_code", code: row.code, amount: off, order_total: base };
+      }
       if (creditsUsed > 0) totalAmount = Math.max(0, totalAmount - creditsUsed);
       if (totalAmount <= 0) return new Response(JSON.stringify({ error: "Invalid amount" }), { status: 400, headers: corsHeaders });
 
       const settings = await getSettings(admin);
 
-      const txnItems = creditsUsed > 0
-        ? [...(items || []), { type: "site_credits", amount: creditsUsed }]
-        : items;
+      const txnItems = [
+        ...(items || []),
+        ...(creditsUsed > 0 ? [{ type: "site_credits", amount: creditsUsed }] : []),
+        ...(promoItem ? [promoItem] : []),
+      ];
 
       const { data: txn, error: txnErr } = await admin.from("bank_transactions").insert({
         user_id: user.id, provider: "flitt", amount: totalAmount, currency: "GEL",
-        status: "pending", items: txnItems, discount_amount: (discount || 0) + creditsUsed,
+        status: "pending", items: txnItems, discount_amount: (discount || 0) + creditsUsed + (promoItem?.amount || 0),
       }).select("id").single();
       if (txnErr || !txn) throw new Error("ტრანზაქცია ვერ შეიქმნა");
 

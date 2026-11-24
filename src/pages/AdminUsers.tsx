@@ -82,6 +82,27 @@ const AdminUsers = () => {
     }
   };
 
+  const adminWallet = async (userId: string) => {
+    const v = prompt("რამდენი ლარი? (უარყოფითი რიცხვი = ჩამოჭრა)", "10");
+    const n = Number(v);
+    if (!v || !n) return;
+    const { data, error } = await (supabase as any).rpc('admin_grant_site_credits', { _user_id: userId, _amount: n, _reason: 'ადმინის ცვლილება', _type: n > 0 ? 'admin_grant' : 'admin_deduct' });
+    if (error) toast.error(error.message); else toast.success(`ახალი ბალანსი: ${Number(data).toFixed(2)} ₾`);
+  };
+
+  const adminCodelingo = async (userId: string) => {
+    const v = prompt("კოდელინგო Pro — რამდენი დღე? (0 = გაუქმება)", "30");
+    if (v === null) return;
+    const { error } = await (supabase as any).rpc('admin_set_codelingo_pro', { _user_id: userId, _days: Number(v) || 0 });
+    if (error) toast.error(error.message); else toast.success(Number(v) > 0 ? `Pro მიენიჭა ${v} დღით` : 'Pro გაუქმდა');
+  };
+
+  const adminBan = async (userId: string) => {
+    const ban = confirm("OK = დაბლოკვა, Cancel = განბლოკვა");
+    const { error } = await (supabase as any).rpc('admin_set_ban', { _user_id: userId, _banned: ban });
+    if (error) toast.error(error.message); else toast.success(ban ? 'მომხმარებელი დაიბლოკა' : 'მომხმარებელი განიბლოკა');
+  };
+
   const openCreditsModal = (u: typeof users[0]) => {
     setSelectedUser({ userId: u.user_id, email: u.email, fullName: u.full_name });
     setModalType('credits');
@@ -321,6 +342,17 @@ const AdminUsers = () => {
                               >
                                 <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>key</span>
                               </button>
+                              <button className="btn btn-sm btn-ghost" title="ბალანსის (₾) ჩარიცხვა / ჩამოჭრა" onClick={() => adminWallet(u.user_id)}>
+                                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>account_balance_wallet</span>
+                              </button>
+                              <button className="btn btn-sm btn-ghost" title="კოდელინგო Pro (დღეები)" onClick={() => adminCodelingo(u.user_id)}>
+                                <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>workspace_premium</span>
+                              </button>
+                              {u.user_id !== user.id && (
+                                <button className="btn btn-sm btn-ghost" title="დაბლოკვა / განბლოკვა" onClick={() => adminBan(u.user_id)}>
+                                  <span className="material-symbols-rounded" style={{ fontSize: '18px' }}>block</span>
+                                </button>
+                              )}
                               <select
                                 value={u.role}
                                 onChange={(e) => handleRoleChange(u.user_id, e.target.value as AppRole)}

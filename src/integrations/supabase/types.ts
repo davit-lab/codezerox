@@ -3740,6 +3740,7 @@ export type Database = {
           full_name: string | null
           github_url: string | null
           id: string
+          is_banned: boolean
           location: string | null
           skills: string[] | null
           updated_at: string
@@ -3756,6 +3757,7 @@ export type Database = {
           full_name?: string | null
           github_url?: string | null
           id?: string
+          is_banned?: boolean
           location?: string | null
           skills?: string[] | null
           updated_at?: string
@@ -3772,11 +3774,42 @@ export type Database = {
           full_name?: string | null
           github_url?: string | null
           id?: string
+          is_banned?: boolean
           location?: string | null
           skills?: string[] | null
           updated_at?: string
           user_id?: string
           website_url?: string | null
+        }
+        Relationships: []
+      }
+      promo_code_redemptions: {
+        Row: {
+          code: string
+          created_at: string
+          discount_amount: number
+          id: string
+          order_total: number | null
+          ref_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_total?: number | null
+          ref_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          discount_amount?: number
+          id?: string
+          order_total?: number | null
+          ref_id?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -3918,6 +3951,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_announcement: {
+        Row: {
+          id: number
+          is_active: boolean
+          link_url: string | null
+          message: string
+          updated_at: string
+        }
+        Insert: {
+          id?: number
+          is_active?: boolean
+          link_url?: string | null
+          message?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: number
+          is_active?: boolean
+          link_url?: string | null
+          message?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       site_credits_transactions: {
         Row: {
@@ -4741,8 +4798,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_set_ban: {
+        Args: { _banned: boolean; _user_id: string }
+        Returns: undefined
+      }
       admin_set_codelingo_pro: {
         Args: { _days: number; _user_id: string }
+        Returns: undefined
+      }
+      admin_set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
         Returns: undefined
       }
       answer_call: { Args: { _call_id: string }; Returns: boolean }
@@ -4881,6 +4949,7 @@ export type Database = {
         }
         Returns: string
       }
+      is_banned: { Args: { _user_id: string }; Returns: boolean }
       is_course_mentor: {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean
@@ -4913,6 +4982,16 @@ export type Database = {
       reconcile_transaction_credits: {
         Args: { _txn_id: string }
         Returns: Json
+      }
+      redeem_promo_code: {
+        Args: {
+          _code: string
+          _discount: number
+          _ref: string
+          _total: number
+          _user_id: string
+        }
+        Returns: boolean
       }
       reject_call: { Args: { _call_id: string }; Returns: boolean }
       remove_friend: { Args: { _friendship_id: string }; Returns: boolean }

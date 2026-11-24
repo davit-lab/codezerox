@@ -139,8 +139,10 @@ const Checkout = () => {
       await initiatePayment(
         provider,
         paymentItems,
-        discountAmount || undefined,
+        bundleDiscount || undefined,
         useSiteCredits ? siteCreditsAmount : undefined,
+        undefined,
+        promoDiscount?.code,
       );
       // User will be redirected to bank payment page
     } catch (err: any) {
@@ -172,6 +174,9 @@ const Checkout = () => {
         for (const item of creditItems) { await purchaseCredits.mutateAsync(item.package.id); }
       }
       for (const item of courseItems) { try { await createSubscription.mutateAsync({ courseId: item.course.id, months: 1 }); } catch (e: any) { if (!e.message?.includes("duplicate")) throw e; } }
+      if (promoDiscount) {
+        await (supabase as any).rpc('redeem_promo_code', { _code: promoDiscount.code, _user_id: user!.id, _discount: promoDiscountAmount, _total: total - bundleDiscount, _ref: `free_${user!.id}_${Date.now()}` });
+      }
       clearCart();
       toast.success("შეძენა წარმატებით დასრულდა!");
       navigate("/my-books");
