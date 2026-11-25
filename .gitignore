@@ -27,3 +27,18 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Local tooling artifacts and one-off migration scripts with credentials/PII
+__pycache__/
+*.pyc
+supabase/.temp/
+fix_wrong_pdfs.py
+migrate_pdfs.py
+migrate_users.py
+restore_pdfs.py
+restore_profiles.py
+deploy_ai_tutor.py
+deploy_ai_tutor_openai.py
+scripts/check-missing-users.ts
+scripts/check-supabase.js
+scripts/import-users-from-csv.ts

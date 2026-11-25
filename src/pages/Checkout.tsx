@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Atmosphere from "@/components/layout/Atmosphere";
 import Header from "@/components/layout/Header";
@@ -15,9 +15,9 @@ import SiteCreditsWidget from '@/components/credits/SiteCreditsWidget';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  ArrowLeft, Lock, BookOpen, Coins, ShieldCheck,
+  ArrowLeft, ArrowRight, Lock, BookOpen, Coins, ShieldCheck,
   GraduationCap, CheckCircle, CreditCard, Loader2, Tag, X,
-  Sparkles, ChevronRight, Package, ChevronDown, Building2, Percent, Gift
+  Sparkles, ChevronRight, Package, Building2, Percent, Gift
 } from "lucide-react";
 import { useActiveBundles, calculateBundleDiscount } from "@/hooks/useBookBundles";
 
@@ -46,9 +46,32 @@ const Checkout = () => {
   const [promoLoading, setPromoLoading] = useState(false);
   const [promoDiscount, setPromoDiscount] = useState<PromoDiscount | null>(null);
   const [promoError, setPromoError] = useState<string | null>(null);
-  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoOpen, setPromoOpen] = useState(true);
+  const promoInputRef = useRef<HTMLInputElement>(null);
   const [useSiteCredits, setUseSiteCredits] = useState(false); // Temporarily disabled
   const [siteCreditsAmount, setSiteCreditsAmount] = useState(0); // Temporarily disabled
+
+  const dismissPromo = useCallback(() => {
+    setPromoOpen(false);
+    setPromoInput("");
+    setPromoError(null);
+  }, []);
+
+  const openPromo = useCallback(() => setPromoOpen(true), []);
+
+  useEffect(() => {
+    if (!promoOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") dismissPromo(); };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    const focusTimer = window.setTimeout(() => promoInputRef.current?.focus(), 40);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      window.clearTimeout(focusTimer);
+    };
+  }, [promoOpen, dismissPromo]);
 
 
   const { data: activeBundles = [] } = useActiveBundles();
@@ -95,7 +118,10 @@ const Checkout = () => {
     } catch { setPromoError("შეცდომა"); } finally { setPromoLoading(false); }
   };
 
-  const removePromo = () => { setPromoDiscount(null); setPromoError(null); };
+  const removePromo = () => {
+    setPromoDiscount(null);
+    setPromoError(null);
+  };
 
   const handleBankPayment = async (provider: BankProvider) => {
     try {
@@ -471,56 +497,85 @@ const Checkout = () => {
               </div>
 
               {/* Promo code */}
-              {hasPaidItems && (
-                <div className="bg-card border border-border rounded-2xl overflow-hidden">
-                  {promoDiscount ? (
-                    <div className="px-5 py-4 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4 text-emerald-400" />
-                        <span className="font-mono text-sm font-semibold text-emerald-400">{promoDiscount.code}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({promoDiscount.type === 'percentage' ? `${promoDiscount.value}%` : `${promoDiscount.value} ₾`})
-                        </span>
-                      </div>
-                      <button onClick={removePromo} className="text-muted-foreground hover:text-destructive transition-colors p-1">
-                        <X className="w-4 h-4" />
-                      </button>
+              {hasPaidItems && promoDiscount && (
+                <div className="checkout-promo checkout-promo--applied">
+                  <div className="checkout-promo-stub">
+                    <span className="checkout-promo-kicker">კუპონი</span>
+                    <div className="checkout-promo-stub-line">
+                      <span className="checkout-promo-code">{promoDiscount.code}</span>
+                      <span className="checkout-promo-saving">
+                        {promoDiscount.type === 'percentage' ? `${promoDiscount.value}%` : `${promoDiscount.value} ₾`} ფასდაკლება
+                      </span>
                     </div>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => setPromoOpen(!promoOpen)}
-                        className="w-full px-5 py-3.5 flex items-center justify-between text-sm hover:bg-muted/10 transition-colors"
-                      >
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                          <Tag className="w-4 h-4" />
-                          პრომოკოდი გაქვთ?
-                        </span>
-                        <ChevronDown className={`w-4 h-4 text-muted-foreground/50 transition-transform ${promoOpen ? 'rotate-180' : ''}`} />
+                  </div>
+                  <button onClick={removePromo} className="checkout-promo-close" aria-label="პრომოკოდის გაუქმება" title="არ გამოვიყენო">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {hasPaidItems && !promoDiscount && promoOpen && (
+                <div className="checkout-promo-overlay" onClick={dismissPromo}>
+                  <div
+                    className="checkout-promo-dialog"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="checkout-promo-title"
+                    aria-describedby="checkout-promo-lede"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <div className="checkout-promo-stub-panel" aria-hidden="true">
+                      <span className="checkout-promo-seal">CZ</span>
+                      <div className="checkout-promo-stub-number">
+                        <span>01</span>
+                        <span>კუპონი</span>
+                      </div>
+                      <span className="checkout-promo-barcode" />
+                    </div>
+                    <div className="checkout-promo-dialog-body">
+                      <button onClick={dismissPromo} className="checkout-promo-dismiss" aria-label="პრომოკოდის დახურვა">
+                        <span>არ გამოვიყენო</span>
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                      {promoOpen && (
-                        <div className="px-5 pb-4 pt-1">
-                          <div className="flex gap-2">
+                      <div className="checkout-promo-copy">
+                        <span className="checkout-promo-kicker">პრომო კოდი</span>
+                        <h2 id="checkout-promo-title">გაქვთ პრომოკოდი?</h2>
+                        <p id="checkout-promo-lede" className="checkout-promo-dialog-lede">შეიყვანეთ კოდი — ფასდაკლება ჯამში მაშინვე გამოჩნდება.</p>
+                      </div>
+                      <form className="checkout-promo-form checkout-promo-form--modal" onSubmit={(event) => { event.preventDefault(); void applyPromoCode(); }}>
+                        <label className="checkout-promo-field checkout-promo-field--modal">
+                          <span className="checkout-promo-field-label">კოდი</span>
+                          <span className="checkout-promo-input-row">
+                            <Tag className="w-4 h-4" aria-hidden="true" />
                             <input
+                              ref={promoInputRef}
                               type="text" value={promoInput}
                               onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
-                              onKeyDown={(e) => e.key === 'Enter' && applyPromoCode()}
-                              placeholder="კოდი"
-                              className="flex-1 h-10 px-3 rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/15 text-sm font-mono tracking-wider uppercase"
+                              placeholder="CODEZERO10"
+                              aria-label="პრომოკოდი"
+                              autoComplete="off"
+                              spellCheck={false}
+                              className="checkout-promo-input"
                             />
-                            <button
-                              onClick={applyPromoCode} disabled={promoLoading || !promoInput.trim()}
-                              className="h-10 px-4 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm"
-                            >
-                              {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "OK"}
-                            </button>
-                          </div>
-                          {promoError && <p className="text-destructive text-xs mt-2">{promoError}</p>}
-                        </div>
-                      )}
-                    </>
-                  )}
+                          </span>
+                        </label>
+                        <button type="submit" disabled={promoLoading || !promoInput.trim()} className="checkout-promo-submit checkout-promo-submit--modal">
+                          <span>{promoLoading ? "მოწმდება..." : "კოდის გამოყენება"}</span>
+                          {promoLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
+                        </button>
+                      </form>
+                      {promoError && <p className="checkout-promo-error" role="alert">{promoError}</p>}
+                      <p className="checkout-promo-dialog-note">ერთი კოდი · გადახდამდე</p>
+                    </div>
+                  </div>
                 </div>
+              )}
+
+              {hasPaidItems && !promoDiscount && !promoOpen && (
+                <button onClick={openPromo} className="checkout-promo checkout-promo--collapsed">
+                  <span className="checkout-promo-collapsed-label"><Tag className="w-3.5 h-3.5" /> პრომოკოდი გაქვთ?</span>
+                  <span className="checkout-promo-collapsed-action">დამატება <ChevronRight className="w-3.5 h-3.5" /></span>
+                </button>
               )}
             </div>
           </div>
